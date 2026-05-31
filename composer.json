@@ -1,13 +1,15 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "yuri97/my-website",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "A blog about tips, news, and useful tools.",
     "keywords": [
-        "laravel",
-        "framework"
+        "blog",
+        "tools",
+        "news",
+        "tips"
     ],
-    "license": "MIT",
+    "license": "Proprietary",
     "require": {
         "php": "^8.3",
         "laravel/framework": "^13.8",
