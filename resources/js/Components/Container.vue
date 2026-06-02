@@ -2,7 +2,13 @@
     <v-app>
         <v-app-bar elevation="0" class="border-b">
             <v-container class="d-flex align-center py-0 h-100">
-                <v-app-bar-title>
+                <v-app-bar-title
+                    tag="a"
+                    class="d-flex align-center fill-height"
+                    style="flex: unset"
+                    :href="route('home')"
+                    @click="goTo"
+                >
                     <v-icon icon="mdi-brain"></v-icon>
                     {{ appName }}
                 </v-app-bar-title>
@@ -41,6 +47,8 @@
 
     import { usePage } from "@inertiajs/vue3";
     import { useTheme, useDisplay } from "vuetify";
+
+    import { goTo } from "@/Utils/Common";
 
     const page = usePage();
     const theme = useTheme();
