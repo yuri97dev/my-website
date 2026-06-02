@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import inertia from "@inertiajs/vite";
 import laravel from "laravel-vite-plugin";
 import vue from "@vitejs/plugin-vue";
+import vuetify from "vite-plugin-vuetify";
 import { bunny } from "laravel-vite-plugin/fonts";
 
 export default defineConfig({
@@ -15,8 +16,9 @@ export default defineConfig({
                 }),
             ],
         }),
-        vue(),
         inertia(),
+        vue(),
+        vuetify({ autoImport: true }),
     ],
     server: {
         watch: {
