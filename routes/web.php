@@ -2,4 +2,4 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::inertia("/", "Home");
+Route::inertia("/", "Home")->name("home");
