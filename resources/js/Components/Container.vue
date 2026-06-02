@@ -9,12 +9,22 @@
 
                 <v-spacer></v-spacer>
 
-                <v-btn
-                    text="Alternar tema"
-                    prepend-icon="mdi-theme-light-dark"
-                    class="rounded-0 h-100"
-                    @click="theme.toggle()"
-                ></v-btn>
+                <div v-if="lgAndUp" class="align-center fill-height">
+                    <v-btn
+                        v-for="(link, index) in links"
+                        :key="`desktop-${index}`"
+                        class="h-100 rounded-0"
+                        v-bind="{ ...link, icon: null, prependIcon: link.icon }"
+                    ></v-btn>
+                </div>
+
+                <template v-else>
+                    <v-btn
+                        v-for="(link, index) in links"
+                        :key="`mobile-${index}`"
+                        v-bind="{ ...link, text: null }"
+                    ></v-btn>
+                </template>
             </v-container>
         </v-app-bar>
 
@@ -30,10 +40,19 @@
     import { computed } from "vue";
 
     import { usePage } from "@inertiajs/vue3";
-    import { useTheme } from "vuetify";
+    import { useTheme, useDisplay } from "vuetify";
 
     const page = usePage();
     const theme = useTheme();
+    const { lgAndUp } = useDisplay();
 
     const appName = computed(() => page.props.appName);
+
+    const links = computed(() => [
+        {
+            icon: "mdi-theme-light-dark",
+            text: "Alternar Tema",
+            onClick: () => theme.toggle(),
+        },
+    ]);
 </script>
