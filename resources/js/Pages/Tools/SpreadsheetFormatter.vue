@@ -1,0 +1,173 @@
+<template>
+    <Container centered>
+        <div style="width: 100%; max-width: 500px">
+            <v-alert
+                v-if="shouldShowFileSizeInfo"
+                type="info"
+                variant="tonal"
+                icon="mdi-information"
+                class="mb-3"
+            >
+                O limite atual é de {{ MAX_FILE_SIZE_MB }} MB por arquivo.
+                Estamos trabalhando para oferecer contas gratuitas e opções pagas com limites maiores no futuro.
+            </v-alert>
+
+            <v-card>
+                <v-card-item>
+                    <v-file-input
+                        clearable
+                        label="Selecionar arquivo"
+                        prepend-icon="mdi-file-table"
+                        accept=".csv, .xlsx"
+                        :hide-details="!form.file"
+                        :error-messages="fileErrorMessage"
+                        v-model="form.file"
+                    ></v-file-input>
+
+                    <v-expand-transition>
+                        <div v-if="shouldShowOptions">
+                            <v-divider></v-divider>
+
+                            <v-checkbox
+                                label="Remover HTML"
+                                hide-details
+                                disabled
+                                :model-value="true"
+                            ></v-checkbox>
+
+                            <v-checkbox
+                                label="Remover duplicatas (EM BREVE)"
+                                hide-details
+                                disabled
+                                :model-value="false"
+                            ></v-checkbox>
+
+                            <v-checkbox
+                                label="Ajustar espaçamento entre palavras"
+                                hide-details
+                                v-model="form.adjust_word_spacing"
+                            ></v-checkbox>
+
+                            <v-checkbox
+                                label="Remover acentos e caracteres especiais"
+                                hide-details
+                                v-model="form.normalize_text"
+                            ></v-checkbox>
+
+                            <v-checkbox
+                                label="Remover quebras de linha"
+                                hide-details
+                                v-model="form.remove_line_breaks"
+                            ></v-checkbox>
+
+                            <v-divider class="mb-3"></v-divider>
+
+                            <v-select
+                                label="Formato de Texto"
+                                :items="textFormats"
+                                v-model="form.text_format"
+                            ></v-select>
+
+                            <v-select
+                                label="Formato de Exportação"
+                                :items="exportFormats"
+                                v-model="form.export_format"
+                            ></v-select>
+
+                            <v-divider class="mb-3"></v-divider>
+
+                            <v-btn
+                                block
+                                size="large"
+                                variant="tonal"
+                                color="primary"
+                                prepend-icon="mdi-table-edit"
+                                :disabled="!form.file"
+                                @click="isUploadModalOpen = true"
+                            >Formatar Planilha</v-btn>
+                        </div>
+                    </v-expand-transition>
+                </v-card-item>
+            </v-card>
+        </div>
+    </Container>
+</template>
+
+<script setup>
+    import { ref, computed, watch, onMounted } from "vue";
+
+    import Container from "@/Components/Container.vue";
+
+    const props = defineProps({
+        max_upload_size: Number,
+    });
+
+    const MAX_FILE_SIZE_MB = props.max_upload_size / 1024;
+    const BYTES_PER_MB = 1024 * 1024;
+
+    const form = ref({
+        adjust_word_spacing: true,
+        normalize_text: true,
+        remove_line_breaks: false,
+        text_format: "uppercase",
+        export_format: "xlsx",
+        file: null,
+    });
+
+    const textFormats = ref([
+        { title: "Original", value: null },
+        { title: "MAIÚSCULO", value: "uppercase" },
+        { title: "minúsculo", value: "lowercase" },
+        { title: "Iniciais Maiúsculas", value: "ucfirst" },
+    ]);
+
+    const exportFormats = ref([
+        { title: "CSV", value: "csv" },
+        { title: "XLSX", value: "xlsx" },
+    ]);
+
+    const isUploadModalOpen = ref(false);
+
+    const isFileSizeValid = computed(() => {
+        const { file } = form.value;
+        const fileSize = !file ? 0 : (file.size / BYTES_PER_MB);
+
+        return fileSize > 0 && fileSize <= MAX_FILE_SIZE_MB;
+    });
+
+    const isFileExtensionValid = computed(() => {
+        const { file } = form.value;
+        const fileExtension = !file ? null : file.name.split(".").pop().toLowerCase();
+
+        return [ "csv", "xlsx" ].includes(fileExtension);
+    });
+
+    const fileErrorMessage = computed(() => {
+        const { file } = form.value;
+
+        if( !file ) return null;
+
+        if( !isFileExtensionValid.value ) return "Formato inválido. Use arquivos CSV ou XLSX";
+        if( !isFileSizeValid.value ) return `O arquivo deve ter no máximo ${MAX_FILE_SIZE_MB} MB`;
+
+        return null;
+    });
+
+    const shouldShowFileSizeInfo = computed(() => {
+        const { file } = form.value;
+        return file && isFileExtensionValid.value && !isFileSizeValid.value;
+    });
+
+    const shouldShowOptions = computed(() => {
+        return isFileSizeValid.value && isFileExtensionValid.value;
+    });
+
+    watch(() => form.value, (newValue) => {
+        localStorage.spreadsheetFormatter = JSON.stringify({ ...newValue, file: null });
+    }, { deep: true });
+
+    onMounted(() => {
+        const userPreferences = JSON.parse(localStorage.spreadsheetFormatter || "{}");
+        form.value = { ...form.value, ...userPreferences };
+    });
+</script>

@@ -35,8 +35,15 @@
         </v-app-bar>
 
         <v-main>
-            <v-container>
-                <slot />
+            <v-container class="h-100">
+                <div
+                    v-if="centered"
+                    class="d-flex flex-column align-center justify-center w-100 h-100"
+                >
+                    <slot />
+                </div>
+
+                <slot v-else />
             </v-container>
         </v-main>
     </v-app>
@@ -50,6 +57,10 @@
 
     import { goTo } from "@/Utils/Common";
 
+    const props = defineProps({
+        centered: Boolean,
+    });
+
     const page = usePage();
     const theme = useTheme();
     const { lgAndUp } = useDisplay();
@@ -57,6 +68,13 @@
     const appName = computed(() => page.props.appName);
 
     const links = computed(() => [
+        {
+            icon: "mdi-tools",
+            text: "Ferramentas",
+            href: route("tools"),
+            active: route().current("tools"),
+            onClick: (e) => goTo(e),
+        },
         {
             icon: "mdi-theme-light-dark",
             text: "Alternar Tema",
