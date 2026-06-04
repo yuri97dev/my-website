@@ -28,9 +28,10 @@ export default defineConfig({
         }),
         inertia(),
         vue(),
-        vuetify({ autoImport: true }),
+        vuetify({ autoImport: { labs: true } }),
     ],
     server: {
+        host: true,
         watch: {
             ignored: ["**/storage/framework/views/**"],
         },

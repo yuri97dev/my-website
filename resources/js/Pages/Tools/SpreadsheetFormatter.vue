@@ -14,15 +14,17 @@
 
             <v-card>
                 <v-card-item>
-                    <v-file-input
+                    <v-file-upload
+                        scrim="primary"
+                        show-size
                         clearable
-                        label="Selecionar arquivo"
-                        prepend-icon="mdi-file-table"
-                        accept=".csv, .xlsx"
-                        :hide-details="!form.file"
+                        inset-file-list
+                        title="Arraste e solte o arquivo aqui"
+                        divider-text="ou clique no botão abaixo"
+                        browse-text="Selecionar Arquivo"
                         :error-messages="fileErrorMessage"
                         v-model="form.file"
-                    ></v-file-input>
+                    ></v-file-upload>
 
                     <v-expand-transition>
                         <div v-if="shouldShowOptions">
