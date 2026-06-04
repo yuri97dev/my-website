@@ -50,7 +50,7 @@
 </template>
 
 <script setup>
-    import { computed } from "vue";
+    import { computed, watch } from "vue";
 
     import { usePage } from "@inertiajs/vue3";
     import { useTheme, useDisplay } from "vuetify";
@@ -81,4 +81,13 @@
             onClick: () => theme.toggle(),
         },
     ]);
+
+    theme.change(localStorage.getItem("theme") || "system");
+
+    watch(theme.name, (newTheme) => {
+        localStorage.setItem("theme", newTheme);
+    }, {
+        deep: true,
+        immediate: true,
+    });
 </script>

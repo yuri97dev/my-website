@@ -104,9 +104,11 @@
 <script setup>
     import { ref, computed, watch, onMounted } from "vue";
 
+    import axios from "axios";
+
     import Container from "@/Components/Container.vue";
 
-    import axios from "axios";
+    import { alertError } from "@/Utils/Alert";
 
     const props = defineProps({
         max_upload_size: Number,
@@ -199,7 +201,8 @@
 
             console.log(data);
         } catch (e) {
-            console.error(e);
+            const message = e.response?.data?.message || "Erro ao enviar arquivo";
+            alertError("Ooops", message);
         }
 
         isUploading.value = false;
