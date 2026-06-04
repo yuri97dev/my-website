@@ -13,6 +13,11 @@
             </v-alert>
 
             <v-card>
+                <v-progress-linear
+                    color="primary"
+                    v-model="uploadProgress"
+                ></v-progress-linear>
+
                 <v-card-item>
                     <v-file-upload
                         scrim="primary"
@@ -85,7 +90,8 @@
                                 color="primary"
                                 prepend-icon="mdi-table-edit"
                                 :disabled="!form.file"
-                                @click="isUploadModalOpen = true"
+                                :loading="isUploading"
+                                @click="uploadFile"
                             >Formatar Planilha</v-btn>
                         </div>
                     </v-expand-transition>
@@ -99,6 +105,8 @@
     import { ref, computed, watch, onMounted } from "vue";
 
     import Container from "@/Components/Container.vue";
+
+    import axios from "axios";
 
     const props = defineProps({
         max_upload_size: Number,
@@ -128,7 +136,8 @@
         { title: "XLSX", value: "xlsx" },
     ]);
 
-    const isUploadModalOpen = ref(false);
+    const isUploading = ref(false);
+    const uploadProgress = ref(0);
 
     const isFileSizeValid = computed(() => {
         const { file } = form.value;
@@ -163,6 +172,38 @@
     const shouldShowOptions = computed(() => {
         return isFileSizeValid.value && isFileExtensionValid.value;
     });
+
+    async function uploadFile() {
+        isUploading.value = true;
+        uploadProgress.value = 0;
+
+        const formData = new FormData;
+
+        Object.keys(form.value)
+            .filter(field => field != "file")
+            .forEach(field => {
+                const valueAsNumber = Number(form.value[field]);
+                formData.append(field, isNaN(valueAsNumber) ? form.value[field] : valueAsNumber);
+            });
+
+        formData.append("spreadsheet", form.value.file);
+
+        try {
+            const url = route("tools.spreadsheet-formatter.upload");
+
+            const { data } = await axios.post(url, formData, {
+                onUploadProgress: (progressEvent) => {
+                    uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                },
+            });
+
+            console.log(data);
+        } catch (e) {
+            console.error(e);
+        }
+
+        isUploading.value = false;
+    }
 
     watch(() => form.value, (newValue) => {
         localStorage.spreadsheetFormatter = JSON.stringify({ ...newValue, file: null });
