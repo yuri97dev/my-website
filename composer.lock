@@ -4,8 +4,61 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "678f2e8819db183e9f1b929666104ce0",
+    "content-hash": "e84376f79439e46a3a8bc5fdb015c237",
     "packages": [
+        {
+            "name": "ark4ne/xl-reader",
+            "version": "v2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Ark4ne/xl-reader.git",
+                "reference": "92883b1f1ccc0bbf610223dd84bd4a4afd7e90dd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Ark4ne/xl-reader/zipball/92883b1f1ccc0bbf610223dd84bd4a4afd7e90dd",
+                "reference": "92883b1f1ccc0bbf610223dd84bd4a4afd7e90dd",
+                "shasum": ""
+            },
+            "require": {
+                "ext-xmlreader": "*",
+                "ext-zip": "*",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^6.0 | ^7.0 | ^8.0 | ^9.0",
+                "satooshi/php-coveralls": "~1.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Ark4ne\\XlReader\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ark4ne (Guillaume Allegret)",
+                    "email": "gui.allegret@gmail.com"
+                }
+            ],
+            "description": "High performance Excel Reader (CSV, TSV, XLSX)",
+            "keywords": [
+                "csv",
+                "low-memory",
+                "performance",
+                "reader",
+                "xlsx"
+            ],
+            "support": {
+                "issues": "https://github.com/Ark4ne/xl-reader/issues",
+                "source": "https://github.com/Ark4ne/xl-reader/tree/v2.0.0"
+            },
+            "time": "2025-02-17T12:34:49+00:00"
+        },
         {
             "name": "brick/math",
             "version": "0.14.8",
