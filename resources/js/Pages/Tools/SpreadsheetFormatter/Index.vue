@@ -1,6 +1,6 @@
 <template>
     <Container centered>
-        <div style="width: 100%; max-width: 500px">
+        <div style="width: 100%; max-width: var(--center-width);">
             <v-alert
                 v-if="shouldShowFileSizeInfo"
                 type="info"
@@ -125,11 +125,12 @@
 <script setup>
     import { ref, computed, watch, onMounted } from "vue";
 
-    import axios from "axios";
+    import api from "@/api";
 
     import Container from "@/Components/Container.vue";
 
     import { alertError } from "@/Utils/Alert";
+    import { goTo } from "@/Utils/Common";
 
     const props = defineProps({
         max_upload_size: Number,
@@ -214,19 +215,18 @@
         try {
             const url = route("tools.spreadsheet-formatter.upload");
 
-            const { data } = await axios.post(url, formData, {
+            const { data } = await api.post(url, formData, {
                 onUploadProgress: (progressEvent) => {
                     uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                 },
             });
 
-            console.log(data);
+            goTo(route("tools.spreadsheet-formatter.files"));
         } catch (e) {
+            isUploading.value = false;
             const message = e.response?.data?.message || "Erro ao enviar arquivo";
             alertError("Ooops", message);
         }
-
-        isUploading.value = false;
     }
 
     watch(() => form.value, (newValue) => {

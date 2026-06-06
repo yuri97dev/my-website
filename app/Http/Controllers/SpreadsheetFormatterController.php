@@ -11,13 +11,37 @@ use App\Http\Requests\SpreadsheetFormatter\UploadSpreadsheetRequest;
 
 class SpreadsheetFormatterController extends Controller
 {
+    private $files_session_key = "spreadsheet_formatter.files";
+
     public function index()
     {
         $max_upload_size = UploadLimit::spreadsheetFormatter();
 
         return Inertia::render(
-            "Tools/SpreadsheetFormatter",
+            "Tools/SpreadsheetFormatter/Index",
             compact("max_upload_size")
+        );
+    }
+
+    public function files(Request $request)
+    {
+        $files = $request->session()
+            ->get($this->files_session_key, []);
+
+        $files_path = storage_path("app/private/");
+
+        $files = array_filter($files, fn($file) => file_exists(
+            $files_path . $file["saved_as"]
+        ));
+
+        $files = array_map(fn($file) => [
+            "uuid"=> $file["uuid"],
+            "original_name"=> $file["original_name"],
+        ], $files);
+
+        return Inertia::render(
+            "Tools/SpreadsheetFormatter/Files",
+            compact("files")
         );
     }
 
@@ -34,6 +58,18 @@ class SpreadsheetFormatterController extends Controller
         $path = "uploads/" . date("Y/m/d");
 
         $saved_as = $file->storeAs($path, $new_name);
+
+        $files = $request->session()
+            ->get($this->files_session_key, []);
+
+        $files[] = [
+            "uuid"=> $uuid,
+            "original_name"=> $original_name,
+            "saved_as"=> $saved_as,
+        ];
+
+        $request->session()
+            ->put($this->files_session_key, $files);
 
         return response()->json([
             "uuid"=> $uuid,

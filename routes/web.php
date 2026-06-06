@@ -6,6 +6,18 @@ use App\Http\Controllers\SpreadsheetFormatterController;
 Route::inertia("/", "Home")->name("home");
 Route::inertia("/tools", "Tools/Index")->name("tools");
 
-Route::get("/tools/spreadsheet-formatter", [
-    SpreadsheetFormatterController::class, "index"
-])->name("tools.spreadsheet-formatter");
+Route::group(["prefix" => "tools"], function () {
+    Route::get("/spreadsheet-formatter", [
+        SpreadsheetFormatterController::class, "index"
+    ])->name("tools.spreadsheet-formatter");
+
+    Route::post("/spreadsheet-formatter/upload", [
+        SpreadsheetFormatterController::class, "upload"
+    ])
+        ->name("tools.spreadsheet-formatter.upload")
+        ->middleware("throttle:5,1");
+
+    Route::get("/spreadsheet-formatter/files", [
+        SpreadsheetFormatterController::class, "files"
+    ])->name("tools.spreadsheet-formatter.files");
+});
