@@ -39,6 +39,8 @@ class SpreadsheetFormatterController extends Controller
             "original_name"=> $file["original_name"],
         ], $files);
 
+        $files = array_values($files);
+
         return Inertia::render(
             "Tools/SpreadsheetFormatter/Files",
             compact("files")
