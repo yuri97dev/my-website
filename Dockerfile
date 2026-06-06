@@ -6,6 +6,7 @@ ARG GROUP_ID=1000
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
         unzip \
+        supervisor \
         libpq-dev \
         libzip-dev \
     && docker-php-ext-install \
@@ -23,6 +24,7 @@ COPY --from=node:24.16.0-bookworm-slim /usr/local/bin/npx /usr/local/bin/npx
 COPY --from=node:24.16.0-bookworm-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
 
 COPY docker/php/app.ini /usr/local/etc/php/conf.d/app.ini
+COPY docker/supervisor/supervisord.conf /etc/supervisor/supervisord.conf
 
 RUN usermod -u "${USER_ID}" www-data \
     && groupmod -g "${GROUP_ID}" www-data
