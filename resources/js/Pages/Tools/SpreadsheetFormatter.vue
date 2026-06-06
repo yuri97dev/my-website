@@ -33,7 +33,7 @@
 
                     <v-expand-transition>
                         <div v-if="shouldShowOptions">
-                            <v-divider></v-divider>
+                            <v-divider class="mt-4"></v-divider>
 
                             <v-checkbox
                                 label="Remover HTML"
@@ -67,35 +67,56 @@
                                 v-model="form.remove_line_breaks"
                             ></v-checkbox>
 
-                            <v-divider class="mb-3"></v-divider>
+                            <span class="subheading d-block mt-2">
+                                Formato de Texto:
+                            </span>
 
-                            <v-select
-                                label="Formato de Texto"
-                                :items="textFormats"
-                                v-model="form.text_format"
-                            ></v-select>
-
-                            <v-select
-                                label="Formato de Exportação"
-                                :items="exportFormats"
-                                v-model="form.export_format"
-                            ></v-select>
-
-                            <v-divider class="mb-3"></v-divider>
-
-                            <v-btn
-                                block
-                                size="large"
-                                variant="tonal"
+                            <v-chip-group
+                                column
                                 color="primary"
-                                prepend-icon="mdi-table-edit"
-                                :disabled="!form.file"
-                                :loading="isUploading"
-                                @click="uploadFile"
-                            >Formatar Planilha</v-btn>
+                                v-model="form.text_format"
+                            >
+                                <v-chip
+                                    v-for="format in textFormats"
+                                    :key="format.value"
+                                    :value="format.value"
+                                >{{ format.title }}</v-chip>
+                            </v-chip-group>
+
+                            <span class="subheading d-block mt-2">
+                                Formato de Exportação:
+                            </span>
+
+                            <v-chip-group
+                                color="primary"
+                                v-model="form.export_format"
+                            >
+                                <v-chip
+                                    v-for="format in exportFormats"
+                                    :key="format.value"
+                                    :value="format.value"
+                                >{{ format.title }}</v-chip>
+                            </v-chip-group>
                         </div>
                     </v-expand-transition>
                 </v-card-item>
+
+                <template v-if="shouldShowOptions">
+                    <v-divider></v-divider>
+
+                    <v-card-actions>
+                        <v-btn
+                            block
+                            size="large"
+                            variant="tonal"
+                            color="primary"
+                            prepend-icon="mdi-table-edit"
+                            :disabled="!form.file"
+                            :loading="isUploading"
+                            @click="uploadFile"
+                        >Formatar Planilha</v-btn>
+                    </v-card-actions>
+                </template>
             </v-card>
         </div>
     </Container>
