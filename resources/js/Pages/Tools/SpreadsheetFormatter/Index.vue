@@ -216,7 +216,7 @@
         formData.append("spreadsheet", form.value.file);
 
         try {
-            const url = route("tools.spreadsheet-formatter.upload");
+            const url = route("api.tools.spreadsheet-formatter.upload");
 
             const { data } = await api.post(url, formData, {
                 onUploadProgress: (progressEvent) => {

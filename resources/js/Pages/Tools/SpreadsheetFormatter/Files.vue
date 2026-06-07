@@ -7,27 +7,21 @@
                 icon="mdi-information"
                 class="mb-4"
             >
-                <span v-if="files.length === 0">
-                    <template v-if="loading">
-                        Carregando arquivos...
-                    </template>
-
-                    <template v-else>
-                        Nenhum arquivo encontrado.
-                    </template>
-                </span>
-
-                <span v-else>
-                    Os arquivos abaixo serão processados e
-                    excluídos automaticamente após 30 minutos.
-                    Após esse período, eles não estarão mais disponíveis.
-                </span>
+                Os arquivos abaixo serão processados e
+                excluídos automaticamente após 30 minutos.
+                Após esse período, eles não estarão mais disponíveis.
             </v-alert>
 
-            <v-card height="var(--center-height)">
+            <v-card
+                height="var(--center-height)"
+                class="d-flex flex-column w-100"
+            >
                 <Breadcrumb />
 
-                <v-list class="overflow-y-auto h-100">
+                <v-list
+                    v-if="files.length > 0"
+                    class="overflow-y-auto flex-grow-1"
+                >
                     <v-list-item
                         v-for="(file, index) in files"
                         :key="index"
@@ -91,6 +85,31 @@
                         </template>
                     </v-list-item>
                 </v-list>
+
+                <div
+                    v-else
+                    class="d-flex flex-column align-center justify-center ga-2 flex-grow-1"
+                >
+                    <v-icon
+                        icon="mdi-file-search-outline"
+                        size="56"
+                        color="grey"
+                    ></v-icon>
+
+                    <span
+                        v-if="loading"
+                        class="text-grey"
+                    >
+                        Carregando arquivos...
+                    </span>
+
+                    <span
+                        v-else
+                        class="text-grey"
+                    >
+                        Nenhum arquivo encontrado.
+                    </span>
+                </div>
             </v-card>
         </div>
     </Container>
@@ -121,7 +140,7 @@
         loading.value = true;
 
         try {
-            const url = route("tools.spreadsheet-formatter.files.destroy", uuid);
+            const url = route("api.tools.spreadsheet-formatter.files.destroy", uuid);
             await api.delete(url);
         } catch (e) {
             alertError("Ooops", "Erro ao excluir arquivo");
@@ -136,7 +155,7 @@
         loading.value = true;
 
         try {
-            const url = route("tools.spreadsheet-formatter.files.status");
+            const url = route("api.tools.spreadsheet-formatter.files.status");
             const { data } = await api.get(url);
 
             files.value = data.files.map(file => ({
