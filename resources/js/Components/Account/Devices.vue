@@ -1,5 +1,19 @@
 <template>
     <v-row>
+        <template v-if="loading && devices.length == 0">
+            <v-col
+                v-for="n in 3"
+                :key="n"
+                cols="12"
+                lg="6"
+            >
+                <v-skeleton-loader
+                    type="article"
+                    class="rounded-lg h-100"
+                ></v-skeleton-loader>
+            </v-col>
+        </template>
+
         <v-col
             v-for="device in devices"
             :key="device.id"
