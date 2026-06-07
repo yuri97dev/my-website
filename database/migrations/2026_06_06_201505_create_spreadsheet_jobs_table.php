@@ -27,6 +27,7 @@ return new class extends Migration
             $table->string("result_name")->nullable();
             $table->text("error_message")->nullable();
             $table->timestamp("expires_at")->index();
+            $table->timestamp("file_removed_at")->nullable()->index();
             $table->timestamps();
 
             $table->index(["user_id", "expires_at"]);

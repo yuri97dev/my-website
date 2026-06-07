@@ -30,6 +30,7 @@ class SpreadsheetJob extends Model
         "result_name",
         "error_message",
         "expires_at",
+        "file_removed_at",
     ];
 
     protected function casts(): array
@@ -37,6 +38,7 @@ class SpreadsheetJob extends Model
         return [
             "format_options"=> "array",
             "expires_at"=> "datetime",
+            "file_removed_at"=> "datetime",
             "size_bytes"=> "integer",
             "progress"=> "integer",
         ];
