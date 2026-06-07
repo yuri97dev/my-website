@@ -34,6 +34,7 @@ class UploadSpreadsheetRequest extends FormRequest
             ],
             "adjust_word_spacing"=> "nullable|boolean",
             "normalize_text"=> "nullable|boolean",
+            "remove_line_breaks"=> "nullable|boolean",
             "text_format"=> "nullable|in:uppercase,lowercase,ucfirst,ucwords",
             "export_format"=> "nullable|in:csv,xlsx",
         ];

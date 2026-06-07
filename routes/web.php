@@ -20,4 +20,12 @@ Route::group(["prefix" => "tools"], function () {
     Route::get("/spreadsheet-formatter/files", [
         SpreadsheetFormatterController::class, "files"
     ])->name("tools.spreadsheet-formatter.files");
+
+    Route::get("/spreadsheet-formatter/files/status", [
+        SpreadsheetFormatterController::class, "status"
+    ])->name("tools.spreadsheet-formatter.files.status");
+
+    Route::get("/spreadsheet-formatter/files/{uuid}/download", [
+        SpreadsheetFormatterController::class, "download"
+    ])->name("tools.spreadsheet-formatter.download");
 });

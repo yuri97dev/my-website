@@ -7,10 +7,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Ark4ne\XlReader\Factory;
 use App\Helpers\TextFormatter;
+use App\Models\SpreadsheetJob;
 use XLSXWriter;
 use Exception;
 
@@ -18,15 +18,27 @@ class ProcessSpreadsheetJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    private const PROGRESS_UPDATE_THRESHOLD = 4;
+
     public function __construct(
-        protected string $uuid,
-        protected object $data
+        protected string $uuid
     ) {}
 
     public function handle(): void
     {
+        $record = SpreadsheetJob::where("uuid", $this->uuid)->firstOrFail();
+
+        if( $record->status === SpreadsheetJob::STATUS_CANCELLED ) {
+            return;
+        }
+
         $writer = null;
-        $spreadsheet_file = storage_path("app/private/{$this->data->saved_as}");
+        $spreadsheet_file = storage_path("app/private/{$record->saved_as}");
+
+        $record->update([
+            "status"=> SpreadsheetJob::STATUS_PROCESSING,
+            "progress"=> 0,
+        ]);
 
         try {
             $num_rows = 0;
@@ -47,9 +59,8 @@ class ProcessSpreadsheetJob implements ShouldQueue
             $headers = $reader->read(1, 1)->current();
             $excel_columns = array_keys($headers);
 
-            $formatters = $this->getFormatters();
-
-            $writer = $this->getWriter();
+            $formatters = $this->getFormatters($record);
+            $writer = $this->getWriter($record);
 
             foreach($reader->read() as $index => $row) {
                 $processed_row = [];
@@ -69,29 +80,46 @@ class ProcessSpreadsheetJob implements ShouldQueue
                 $progress = ceil(($index / $num_rows) * 100);
                 $progress = max(0, $progress - 1);
 
-                $update_progress = ($progress - $last_progress) > 2;
+                $update_progress = ($progress - $last_progress) >= self::PROGRESS_UPDATE_THRESHOLD;
 
                 if( $update_progress ) {
-                    $is_alive = Cache::get("progress:{$this->uuid}") !== null;
+                    $record->refresh();
 
-                    if( !$is_alive ) break;
+                    if( $record->status === SpreadsheetJob::STATUS_CANCELLED ) {
+                        break;
+                    }
 
                     $last_progress = $progress;
-                    Cache::put("progress:{$this->uuid}", $progress, now()->addMinutes(10));
+                    $record->update(["progress"=> $progress]);
                 }
             }
 
+            $record->refresh();
+
+            if( $record->status === SpreadsheetJob::STATUS_CANCELLED ) {
+                ($writer->delete)();
+                return;
+            }
+
             if( $progress == 99 ) {
-                $results = ($writer->save)();
-                Cache::put("file:{$this->uuid}", $results, now()->addMinutes(30));
+                [ $result_path, $result_name ] = ($writer->save)();
+
+                $record->update([
+                    "status"=> SpreadsheetJob::STATUS_DONE,
+                    "progress"=> 100,
+                    "result_path"=> $this->toStorageRelativePath($result_path),
+                    "result_name"=> $result_name,
+                ]);
             } else {
                 ($writer->delete)();
             }
-
-            Cache::forget("progress:{$this->uuid}");
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
-            Cache::put("progress:{$this->uuid}", -1, now()->addMinutes(10));
+
+            $record->update([
+                "status"=> SpreadsheetJob::STATUS_FAILED,
+                "error_message"=> $e->getMessage(),
+            ]);
 
             $writer && ($writer->delete)();
         } finally {
@@ -99,8 +127,19 @@ class ProcessSpreadsheetJob implements ShouldQueue
         }
     }
 
-    private function getFormatters()
+    private function toStorageRelativePath(string $absolute_path): string
     {
+        $private_path = storage_path("app/private/");
+
+        return str_starts_with($absolute_path, $private_path)
+            ? substr($absolute_path, strlen($private_path))
+            : $absolute_path;
+    }
+
+    private function getFormatters(SpreadsheetJob $record)
+    {
+        $format_options = (object) $record->format_options;
+
         $text_formats = [
             "uppercase"=> fn($text) => mb_strtoupper($text),
             "lowercase"=> fn($text) => mb_strtolower($text),
@@ -132,7 +171,7 @@ class ProcessSpreadsheetJob implements ShouldQueue
             fn($text) => TextFormatter::removeHTML($text),
         ];
 
-        foreach($this->data->format_options as $option => $value) {
+        foreach($format_options as $option => $value) {
             $formatter = $all_formatters[$option] ?? null;
 
             if( empty($value) || !$formatter ) continue;
@@ -143,12 +182,13 @@ class ProcessSpreadsheetJob implements ShouldQueue
         return $selected_formatters;
     }
 
-    private function getWriter()
+    private function getWriter(SpreadsheetJob $record)
     {
-        $original_name = $this->data->original_name;
-        $export_format = $this->data->format_options["export_format"];
+        $format_options = $record->format_options;
+        $original_name = $record->original_name;
+        $export_format = $format_options["export_format"];
 
-        $saved_file_info = (object) pathinfo($this->data->saved_as);
+        $saved_file_info = (object) pathinfo($record->saved_as);
         $original_name_info = (object) pathinfo($original_name);
 
         $files_path = storage_path("app/private");
