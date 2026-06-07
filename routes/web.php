@@ -28,4 +28,8 @@ Route::group(["prefix" => "tools"], function () {
     Route::get("/spreadsheet-formatter/files/{uuid}/download", [
         SpreadsheetFormatterController::class, "download"
     ])->name("tools.spreadsheet-formatter.download");
+
+    Route::delete("/spreadsheet-formatter/files/{uuid}", [
+        SpreadsheetFormatterController::class, "destroy"
+    ])->name("tools.spreadsheet-formatter.files.destroy");
 });

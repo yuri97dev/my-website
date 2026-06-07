@@ -8,7 +8,13 @@
                 class="mb-4"
             >
                 <span v-if="files.length === 0">
-                    Nenhum arquivo encontrado.
+                    <template v-if="loading">
+                        Carregando arquivos...
+                    </template>
+
+                    <template v-else>
+                        Nenhum arquivo encontrado.
+                    </template>
                 </span>
 
                 <span v-else>
@@ -18,7 +24,7 @@
             </v-alert>
 
             <v-card height="var(--center-height)">
-                <v-list>
+                <v-list class="overflow-y-auto h-100">
                     <v-list-item
                         v-for="(file, index) in files"
                         :key="index"
@@ -33,13 +39,48 @@
                         </v-list-item-title>
 
                         <template #append>
-                            <v-btn
-                                icon
-                                variant="tonal"
-                                color="primary"
-                                class="rounded"
-                                loading
-                            ></v-btn>
+                            <v-menu offset="8" location="bottom end">
+                                <template #activator="{ props }">
+                                    <v-btn
+                                        icon
+                                        variant="tonal"
+                                        color="primary"
+                                        class="rounded"
+                                        v-bind="props"
+                                    >
+                                        <v-progress-circular
+                                            v-if="file.loading"
+                                            color="primary"
+                                            :indeterminate="file.progress == 0"
+                                            :model-value="file.progress"
+                                        ></v-progress-circular>
+
+                                        <v-icon
+                                            v-else
+                                            icon="mdi-dots-vertical"
+                                        ></v-icon>
+                                    </v-btn>
+                                </template>
+
+                                <v-list
+                                    v-if="!file.loading"
+                                    slim
+                                    border
+                                >
+                                    <v-list-item
+                                        v-if="file.status === 'done'"
+                                        prepend-icon="mdi-download"
+                                        title="Baixar"
+                                        @click="downloadFile(file.uuid)"
+                                    ></v-list-item>
+
+                                    <v-list-item
+                                        prepend-icon="mdi-delete"
+                                        title="Excluir"
+                                        @click="deleteFile(file.uuid)"
+                                    ></v-list-item>
+                                </v-list>
+                            </v-menu>
                         </template>
                     </v-list-item>
                 </v-list>
@@ -49,11 +90,69 @@
 </template>
 
 <script setup>
-    import { ref, computed } from "vue";
+    import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+
+    import api from "@/api";
 
     import Container from "@/Components/Container.vue";
 
-    const props = defineProps({
-        files: Array,
+    import { alertError } from "@/Utils/Alert";
+
+    const files = ref([]);
+    const loading = ref(false);
+
+    let timeout = null;
+
+    function downloadFile(uuid) {
+        const url = route("tools.spreadsheet-formatter.download", uuid);
+        window.open(url, "_blank");
+    }
+
+    async function deleteFile(uuid) {
+        loading.value = true;
+
+        try {
+            const url = route("tools.spreadsheet-formatter.files.destroy", uuid);
+            await api.delete(url);
+        } catch (e) {
+            alertError("Ooops", "Erro ao excluir arquivo");
+        }
+
+        await getFiles();
+    }
+
+    async function getFiles() {
+        clearTimeout(timeout);
+
+        loading.value = true;
+
+        try {
+            const url = route("tools.spreadsheet-formatter.files.status");
+            const { data } = await api.get(url);
+
+            files.value = data.files.map(file => ({
+                ...file,
+                loading: (
+                    file.status === "queued" ||
+                    file.status === "processing"
+                ),
+            }));
+        } catch (e) {
+            alertError("Ooops", "Erro ao buscar arquivos");
+        } finally {
+            loading.value = false;
+        }
+
+        timeout = setTimeout(async () => {
+            await getFiles();
+        }, 3000);
+    }
+
+    onMounted(async () => {
+        await getFiles();
+    });
+
+    onBeforeUnmount(() => {
+        clearTimeout(timeout);
     });
 </script>

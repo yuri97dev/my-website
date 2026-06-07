@@ -26,18 +26,26 @@ class SpreadsheetFormatterController extends Controller
 
     public function files(Request $request)
     {
-        $files = $this->getFilesForRequest($request);
-
-        return Inertia::render(
-            "Tools/SpreadsheetFormatter/Files",
-            compact("files")
-        );
+        return Inertia::render("Tools/SpreadsheetFormatter/Files");
     }
 
     public function status(Request $request)
     {
+        $files = SpreadsheetJob::ownedBy($request)
+            ->notExpired()
+            ->orderByDesc("created_at")
+            ->get()
+            ->filter(function($file) {
+                $saved_as = storage_path("app/private/{$file->saved_as}");
+                $result_path = storage_path("app/private/{$file->result_path}");
+                return file_exists($saved_as) || file_exists($result_path);
+            })
+            ->map(fn(SpreadsheetJob $job) => $job->toFrontendArray())
+            ->values()
+            ->all();
+
         return response()->json([
-            "files"=> $this->getFilesForRequest($request),
+            "files"=> $files,
         ]);
     }
 
@@ -99,14 +107,26 @@ class SpreadsheetFormatterController extends Controller
         return response()->download($file_path, $job->result_name);
     }
 
-    private function getFilesForRequest(Request $request): array
+    public function destroy(Request $request, string $uuid)
     {
-        return SpreadsheetJob::ownedBy($request)
-            ->notExpired()
-            ->orderByDesc("created_at")
-            ->get()
-            ->map(fn (SpreadsheetJob $job) => $job->toFrontendArray())
-            ->values()
-            ->all();
+        $job = SpreadsheetJob::ownedBy($request)
+            ->where("uuid", $uuid)
+            ->firstOrFail();
+
+        $saved_as = storage_path("app/private/{$job->saved_as}");
+
+        if( file_exists($saved_as) ) {
+            unlink($saved_as);
+        }
+
+        if( $job->result_path ) {
+            $result_path = storage_path("app/private/{$job->result_path}");
+
+            if( file_exists($result_path) ) {
+                unlink($result_path);
+            }
+        }
+
+        return response()->noContent();
     }
 }
