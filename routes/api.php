@@ -37,6 +37,10 @@ Route::prefix("account")
         Route::delete("/sessions/{session}", [
             AccountController::class, "revokeSession"
         ])->name("api.account.sessions.destroy");
+
+        Route::delete("/", [
+            AccountController::class, "destroy"
+        ])->name("api.account.destroy");
     });
 
 Route::prefix("tools")->group(function() {

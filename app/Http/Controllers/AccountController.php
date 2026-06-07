@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Http\Requests\Account\DeleteAccountRequest;
 use App\Http\Requests\Account\UpdatePasswordRequest;
 use App\Http\Requests\Account\UpdatePersonalDataRequest;
 use App\Helpers\UserAgent;
@@ -68,5 +70,30 @@ class AccountController extends Controller
         ], 404);
 
         return response()->json([ "message" => "Sessão revogada com sucesso." ], 200);
+    }
+
+    public function destroy(DeleteAccountRequest $request)
+    {
+        $user = $request->user();
+
+        DB::transaction(function () use ($user) {
+            DB::table("sessions")
+                ->where("user_id", $user->id)
+                ->delete();
+
+            DB::table("password_reset_tokens")
+                ->where("email", $user->email)
+                ->delete();
+
+            $user->tokens()->delete();
+            $user->delete();
+        });
+
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json([ "message" => "Conta excluída com sucesso" ], 200);
     }
 }
