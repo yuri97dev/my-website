@@ -5,6 +5,7 @@ use App\Http\Controllers\SpreadsheetFormatterController;
 
 Route::inertia("/", "Home")->name("home");
 Route::inertia("/tools", "Tools/Index")->name("tools");
+Route::inertia("/login", "Login")->name("login");
 
 Route::group(["prefix" => "tools"], function () {
     Route::get("/spreadsheet-formatter", [

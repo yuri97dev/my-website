@@ -67,6 +67,8 @@
 
     const appName = computed(() => page.props.appName);
 
+    const authUser = computed(() => page.props?.auth?.user);
+
     const links = computed(() => [
         {
             icon: "mdi-tools",
@@ -79,6 +81,19 @@
             icon: "mdi-theme-light-dark",
             text: "Alternar Tema",
             onClick: () => theme.toggle(),
+        },
+        !!authUser.value ? {
+            icon: "mdi-account",
+            text: authUser.value.name?.split(" ")[0],
+            // href: route("account"),
+            // active: route().current("account"),
+            onClick: (e) => goTo(e),
+        } : {
+            icon: "mdi-login",
+            text: "Login",
+            href: route("login"),
+            active: route().current("login"),
+            onClick: (e) => goTo(e),
         },
     ]);
 

@@ -17,6 +17,10 @@ export default createVuetify({
         VCheckbox: {
             hideDetails: "auto",
         },
+        VSwitch: {
+            hideDetails: "auto",
+            inset: true,
+        },
         VRadio: {
             hideDetails: "auto",
         },
