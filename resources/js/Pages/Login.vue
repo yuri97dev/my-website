@@ -35,16 +35,11 @@
                         v-model="form.password"
                     ></PasswordField>
 
-                    <v-checkbox
+                    <v-switch
+                        label="Manter Conectado"
                         color="primary"
                         v-model="form.remember_me"
-                    >
-                        <template #label>
-                            <div class="ml-2">
-                                Manter conectado
-                            </div>
-                        </template>
-                    </v-checkbox>
+                    ></v-switch>
                 </v-card-item>
 
                 <v-divider></v-divider>

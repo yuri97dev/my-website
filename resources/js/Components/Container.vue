@@ -15,7 +15,7 @@
 
                 <v-spacer></v-spacer>
 
-                <div v-if="lgAndUp" class="align-center fill-height">
+                <div v-if="lgAndUp" class="d-flex align-center fill-height">
                     <v-btn
                         v-for="(link, index) in links"
                         :key="`desktop-${index}`"
@@ -31,6 +31,8 @@
                         v-bind="{ ...link, text: null }"
                     ></v-btn>
                 </template>
+
+                <AuthMenu />
             </v-container>
         </v-app-bar>
 
@@ -46,6 +48,7 @@
                 <slot v-else />
             </v-container>
         </v-main>
+
     </v-app>
 </template>
 
@@ -54,6 +57,8 @@
 
     import { usePage } from "@inertiajs/vue3";
     import { useTheme, useDisplay } from "vuetify";
+
+    import AuthMenu from "@/Components/AuthMenu.vue";
 
     import { goTo } from "@/Utils/Common";
 
@@ -67,8 +72,6 @@
 
     const appName = computed(() => page.props.appName);
 
-    const authUser = computed(() => page.props?.auth?.user);
-
     const links = computed(() => [
         {
             icon: "mdi-tools",
@@ -81,19 +84,6 @@
             icon: "mdi-theme-light-dark",
             text: "Alternar Tema",
             onClick: () => theme.toggle(),
-        },
-        !!authUser.value ? {
-            icon: "mdi-account",
-            text: authUser.value.name?.split(" ")[0],
-            href: route("account"),
-            active: route().current("account"),
-            onClick: (e) => goTo(e),
-        } : {
-            icon: "mdi-login",
-            text: "Login",
-            href: route("login"),
-            active: route().current("login"),
-            onClick: (e) => goTo(e),
         },
     ]);
 

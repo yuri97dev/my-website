@@ -54,6 +54,7 @@
 
                     <v-checkbox
                         color="primary"
+                        class="mb-2"
                         v-model="form.remember_me"
                     >
                         <template #label>
@@ -65,6 +66,7 @@
 
                     <v-checkbox
                         color="primary"
+                        class="mb-2"
                         v-model="form.accepts_marketing"
                     >
                         <template #label>
@@ -76,6 +78,7 @@
 
                     <v-checkbox
                         color="primary"
+                        class="mb-2"
                         required
                         :error-messages="errors.accepted_terms"
                         v-model="form.accepted_terms"
