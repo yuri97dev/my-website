@@ -3,6 +3,11 @@
     --center-height: 400px;
 }
 
+.v-row--density-default {
+    --v-col-gap-x: 16px !important;
+    --v-col-gap-y: 16px !important;
+}
+
 a {
     text-decoration: none;
 }

@@ -85,8 +85,8 @@
         !!authUser.value ? {
             icon: "mdi-account",
             text: authUser.value.name?.split(" ")[0],
-            // href: route("account"),
-            // active: route().current("account"),
+            href: route("account"),
+            active: route().current("account"),
             onClick: (e) => goTo(e),
         } : {
             icon: "mdi-login",

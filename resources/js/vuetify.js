@@ -27,5 +27,8 @@ export default createVuetify({
         VFileUpload: {
             hideDetails: "auto",
         },
+        VCard: {
+            rounded: "lg",
+        },
     },
 });

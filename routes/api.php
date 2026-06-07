@@ -2,9 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\SpreadsheetFormatterController;
 
-Route::group(["prefix" => "auth"], function () {
+Route::prefix("auth")->group(function() {
     Route::post("/login", [
         AuthController::class, "login"
     ])->name("api.auth.login");
@@ -18,7 +19,27 @@ Route::group(["prefix" => "auth"], function () {
     ])->name("api.auth.logout");
 });
 
-Route::group(["prefix" => "tools"], function () {
+Route::prefix("account")
+    ->middleware("auth")
+    ->group(function() {
+        Route::put("/personal-data", [
+            AccountController::class, "updatePersonalData"
+        ])->name("api.account.personal-data.update");
+
+        Route::put("/password", [
+            AccountController::class, "updatePassword"
+        ])->name("api.account.password.update");
+
+        Route::get("/sessions", [
+            AccountController::class, "sessions"
+        ])->name("api.account.sessions.index");
+
+        Route::delete("/sessions/{session}", [
+            AccountController::class, "revokeSession"
+        ])->name("api.account.sessions.destroy");
+    });
+
+Route::prefix("tools")->group(function() {
     Route::post("/spreadsheet-formatter/upload", [
         SpreadsheetFormatterController::class, "upload"
     ])

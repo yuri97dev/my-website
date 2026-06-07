@@ -10,7 +10,11 @@ Route::inertia("/register", "Register")->name("register");
 Route::inertia("/terms-of-use", "TermsOfUse")->name("terms_of_use");
 Route::inertia("/privacy-policy", "PrivacyPolicy")->name("privacy_policy");
 
-Route::group(["prefix" => "tools"], function () {
+Route::middleware("auth")->group(function () {
+    Route::inertia("/account", "Account")->name("account");
+});
+
+Route::prefix("tools")->group(function () {
     Route::get("/spreadsheet-formatter", [
         SpreadsheetFormatterController::class, "index"
     ])->name("tools.spreadsheet-formatter");

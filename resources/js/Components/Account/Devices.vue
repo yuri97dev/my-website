@@ -1,0 +1,143 @@
+<template>
+    <v-row>
+        <v-col
+            v-for="device in devices"
+            :key="device.id"
+            cols="12"
+            lg="6"
+        >
+            <v-card
+                :subtitle="device.browser || 'Navegador Desconhecido'"
+                :prepend-icon="device.icon"
+            >
+                <template #title>
+                    {{ device.os || "Dispositivo Desconhecido" }}
+
+                    <v-chip
+                        v-if="device.is_current"
+                        size="small"
+                        color="primary"
+                        variant="tonal"
+                    >
+                        Sessão Atual
+                    </v-chip>
+                </template>
+
+                <v-card-text>
+                    <span>Última Atividade: </span>
+                    {{ formatDate(device.last_activity, { includeTime: true }) }}
+                </v-card-text>
+
+                <v-divider></v-divider>
+
+                <v-card-actions>
+                    <v-btn
+                        color="error"
+                        prepend-icon="mdi-logout"
+                        text="Revogar Sessão"
+                        :loading="loading"
+                        :disabled="device.is_current"
+                        @click="selectDevice(device)"
+                    ></v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-col>
+    </v-row>
+
+    <v-dialog
+        max-width="500"
+        v-model="dialog"
+    >
+        <v-card>
+            <v-card-title>
+                Revogar Sessão
+            </v-card-title>
+
+            <v-card-text>
+                Tem certeza que deseja revogar a sessão?
+            </v-card-text>
+
+            <v-divider></v-divider>
+
+            <v-card-actions>
+                <v-btn
+                    color="primary"
+                    text="Confirmar"
+                    @click="revokeSession"
+                ></v-btn>
+
+                <v-btn
+                    text="Cancelar"
+                    @click="dialog = false"
+                ></v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+</template>
+
+<script setup>
+    import { ref, onMounted } from "vue";
+
+    import api from "@/api";
+
+    import { alertError, alertSuccess } from "@/Utils/Alert";
+    import { formatDate } from "@/Utils/Common";
+
+    const ICONS = {
+        "bot": "mdi-robot",
+        "desktop": "mdi-desktop-classic",
+        "mobile": "mdi-cellphone",
+        "tablet": "mdi-tablet",
+        "other": "mdi-help-circle",
+    };
+
+    const devices = ref([]);
+    const selectedDevice = ref(null);
+    const dialog = ref(false);
+    const loading = ref(false);
+
+    function selectDevice(device) {
+        selectedDevice.value = device;
+        dialog.value = true;
+    }
+
+    async function getDevices() {
+        loading.value = true;
+
+        try {
+            const url = route("api.account.sessions.index");
+            const { data } = await api.get(url);
+
+            devices.value = data.sessions.map(session => ({
+                ...session,
+                icon: ICONS[session.device] || ICONS.other,
+            }));
+        } catch (e) {
+            alertError("Ooops", "Erro ao buscar dispositivos");
+        } finally {
+            loading.value = false;
+        }
+    }
+
+    async function revokeSession() {
+        dialog.value = false;
+        loading.value = true;
+
+        const { id: session_id } = selectedDevice.value;
+
+        try {
+            const url = route("api.account.sessions.destroy", session_id);
+            await api.delete(url);
+
+            alertSuccess("Ok", "Sessão revogada com sucesso");
+        } catch (e) {
+            alertError("Ooops", "Erro ao revogar sessão");
+        }
+
+        await getDevices();
+    }
+
+    onMounted(async () => {
+        await getDevices();
+    });
+</script>
