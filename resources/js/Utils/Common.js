@@ -24,3 +24,26 @@ export function goTo(p) {
 
     throw new Error("Invalid parameter provided");
 }
+
+const KB = 1024;
+const MB = KB * 1024;
+
+function formatValue(value) {
+    if( value >= 10 || Number.isInteger(value) ) {
+        return Math.round(value).toString();
+    }
+
+    return value.toFixed(1).replace(/\.0$/, "");
+}
+
+export function formatBytes(bytes) {
+    if( !bytes || bytes < 0 ) {
+        return "0 KB";
+    }
+
+    if( bytes >= MB ) {
+        return `${formatValue(bytes / MB)} MB`;
+    }
+
+    return `${formatValue(bytes / KB)} KB`;
+}

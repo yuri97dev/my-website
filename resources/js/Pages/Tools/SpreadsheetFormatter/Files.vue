@@ -18,8 +18,9 @@
                 </span>
 
                 <span v-else>
-                    Os arquivos abaixo serão processados e excluídos
-                    automaticamente em aproximadamente 30 minutos.
+                    Os arquivos abaixo serão processados e
+                    excluídos automaticamente após 30 minutos.
+                    Após esse período, eles não estarão mais disponíveis.
                 </span>
             </v-alert>
 
@@ -37,6 +38,10 @@
                         >
                             {{ file.original_name }}
                         </v-list-item-title>
+
+                        <v-list-item-subtitle>
+                            {{ formatBytes(file.size_bytes) }}
+                        </v-list-item-subtitle>
 
                         <template #append>
                             <v-menu offset="8" location="bottom end">
@@ -97,6 +102,7 @@
     import Container from "@/Components/Container.vue";
 
     import { alertError } from "@/Utils/Alert";
+    import { formatBytes } from "@/Utils/Common";
 
     const files = ref([]);
     const loading = ref(false);
