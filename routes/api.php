@@ -8,6 +8,10 @@ Route::group(["prefix" => "auth"], function () {
         AuthController::class, "login"
     ])->name("api.auth.login");
 
+    Route::post("/register", [
+        AuthController::class, "register"
+    ])->name("api.auth.register");
+
     Route::post("/logout", [
         AuthController::class, "logout"
     ])->name("api.auth.logout");

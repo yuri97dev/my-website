@@ -51,10 +51,20 @@
                         size="large"
                         variant="tonal"
                         color="primary"
-                        prepend-icon="mdi-login"
                         :loading="loading"
                     >Entrar</v-btn>
                 </v-card-actions>
+            </v-card>
+
+            <v-card class="mt-4">
+                <v-card-item class="text-center">
+                    Novo por aqui?
+                    <a
+                        :href="route('register')"
+                        class="text-green"
+                        @click.prevent="goTo(route('register'))"
+                    >Cadastre-se</a>
+                </v-card-item>
             </v-card>
         </v-form>
     </Container>

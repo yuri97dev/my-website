@@ -4,7 +4,7 @@
             <v-container class="d-flex align-center py-0 h-100">
                 <v-app-bar-title
                     tag="a"
-                    class="d-flex align-center fill-height"
+                    class="d-flex align-center fill-height text-primary"
                     style="flex: unset"
                     :href="route('home')"
                     @click="goTo"
