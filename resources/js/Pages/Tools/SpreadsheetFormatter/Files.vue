@@ -25,6 +25,8 @@
             </v-alert>
 
             <v-card height="var(--center-height)">
+                <Breadcrumb />
+
                 <v-list class="overflow-y-auto h-100">
                     <v-list-item
                         v-for="(file, index) in files"
@@ -100,6 +102,7 @@
     import api from "@/api";
 
     import Container from "@/Components/Container.vue";
+    import Breadcrumb from "@/Components/SpreadsheetFormatter/Breadcrumb.vue";
 
     import { alertError } from "@/Utils/Alert";
     import { formatBytes } from "@/Utils/Common";

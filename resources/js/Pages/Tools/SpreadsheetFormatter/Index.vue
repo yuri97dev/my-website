@@ -6,7 +6,7 @@
                 type="info"
                 variant="tonal"
                 icon="mdi-information"
-                class="mb-3"
+                class="mb-4"
             >
                 O limite atual é de {{ MAX_FILE_SIZE_MB }} MB por arquivo.
                 Estamos trabalhando para oferecer contas gratuitas e opções pagas com limites maiores no futuro.
@@ -17,6 +17,8 @@
                     color="primary"
                     v-model="uploadProgress"
                 ></v-progress-linear>
+
+                <Breadcrumb />
 
                 <v-card-item>
                     <v-file-upload
@@ -128,6 +130,7 @@
     import api from "@/api";
 
     import Container from "@/Components/Container.vue";
+    import Breadcrumb from "@/Components/SpreadsheetFormatter/Breadcrumb.vue";
 
     import { alertError } from "@/Utils/Alert";
     import { goTo } from "@/Utils/Common";
