@@ -60,6 +60,8 @@
                         size="large"
                         variant="text"
                         :disabled="loading"
+                        :href="route('forgot_password')"
+                        @click.prevent="goTo(route('forgot_password'))"
                     >Esqueceu a senha?</v-btn>
 
                     <v-divider class="w-100"></v-divider>

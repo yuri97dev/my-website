@@ -19,29 +19,41 @@ Route::prefix("auth")->group(function() {
     ])->name("api.auth.logout");
 });
 
-Route::prefix("account")
-    ->middleware("auth")
-    ->group(function() {
+Route::prefix("account")->group(function() {
+    Route::post("/forgot-password", [
+        AccountController::class, "forgotPassword",
+    ])
+        ->name("api.account.forgot-password")
+        ->middleware("throttle:5,1");
+
+    Route::post("/reset-password", [
+        AccountController::class, "resetPassword",
+    ])
+        ->name("api.account.reset-password")
+        ->middleware("throttle:5,1");
+
+    Route::middleware("auth")->group(function() {
         Route::put("/personal-data", [
-            AccountController::class, "updatePersonalData"
+            AccountController::class, "updatePersonalData",
         ])->name("api.account.personal-data.update");
 
         Route::put("/password", [
-            AccountController::class, "updatePassword"
+            AccountController::class, "updatePassword",
         ])->name("api.account.password.update");
 
         Route::get("/sessions", [
-            AccountController::class, "sessions"
+            AccountController::class, "sessions",
         ])->name("api.account.sessions.index");
 
         Route::delete("/sessions/{session}", [
-            AccountController::class, "revokeSession"
+            AccountController::class, "revokeSession",
         ])->name("api.account.sessions.destroy");
 
         Route::post("/destroy", [
-            AccountController::class, "destroy"
+            AccountController::class, "destroy",
         ])->name("api.account.destroy");
     });
+});
 
 Route::prefix("tools")->group(function() {
     Route::post("/spreadsheet-formatter/upload", [

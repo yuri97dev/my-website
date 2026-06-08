@@ -5,13 +5,61 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password;
 use App\Http\Requests\Account\DeleteAccountRequest;
+use App\Http\Requests\Account\ForgotPasswordRequest;
+use App\Http\Requests\Account\ResetPasswordRequest;
 use App\Http\Requests\Account\UpdatePasswordRequest;
 use App\Http\Requests\Account\UpdatePersonalDataRequest;
 use App\Helpers\UserAgent;
 
 class AccountController extends Controller
 {
+    public function forgotPassword(ForgotPasswordRequest $request)
+    {
+        $status = Password::sendResetLink(
+            $request->only("email"),
+        );
+
+        if( $status === Password::RESET_LINK_SENT ) {
+            return response()->json([
+                "message" => "Um link para redefinir sua senha foi enviado para o seu e-mail.",
+            ], 200);
+        }
+
+        if( $status === Password::RESET_THROTTLED ) {
+            return response()->json([
+                "message" => "Aguarde antes de tentar novamente.",
+            ], 429);
+        }
+
+        return response()->json([
+            "message" => "Falha ao enviar e-mail de recuperação",
+        ], 500);
+    }
+
+    public function resetPassword(ResetPasswordRequest $request)
+    {
+        $status = Password::reset(
+            $request->only("email", "password", "password_confirmation", "token"),
+            function ($user, string $password) {
+                $user->forceFill([
+                    "password" => $password,
+                ])->save();
+            },
+        );
+
+        if( $status === Password::PASSWORD_RESET ) {
+            return response()->json([
+                "message" => "Senha redefinida com sucesso",
+            ], 200);
+        }
+
+        return response()->json([
+            "message" => "Link de redefinição inválido ou expirado.",
+        ], 400);
+    }
+
     public function updatePersonalData(UpdatePersonalDataRequest $request)
     {
         $request->user()->update($request->validated());

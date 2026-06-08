@@ -80,3 +80,11 @@ export function formatDate(date, { includeTime = false, includeSeconds = false }
 
     return new Intl.DateTimeFormat("pt-BR", options).format(parsed);
 }
+
+export function validEmail(email) {
+    if( !email || typeof email !== "string" ) {
+        return false;
+    }
+
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
