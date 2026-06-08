@@ -82,7 +82,8 @@
 </template>
 
 <script setup>
-    import { ref, reactive } from "vue";
+    import { ref, reactive, onMounted } from "vue";
+    import { usePage } from "@inertiajs/vue3";
 
     import api from "@/api";
 
@@ -90,6 +91,8 @@
     import PasswordField from "@/Components/PasswordField.vue";
 
     import { goTo } from "@/Utils/Common";
+
+    const page = usePage();
 
     const form = reactive({
         email: "",
@@ -118,4 +121,12 @@
             loading.value = false;
         }
     }
+
+    onMounted(() => {
+        const { error } = page.props?.flash || {};
+
+        if( error ) {
+            mainError.value = error;
+        }
+    });
 </script>

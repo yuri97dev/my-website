@@ -30,6 +30,8 @@ class AuthController extends Controller
     {
         $user = User::create($request->validated());
 
+        $user->sendEmailVerificationNotification();
+
         Auth::login($user);
 
         $request->session()->regenerate();

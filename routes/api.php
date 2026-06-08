@@ -33,6 +33,12 @@ Route::prefix("account")->group(function() {
         ->middleware("throttle:5,1");
 
     Route::middleware("auth")->group(function() {
+        Route::post("/email/verification-notification", [
+            AccountController::class, "sendEmailVerificationNotification",
+        ])
+            ->name("api.account.email.verification-notification")
+            ->middleware("throttle:6,1");
+
         Route::put("/personal-data", [
             AccountController::class, "updatePersonalData",
         ])->name("api.account.personal-data.update");

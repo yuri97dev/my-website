@@ -1,5 +1,20 @@
 <template>
     <Container>
+        <v-alert
+            v-if="emailNotVerified"
+            type="warning"
+            variant="tonal"
+            icon="mdi-alert"
+            class="mb-4"
+        >
+            Seu e-mail não foi verificado.
+            Clique <strong
+                class="cursor-pointer text-primary"
+                @click="resendEmailVerification"
+            >aqui</strong>
+            para reenviar o e-mail de verificação.
+        </v-alert>
+
         <div class="d-flex flex-column flex-lg-row ga-4">
             <v-tabs
                 color="primary"
@@ -30,19 +45,49 @@
 </template>
 
 <script setup>
-    import { ref, computed } from "vue";
+    import { ref, computed, onMounted } from "vue";
+    import { usePage } from "@inertiajs/vue3";
     import { useDisplay } from "vuetify";
+
+    import api from "@/api";
 
     import Container from "@/Components/Container.vue";
     import PersonalData from "@/Components/Account/PersonalData.vue";
     import Devices from "@/Components/Account/Devices.vue";
     import DeleteAccount from "@/Components/Account/DeleteAccount.vue";
 
+    import { alertSuccess, alertError } from "@/Utils/Alert";
+
+    const page = usePage();
     const { lgAndUp } = useDisplay();
 
     const tab = ref("personal-data");
 
+    const emailNotVerified = computed(() => {
+        return !page.props?.auth?.user?.email_verified_at;
+    });
+
     const tabDirection = computed(() =>
         lgAndUp.value ? "vertical" : "horizontal"
     );
+
+    async function resendEmailVerification() {
+        try {
+            await api.post("/api/account/email/verification-notification");
+            alertSuccess("Ok", "Link de verificação enviado para o seu e-mail.");
+        } catch (err) {
+            const { message } = err?.response?.data || {};
+            alertError("Ooops", message || "Falha ao enviar e-mail de verificação");
+        }
+    }
+
+    onMounted(() => {
+        const { success, error } = page.props?.flash || {};
+
+        if( success ) {
+            alertSuccess("Ok", success);
+        } else if( error ) {
+            alertError("Ooops", error);
+        }
+    });
 </script>

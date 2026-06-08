@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,7 @@ use App\Http\Requests\Account\ResetPasswordRequest;
 use App\Http\Requests\Account\UpdatePasswordRequest;
 use App\Http\Requests\Account\UpdatePersonalDataRequest;
 use App\Helpers\UserAgent;
+use App\Models\User;
 
 class AccountController extends Controller
 {
@@ -60,9 +62,60 @@ class AccountController extends Controller
         ], 400);
     }
 
+    public function verifyEmail(Request $request, string $id, string $hash)
+    {
+        $user = User::find($id);
+
+        if( !$user || !hash_equals(sha1($user->getEmailForVerification()), $hash) ) {
+            return redirect()
+                ->route("login")
+                ->with("error", "Link de verificação inválido.");
+        }
+
+        if( !$user->hasVerifiedEmail() ) {
+            $user->markEmailAsVerified();
+            event(new Verified($user));
+        }
+
+        Auth::login($user);
+
+        $request->session()->regenerate();
+
+        return redirect()
+            ->route("account")
+            ->with("success", "E-mail verificado com sucesso.");
+    }
+
+    public function sendEmailVerificationNotification(Request $request)
+    {
+        if( $request->user()->hasVerifiedEmail() ) {
+            return response()->json([
+                "message" => "E-mail já verificado.",
+            ], 400);
+        }
+
+        $request->user()->sendEmailVerificationNotification();
+
+        return response()->json([
+            "message" => "Link de verificação enviado para o seu e-mail.",
+        ], 200);
+    }
+
     public function updatePersonalData(UpdatePersonalDataRequest $request)
     {
-        $request->user()->update($request->validated());
+        $user = $request->user();
+        $validated = $request->validated();
+
+        if( isset($validated["email"]) && $validated["email"] !== $user->email ) {
+            $validated["email_verified_at"] = null;
+        }
+
+        $user->update($validated);
+
+        if( $user->wasChanged("email") ) {
+            $user->sendEmailVerificationNotification();
+        }
+
         return response()->json([ "message" => "Dados pessoais atualizados com sucesso" ], 200);
     }
 

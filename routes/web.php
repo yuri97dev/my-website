@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\SpreadsheetFormatterController;
 
 Route::inertia("/", "Home")->name("home");
@@ -11,6 +12,12 @@ Route::inertia("/terms-of-use", "TermsOfUse")->name("terms_of_use");
 Route::inertia("/privacy-policy", "PrivacyPolicy")->name("privacy_policy");
 Route::inertia("/forgot-password", "ForgotPassword")->name("forgot_password");
 Route::inertia("/reset-password", "ResetPassword")->name("reset_password");
+
+Route::get("/email/verify/{id}/{hash}", [
+    AccountController::class, "verifyEmail",
+])
+    ->middleware(["signed", "throttle:6,1"])
+    ->name("verification.verify");
 
 Route::middleware("auth")->group(function () {
     Route::inertia("/account", "Account")->name("account");

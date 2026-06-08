@@ -26,4 +26,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is("api/*"),
         );
+
+        $exceptions->render(function (
+            \Illuminate\Routing\Exceptions\InvalidSignatureException $e,
+            Request $request,
+        ) {
+            if( $request->is("email/verify/*") ) {
+                return redirect()
+                    ->route("login")
+                    ->with("error", "Link de verificação inválido ou expirado.");
+            }
+        });
     })->create();
