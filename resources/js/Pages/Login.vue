@@ -15,6 +15,7 @@
             <v-card
                 title="Login"
                 prepend-icon="mdi-login"
+                border
             >
                 <v-card-item>
                     <v-text-field
@@ -44,7 +45,7 @@
 
                 <v-divider></v-divider>
 
-                <v-card-actions>
+                <v-card-actions class="flex-column">
                     <v-btn
                         block
                         type="submit"
@@ -53,18 +54,26 @@
                         color="primary"
                         :loading="loading"
                     >Entrar</v-btn>
-                </v-card-actions>
-            </v-card>
 
-            <v-card class="mt-4">
-                <v-card-item class="text-center">
-                    Novo por aqui?
-                    <a
+                    <v-btn
+                        block
+                        size="large"
+                        variant="text"
+                        :disabled="loading"
+                    >Esqueceu a senha?</v-btn>
+
+                    <v-divider class="w-100"></v-divider>
+
+                    <v-btn
+                        block
+                        size="large"
+                        color="primary"
+                        variant="outlined"
+                        :disabled="loading"
                         :href="route('register')"
-                        class="text-green"
                         @click.prevent="goTo(route('register'))"
-                    >Cadastre-se</a>
-                </v-card-item>
+                    >Criar nova conta</v-btn>
+                </v-card-actions>
             </v-card>
         </v-form>
     </Container>
