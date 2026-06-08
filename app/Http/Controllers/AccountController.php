@@ -106,11 +106,13 @@ class AccountController extends Controller
         $user = $request->user();
         $validated = $request->validated();
 
-        if( isset($validated["email"]) && $validated["email"] !== $user->email ) {
-            $validated["email_verified_at"] = null;
+        $user->fill($validated);
+
+        if( $user->isDirty("email") ) {
+            $user->email_verified_at = null;
         }
 
-        $user->update($validated);
+        $user->save();
 
         if( $user->wasChanged("email") ) {
             $user->sendEmailVerificationNotification();

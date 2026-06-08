@@ -118,7 +118,7 @@
 
 <script setup>
     import { ref, reactive, computed } from "vue";
-    import { usePage } from "@inertiajs/vue3";
+    import { router, usePage } from "@inertiajs/vue3";
 
     import api from "@/api";
 
@@ -155,6 +155,7 @@
 
         try {
             await api.put("/api/account/personal-data", form);
+            router.reload({ preserveScroll: true });
             alertSuccess("Ok", "Dados pessoais atualizados com sucesso");
         } catch (e) {
             const { message, errors: responseErrors } = e.response.data;
