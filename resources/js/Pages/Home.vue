@@ -1,6 +1,10 @@
 <template>
-    <Container>
-        <h1>Hello World</h1>
+    <Container centered>
+        <h1>Olá Mundo!</h1>
+
+        <span>
+            Bem-vindo ao meu site.
+        </span>
     </Container>
 </template>
 

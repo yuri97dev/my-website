@@ -15,7 +15,6 @@
             <v-card
                 title="Login"
                 prepend-icon="mdi-login"
-                border
             >
                 <v-card-item>
                     <v-text-field
@@ -70,7 +69,7 @@
                         block
                         size="large"
                         color="primary"
-                        variant="outlined"
+                        variant="text"
                         :disabled="loading"
                         :href="route('register')"
                         @click.prevent="goTo(route('register'))"

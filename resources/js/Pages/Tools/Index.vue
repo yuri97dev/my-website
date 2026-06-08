@@ -1,23 +1,37 @@
 <template>
-    <Container centered>
-        <v-card
-            height="var(--center-height)"
-            style="width: 100%; max-width: var(--center-width);"
-        >
-            <v-list height="100%">
-                <v-list-item
-                    v-for="(item, index) in items"
-                    :key="index"
+    <Container>
+        <h1>
+            Soluções simples para tarefas repetitivas
+        </h1>
+
+        <v-row>
+            <v-col
+                v-for="item in items"
+                :key="item.title"
+                cols="12"
+                lg="4"
+            >
+                <v-card
+                    hover
                     :prepend-icon="item.icon"
                     :title="item.title"
                     :subtitle="item.subtitle"
-                    :href="item.href"
-                    lines="two"
-                    slim
                     @click.prevent="goTo(item.href)"
-                ></v-list-item>
-            </v-list>
-        </v-card>
+                >
+                    <v-card-text>
+                        <div class="d-flex flex-wrap ga-2">
+                            <v-chip
+                                v-for="feature in item.features"
+                                :key="feature"
+                                :value="feature"
+                                color="primary"
+                                variant="outlined"
+                            >{{ feature }}</v-chip>
+                        </div>
+                    </v-card-text>
+                </v-card>
+            </v-col>
+        </v-row>
     </Container>
 </template>
 
@@ -30,12 +44,15 @@
 
     const items = ref([
         {
-            title: "Formatador de Planilhas",
-            subtitle: "Automatize a formatação e ganhe tempo",
+            title: "Formatador de CSV e XLSX",
+            subtitle: "Limpe e padronize textos de planilhas em poucos cliques",
             icon: "mdi-table-edit",
             href: route("tools.spreadsheet-formatter"),
-            image: "/images/spreadsheet-formatter/thumbnail.png",
-            image_placeholder: "/images/spreadsheet-formatter/thumbnail-placeholder.png",
+            features: [
+                "Remove HTML",
+                "Padroniza texto",
+                "Exporta CSV/XLSX",
+            ],
         },
     ]);
 </script>
