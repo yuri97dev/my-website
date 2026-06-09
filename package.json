@@ -18,6 +18,7 @@
         "@inertiajs/vue3": "^3.3.0",
         "@vitejs/plugin-vue": "^6.0.7",
         "axios": "^1.17.0",
+        "date-fns": "^4.4.0",
         "sweetalert2": "^11.26.25",
         "vue": "^3.5.35",
         "vuetify": "^4.0.8"
