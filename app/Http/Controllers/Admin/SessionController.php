@@ -30,16 +30,12 @@ class SessionController extends Controller
 
         $sessions = collect($paginator->items())
             ->map(function ($session) use ($currentSessionId) {
+                $data = (array) $session;
+
+                unset($data["user_agent"]);
+
                 return array_merge(
-                    [
-                        "id" => $session->id,
-                        "user_id" => $session->user_id,
-                        "user_name" => $session->user_name,
-                        "user_email" => $session->user_email,
-                        "ip_address" => $session->ip_address,
-                        "is_current" => $session->id === $currentSessionId,
-                        "last_activity" => date("c", $session->last_activity),
-                    ],
+                    $data,
                     UserAgent::parse($session->user_agent),
                 );
             })
