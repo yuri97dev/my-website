@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\JobController;
+use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\SessionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\SpreadsheetFormatterController;
@@ -78,6 +79,10 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
         Route::get("/jobs", [
             JobController::class, "index",
         ])->name("api.jobs.index");
+
+        Route::get("/logs/{date}", [
+            LogController::class, "show",
+        ])->name("api.logs.show");
     });
 
 Route::prefix("tools")->group(function() {
