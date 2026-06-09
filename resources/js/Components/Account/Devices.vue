@@ -28,7 +28,7 @@
 
             <v-card-text>
                 <span>Última Atividade: </span>
-                {{ formatDate(device.last_activity, { includeTime: true }) }}
+                {{ format(device.last_activity, "dd/MM/yyyy HH:mm") }}
             </v-card-text>
 
             <v-divider></v-divider>
@@ -79,11 +79,11 @@
 
 <script setup>
     import { ref, onMounted } from "vue";
+    import { format } from "date-fns";
 
     import api from "@/api";
 
     import { alertError, alertSuccess } from "@/Utils/Alert";
-    import { formatDate } from "@/Utils/Common";
 
     const ICONS = {
         "bot": "mdi-robot",

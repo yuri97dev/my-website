@@ -52,6 +52,7 @@
 
 <script setup>
     import { ref, watch, onMounted } from "vue";
+    import { format } from "date-fns";
 
     import api from "@/api";
 
@@ -59,16 +60,7 @@
 
     import { alertError } from "@/Utils/Alert";
 
-    function formatDateInput(value) {
-        const parsed = value instanceof Date ? value : new Date(value);
-        const year = parsed.getFullYear();
-        const month = String(parsed.getMonth() + 1).padStart(2, "0");
-        const day = String(parsed.getDate()).padStart(2, "0");
-
-        return `${year}-${month}-${day}`;
-    }
-
-    const date = ref(formatDateInput(new Date()));
+    const date = ref(format(new Date(), "yyyy-MM-dd"));
     const content = ref("");
     const loading = ref(false);
 
