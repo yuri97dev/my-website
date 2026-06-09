@@ -1,6 +1,9 @@
 <template>
     <Container>
-        <v-card class="d-flex flex-column w-100">
+        <v-card
+            class="d-flex flex-column w-100"
+            :loading="loading"
+        >
             <v-card-item>
                 <v-row align="center" justify="end">
                     <v-col cols="12" lg="4">
@@ -8,6 +11,7 @@
                             type="date"
                             label="Data"
                             append-inner-icon="mdi-refresh"
+                            :loading="loading"
                             @click:append-inner="getLogs"
                             v-model="date"
                         ></v-text-field>
@@ -70,7 +74,6 @@
 
     async function getLogs() {
         loading.value = true;
-        content.value = "";
 
         try {
             const url = route("api.logs.show", date.value);
@@ -78,6 +81,7 @@
 
             content.value = data.content;
         } catch (e) {
+            content.value = "";
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao buscar logs");
         } finally {
