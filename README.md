@@ -30,11 +30,38 @@ Edit `.env` and set at least:
 - `APP_ENV=production`
 - `APP_DEBUG=false`
 - `APP_URL=https://yuri97.com`
+- `TRUSTED_PROXIES=127.0.0.1,::1,172.18.0.1`
 - `DB_PASSWORD` — PostgreSQL password
 - `REDIS_PASSWORD` — Redis password (required)
 - `HTTP_PORT` — port exposed by Nginx (default: `8080`)
 
 Also set `USER_ID` and `GROUP_ID` to the server user's IDs (`id -u` and `id -g`) to avoid volume permission issues.
+
+### 2.1 Host Nginx reverse proxy (production-like local setup)
+
+If you run Nginx on the host machine and proxy traffic to the container port, use:
+
+```nginx
+server {
+    listen 80;
+    server_name yuri97.local;
+
+    client_max_body_size 100M;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+    }
+}
+```
+
+Using `X-Forwarded-For $remote_addr` on the edge proxy prevents client-supplied spoofed IP chains.
 
 ### 3. Start the containers
 
