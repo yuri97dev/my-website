@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\SessionController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\SpreadsheetFormatterController;
 use App\Models\Role;
 
@@ -68,6 +69,10 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
         Route::get("/sessions", [
             SessionController::class, "index",
         ])->name("api.sessions.index");
+
+        Route::get("/users", [
+            UserController::class, "index",
+        ])->name("api.users.index");
     });
 
 Route::prefix("tools")->group(function() {
