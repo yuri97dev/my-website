@@ -3,7 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Admin\SessionController;
 use App\Http\Controllers\SpreadsheetFormatterController;
+use App\Models\Role;
 
 Route::prefix("auth")->group(function() {
     Route::post("/login", [
@@ -60,6 +62,13 @@ Route::prefix("account")->group(function() {
         ])->name("api.account.destroy");
     });
 });
+
+Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
+    ->group(function () {
+        Route::get("/sessions", [
+            SessionController::class, "index",
+        ])->name("api.sessions.index");
+    });
 
 Route::prefix("tools")->group(function() {
     Route::post("/spreadsheet-formatter/upload", [
