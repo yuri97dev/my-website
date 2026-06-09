@@ -23,16 +23,14 @@ class LogController extends Controller
             "message" => "Data inválida. Use o formato YYYY-MM-DD.",
         ], Response::HTTP_UNPROCESSABLE_ENTITY);
 
-        $filename = "laravel-{$parsed->format("Y-m-d")}.log";
-        $path = storage_path("logs/{$filename}");
+        $relative_path = "logs/" . $parsed->format("Y/m/d") . ".log";
+        $path = storage_path($relative_path);
 
         if( !is_file($path) ) return response()->json([
             "message" => "Arquivo de log não encontrado.",
         ], Response::HTTP_NOT_FOUND);
 
         return response()->json([
-            "date" => $parsed->format("Y-m-d"),
-            "name" => $filename,
             "content" => file_get_contents($path),
         ], Response::HTTP_OK);
     }
