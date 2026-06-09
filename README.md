@@ -6,6 +6,7 @@ Laravel blog with PostgreSQL, Redis, and Nginx.
 
 - [Git](https://git-scm.com/)
 - [Docker](https://docs.docker.com/get-docker/)
+- PHP, Composer, and Node.js (to run install/build commands on the host — the project directory is bind-mounted into the containers)
 
 ## Production
 
@@ -38,46 +39,26 @@ Also set `USER_ID` and `GROUP_ID` to the server user's IDs (`id -u` and `id -g`)
 ### 3. Start the containers
 
 ```bash
-docker compose up -d --build
+docker compose up -d --build --wait
 ```
 
-### 4. Install PHP dependencies
+The `--wait` flag blocks until all healthchecks pass (PostgreSQL, Redis, and PHP-FPM), so Nginx does not start before the app is ready.
+
+### 4. Install and build
 
 ```bash
-docker compose exec app composer install --no-dev --optimize-autoloader
+composer install --no-dev --optimize-autoloader
+php artisan key:generate   # first install only, if APP_KEY is empty
+php artisan migrate --force
+npm ci
+npm run build
+php artisan storage:link
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 ```
 
-### 5. Generate application key
-
-Only required on first install if `APP_KEY` is empty:
-
-```bash
-docker compose exec app php artisan key:generate
-```
-
-### 6. Run migrations
-
-```bash
-docker compose exec app php artisan migrate --force
-```
-
-### 7. Build frontend assets
-
-```bash
-docker compose exec app npm ci
-docker compose exec app npm run build
-```
-
-### 8. Set up storage and cache
-
-```bash
-docker compose exec app php artisan storage:link
-docker compose exec app php artisan config:cache
-docker compose exec app php artisan route:cache
-docker compose exec app php artisan view:cache
-```
-
-### 9. Open the site
+### 5. Open the site
 
 Visit [https://yuri97.com](https://yuri97.com) in your browser.
 
@@ -86,12 +67,12 @@ Visit [https://yuri97.com](https://yuri97.com) in your browser.
 After a `git pull`, run:
 
 ```bash
-docker compose up -d --build
-docker compose exec app composer install --no-dev --optimize-autoloader
-docker compose exec app php artisan migrate --force
-docker compose exec app npm ci
-docker compose exec app npm run build
-docker compose exec app php artisan config:cache
-docker compose exec app php artisan route:cache
-docker compose exec app php artisan view:cache
+docker compose up -d --build --wait
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+npm ci
+npm run build
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 ```
