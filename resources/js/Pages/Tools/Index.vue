@@ -1,37 +1,46 @@
 <template>
-    <Container>
-        <h1>
-            Soluções simples para tarefas repetitivas
-        </h1>
-
-        <v-row>
-            <v-col
-                v-for="item in items"
-                :key="item.title"
-                cols="12"
-                lg="4"
+    <Container centered>
+        <div
+            class="d-flex flex-column ga-4"
+            style="width: 100%; max-width: var(--center-width);"
+        >
+            <v-card
+                v-for="(item, index) in items"
+                :key="index"
+                hover
+                @click.prevent="goTo(item.href)"
             >
-                <v-card
-                    hover
-                    :prepend-icon="item.icon"
-                    :title="item.title"
-                    :subtitle="item.subtitle"
-                    @click.prevent="goTo(item.href)"
+                <div
+                    class="d-flex align-center justify-center bg-grey-lighten-2"
+                    style="height: 180px"
                 >
-                    <v-card-text>
-                        <div class="d-flex flex-wrap ga-2">
-                            <v-chip
-                                v-for="feature in item.features"
-                                :key="feature"
-                                :value="feature"
-                                color="primary"
-                                variant="outlined"
-                            >{{ feature }}</v-chip>
-                        </div>
-                    </v-card-text>
-                </v-card>
-            </v-col>
-        </v-row>
+                    <v-icon
+                        :icon="item.icon"
+                        size="48"
+                    ></v-icon>
+                </div>
+
+                <v-card-title>
+                    {{ item.title }}
+                </v-card-title>
+
+                <v-card-subtitle class="text-wrap">
+                    {{ item.subtitle }}
+                </v-card-subtitle>
+
+                <v-card-text>
+                    <div class="d-flex flex-wrap ga-2">
+                        <v-chip
+                            v-for="feature in item.features"
+                            :key="feature"
+                            :value="feature"
+                            color="primary"
+                            variant="outlined"
+                        >{{ feature }}</v-chip>
+                    </div>
+                </v-card-text>
+            </v-card>
+        </div>
     </Container>
 </template>
 

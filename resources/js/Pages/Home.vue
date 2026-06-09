@@ -1,6 +1,8 @@
 <template>
     <Container centered>
-        <h1>Olá Mundo!</h1>
+        <h1 class="text-primary mb-0">
+            Olá Mundo!
+        </h1>
 
         <span>
             Bem-vindo ao meu site.

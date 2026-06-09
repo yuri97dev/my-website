@@ -1,9 +1,25 @@
 import { createVuetify } from "vuetify";
+import { blueGrey } from "vuetify/util/colors";
 
 import "vuetify/styles";
 import "@mdi/font/css/materialdesignicons.css";
 
 export default createVuetify({
+    theme: {
+        defaultTheme: "system",
+        themes: {
+            light: {
+                colors: {
+                    primary: blueGrey.darken2,
+                },
+            },
+            dark: {
+                colors: {
+                    primary: blueGrey.lighten3,
+                },
+            },
+        },
+    },
     defaults: {
         VTextField: {
             hideDetails: "auto",
@@ -28,6 +44,10 @@ export default createVuetify({
         },
         VCard: {
             rounded: "lg",
+        },
+        VTabsWindow: {
+            crossfade: true,
+            class: "overflow-visible",
         },
     },
 });

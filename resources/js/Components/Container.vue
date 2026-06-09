@@ -1,40 +1,34 @@
 <template>
     <v-app>
         <v-app-bar elevation="0" class="border-b">
-            <v-container class="d-flex align-center py-0 h-100">
-                <v-app-bar-title
-                    tag="a"
-                    class="d-flex align-center fill-height text-primary"
-                    style="flex: unset"
-                    :href="route('home')"
-                    @click="goTo"
-                >
-                    <v-icon icon="mdi-brain"></v-icon>
-                    {{ appName }}
-                </v-app-bar-title>
+            <v-app-bar-nav-icon
+                variant="text"
+                @click.stop="drawer = !drawer"
+            ></v-app-bar-nav-icon>
 
-                <v-spacer></v-spacer>
+            <v-app-bar-title
+                tag="a"
+                class="d-flex align-center fill-height text-primary"
+                style="flex: unset"
+                :href="route('home')"
+                @click="goTo"
+            >
+                <v-icon icon="mdi-brain"></v-icon>
+                {{ appName }}
+            </v-app-bar-title>
 
-                <div v-if="lgAndUp" class="d-flex align-center fill-height">
-                    <v-btn
-                        v-for="(link, index) in links"
-                        :key="`desktop-${index}`"
-                        class="h-100 rounded-0"
-                        v-bind="{ ...link, icon: null, prependIcon: link.icon }"
-                    ></v-btn>
-                </div>
+            <v-spacer></v-spacer>
 
-                <template v-else>
-                    <v-btn
-                        v-for="(link, index) in links"
-                        :key="`mobile-${index}`"
-                        v-bind="{ ...link, text: null }"
-                    ></v-btn>
-                </template>
+            <v-btn
+                v-for="(link, index) in links"
+                :key="`app-bar-link-${index}`"
+                v-bind="{ ...link, text: null }"
+            ></v-btn>
 
-                <AuthMenu />
-            </v-container>
+            <AuthMenu />
         </v-app-bar>
+
+        <NavigationDrawer v-model="drawer" />
 
         <v-main>
             <v-container class="h-100">
@@ -53,12 +47,13 @@
 </template>
 
 <script setup>
-    import { computed, watch } from "vue";
+    import { ref, computed, watch } from "vue";
 
     import { usePage } from "@inertiajs/vue3";
     import { useTheme, useDisplay } from "vuetify";
 
     import AuthMenu from "@/Components/AuthMenu.vue";
+    import NavigationDrawer from "@/Components/NavigationDrawer.vue";
 
     import { goTo } from "@/Utils/Common";
 
@@ -70,16 +65,11 @@
     const theme = useTheme();
     const { lgAndUp } = useDisplay();
 
+    const drawer = ref(lgAndUp.value ? true : false);
+
     const appName = computed(() => page.props.appName);
 
     const links = computed(() => [
-        {
-            icon: "mdi-tools",
-            text: "Ferramentas",
-            href: route("tools"),
-            active: route().current("tools"),
-            onClick: (e) => goTo(e),
-        },
         {
             icon: "mdi-theme-light-dark",
             text: "Alternar Tema",

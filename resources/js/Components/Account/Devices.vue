@@ -1,62 +1,50 @@
 <template>
-    <v-row>
-        <template v-if="loading && devices.length == 0">
-            <v-col
-                v-for="n in 3"
-                :key="n"
-                cols="12"
-                lg="6"
-            >
-                <v-skeleton-loader
-                    type="article"
-                    class="rounded-lg h-100"
-                ></v-skeleton-loader>
-            </v-col>
-        </template>
+    <div class="d-flex flex-column ga-4">
+        <v-card v-if="loading && devices.length == 0">
+            <v-skeleton-loader
+                type="article"
+                class="rounded-lg"
+            ></v-skeleton-loader>
+        </v-card>
 
-        <v-col
+        <v-card
             v-for="device in devices"
             :key="device.id"
-            cols="12"
-            lg="6"
+            :subtitle="device.browser || 'Navegador Desconhecido'"
+            :prepend-icon="device.icon"
         >
-            <v-card
-                :subtitle="device.browser || 'Navegador Desconhecido'"
-                :prepend-icon="device.icon"
-            >
-                <template #title>
-                    {{ device.os || "Dispositivo Desconhecido" }}
+            <template #title>
+                {{ device.os || "Dispositivo Desconhecido" }}
 
-                    <v-chip
-                        v-if="device.is_current"
-                        size="small"
-                        color="primary"
-                        variant="tonal"
-                    >
-                        Sessão Atual
-                    </v-chip>
-                </template>
+                <v-chip
+                    v-if="device.is_current"
+                    size="small"
+                    color="primary"
+                    variant="tonal"
+                >
+                    Sessão Atual
+                </v-chip>
+            </template>
 
-                <v-card-text>
-                    <span>Última Atividade: </span>
-                    {{ formatDate(device.last_activity, { includeTime: true }) }}
-                </v-card-text>
+            <v-card-text>
+                <span>Última Atividade: </span>
+                {{ formatDate(device.last_activity, { includeTime: true }) }}
+            </v-card-text>
 
-                <v-divider></v-divider>
+            <v-divider></v-divider>
 
-                <v-card-actions>
-                    <v-btn
-                        color="error"
-                        prepend-icon="mdi-logout"
-                        text="Revogar Sessão"
-                        :loading="loading"
-                        :disabled="device.is_current"
-                        @click="selectDevice(device)"
-                    ></v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-col>
-    </v-row>
+            <v-card-actions>
+                <v-btn
+                    color="error"
+                    prepend-icon="mdi-logout"
+                    text="Revogar Sessão"
+                    :loading="loading"
+                    :disabled="device.is_current"
+                    @click="selectDevice(device)"
+                ></v-btn>
+            </v-card-actions>
+        </v-card>
+    </div>
 
     <v-dialog
         max-width="500"

@@ -3,7 +3,6 @@
         title="Excluir Conta"
         color="error"
         variant="tonal"
-        style="width: 100%; max-width: var(--center-width);"
         :loading="loading"
     >
         <v-card-text>

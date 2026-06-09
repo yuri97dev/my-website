@@ -1,119 +1,110 @@
 <template>
     <v-alert
-        v-if="mainError"
+        v-if="!!mainError"
         type="error"
         variant="tonal"
         icon="mdi-alert"
         class="mb-4"
     >{{ mainError }}</v-alert>
 
-    <v-row>
-        <v-col cols="12" lg="6">
-            <v-form
-                class="mb-0"
-                @submit.prevent=""
-            >
-                <v-card title="Dados Pessoais" :loading="loading.personalData">
-                    <v-card-item>
-                        <v-text-field
-                            label="Nome Completo"
-                            class="mb-4"
-                            required
-                            autofocus
-                            :error-messages="errors.name"
-                            v-model="form.name"
-                        ></v-text-field>
+    <v-form
+        @submit.prevent="updatePersonalData"
+    >
+        <v-card title="Dados Pessoais" :loading="loading.personalData">
+            <v-card-item>
+                <v-text-field
+                    label="Nome Completo"
+                    class="mb-4"
+                    required
+                    autofocus
+                    :error-messages="errors.name"
+                    v-model="form.name"
+                ></v-text-field>
 
-                        <v-text-field
-                            label="Email"
-                            class="mb-4"
-                            required
-                            :error-messages="errors.email"
-                            v-model="form.email"
-                        ></v-text-field>
+                <v-text-field
+                    label="Email"
+                    class="mb-4"
+                    required
+                    :error-messages="errors.email"
+                    v-model="form.email"
+                ></v-text-field>
 
-                        <v-checkbox
-                            color="primary"
-                            v-model="form.accepts_marketing"
-                        >
-                            <template #label>
-                                <div class="ml-2">
-                                    Quero receber novidades, ofertas e conteúdos exclusivos por e-mail. (Opcional)
-                                </div>
-                            </template>
-                        </v-checkbox>
-                    </v-card-item>
+                <v-checkbox
+                    color="primary"
+                    v-model="form.accepts_marketing"
+                >
+                    <template #label>
+                        <div class="ml-2">
+                            Quero receber novidades, ofertas e conteúdos exclusivos por e-mail. (Opcional)
+                        </div>
+                    </template>
+                </v-checkbox>
+            </v-card-item>
 
-                    <v-divider></v-divider>
+            <v-divider></v-divider>
 
-                    <v-card-actions>
-                        <v-btn
-                            block
-                            type="submit"
-                            size="large"
-                            variant="tonal"
-                            color="primary"
-                            prepend-icon="mdi-content-save"
-                            text="Salvar"
-                            :loading="loading.personalData"
-                            @click="updatePersonalData"
-                        ></v-btn>
-                    </v-card-actions>
-                </v-card>
-            </v-form>
-        </v-col>
+            <v-card-actions>
+                <v-btn
+                    block
+                    type="submit"
+                    size="large"
+                    variant="tonal"
+                    color="primary"
+                    prepend-icon="mdi-content-save"
+                    text="Salvar"
+                    :loading="loading.personalData"
+                ></v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-form>
 
-        <v-col cols="12" lg="6">
-            <v-form
-                class="mb-0"
-                @submit.prevent=""
-            >
-                <v-card title="Alterar Senha" :loading="loading.password">
-                    <v-card-item>
-                        <PasswordField
-                            label="Senha Atual"
-                            class="mb-4"
-                            required
-                            :error-messages="errors.current_password"
-                            v-model="form.current_password"
-                        ></PasswordField>
+    <v-form
+        class="mb-0"
+        @submit.prevent="updatePassword"
+    >
+        <v-card title="Alterar Senha" :loading="loading.password">
+            <v-card-item>
+                <PasswordField
+                    label="Senha Atual"
+                    class="mb-4"
+                    required
+                    :error-messages="errors.current_password"
+                    v-model="form.current_password"
+                ></PasswordField>
 
-                        <PasswordField
-                            label="Nova Senha"
-                            class="mb-4"
-                            required
-                            :error-messages="errors.password"
-                            v-model="form.password"
-                        ></PasswordField>
+                <PasswordField
+                    label="Nova Senha"
+                    class="mb-4"
+                    required
+                    :error-messages="errors.password"
+                    v-model="form.password"
+                ></PasswordField>
 
-                        <PasswordField
-                            label="Confirmar Nova Senha"
-                            class="mb-4"
-                            required
-                            :error-messages="errors.password_confirmation"
-                            v-model="form.password_confirmation"
-                        ></PasswordField>
-                    </v-card-item>
-                    
-                    <v-divider></v-divider>
+                <PasswordField
+                    label="Confirmar Nova Senha"
+                    class="mb-4"
+                    required
+                    :error-messages="errors.password_confirmation"
+                    v-model="form.password_confirmation"
+                ></PasswordField>
+            </v-card-item>
 
-                    <v-card-actions>
-                        <v-btn
-                            block
-                            type="submit"
-                            size="large"
-                            variant="tonal"
-                            color="primary"
-                            prepend-icon="mdi-content-save"
-                            text="Salvar"
-                            :loading="loading.password"
-                            @click="updatePassword"
-                        ></v-btn>
-                    </v-card-actions>
-                </v-card>
-            </v-form>
-        </v-col>
-    </v-row>
+            <v-divider></v-divider>
+
+            <v-card-actions>
+                <v-btn
+                    block
+                    type="submit"
+                    size="large"
+                    variant="tonal"
+                    color="primary"
+                    prepend-icon="mdi-content-save"
+                    text="Salvar"
+                    :loading="loading.password"
+                ></v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-form>
 </template>
 
 <script setup>

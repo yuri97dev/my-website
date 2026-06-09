@@ -15,19 +15,23 @@
             para reenviar o e-mail de verificação.
         </v-alert>
 
-        <div class="d-flex flex-column flex-lg-row ga-4">
-            <v-tabs
-                color="primary"
-                :grow="!lgAndUp"
-                :direction="tabDirection"
-                v-model="tab"
-            >
-                <v-tab prepend-icon="mdi-account" text="Dados Pessoais" value="personal-data"></v-tab>
-                <v-tab prepend-icon="mdi-devices" text="Dispositivos" value="devices"/>
-                <v-tab prepend-icon="mdi-account-remove" text="Excluir Conta" value="delete-account"/>
-            </v-tabs>
+        <v-tabs
+            align-tabs="center"
+            color="primary"
+            class="mb-4"
+            :grow="!lgAndUp"
+            v-model="tab"
+        >
+            <v-tab prepend-icon="mdi-account" text="Dados Pessoais" value="personal-data"></v-tab>
+            <v-tab prepend-icon="mdi-devices" text="Dispositivos" value="devices"/>
+            <v-tab prepend-icon="mdi-account-remove" text="Excluir Conta" value="delete-account"/>
+        </v-tabs>
 
-            <v-tabs-window class="w-100" v-model="tab">
+        <div
+            class="mx-auto"
+            style="width: 100%; max-width: var(--center-width);"
+        >
+            <v-tabs-window v-model="tab">
                 <v-tabs-window-item value="personal-data">
                     <PersonalData />
                 </v-tabs-window-item>

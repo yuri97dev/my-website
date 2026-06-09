@@ -2,7 +2,8 @@
     <v-menu v-if="authUser" location="bottom end">
         <template #activator="{ props: menuProps }">
             <v-btn
-                v-bind="{ ...menuBtnProps, ...menuProps }"
+                icon="mdi-account"
+                v-bind="menuProps"
             ></v-btn>
         </template>
 
@@ -24,7 +25,10 @@
 
     <v-btn
         v-else
-        v-bind="loginBtnProps"
+        icon="mdi-login"
+        :href="route('login')"
+        :active="route().current('login')"
+        @click.prevent="goTo(route('login'))"
     ></v-btn>
 
     <v-dialog
@@ -78,38 +82,6 @@
     const loading = ref(false);
 
     const authUser = computed(() => page.props?.auth?.user);
-
-    const menuBtnProps = computed(() => {
-        if( lgAndUp.value ) return {
-            class: "h-100 rounded-0",
-            prependIcon: "mdi-account",
-            text: authUser.value?.name?.split(" ")[0],
-        };
-
-        return {
-            icon: "mdi-account",
-        };
-    });
-
-    const loginBtnProps = computed(() => {
-        const shared = {
-            class: "h-100 rounded-0",
-            href: route("login"),
-            active: route().current("login"),
-            onClick: goTo,
-        };
-
-        if( lgAndUp.value ) return {
-            ...shared,
-            prependIcon: "mdi-login",
-            text: "Login",
-        };
-
-        return {
-            ...shared,
-            icon: "mdi-login",
-        };
-    });
 
     async function logout() {
         loading.value = true;
