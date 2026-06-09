@@ -50,6 +50,7 @@ class HandleInertiaRequests extends Middleware
                 "email_verified_at",
                 "accepts_marketing",
             ]) ?? null,
+            "auth.isSysAdmin" => fn () => $request->user()?->isSystemAdmin(),
         ]);
     }
 }

@@ -17,10 +17,38 @@
 
 <script setup>
     import { computed } from "vue";
+    import { usePage } from "@inertiajs/vue3";
 
     import { goTo } from "@/Utils/Common";
 
+    const ADMIN_LINKS = [
+        {
+            key: "users",
+            icon: "mdi-account-group",
+            text: "Usuários",
+            href: route("admin.users"),
+            active: route().current("admin.users"),
+        },
+        {
+            key: "jobs",
+            icon: "mdi-briefcase",
+            text: "Jobs",
+            href: route("admin.jobs"),
+            active: route().current("admin.jobs"),
+        },
+        {
+            key: "logs",
+            icon: "mdi-file-document",
+            text: "Logs",
+            href: route("admin.logs"),
+            active: route().current("admin.logs"),
+        },
+    ];
+
     const drawer = defineModel();
+    const page = usePage();
+
+    const isAdmin = computed(() => page.props?.auth?.isSysAdmin);
 
     const links = computed(() => [
         {
@@ -30,5 +58,6 @@
             href: route("tools"),
             active: route().current("tools"),
         },
+        ...(isAdmin.value ? ADMIN_LINKS : []),
     ]);
 </script>

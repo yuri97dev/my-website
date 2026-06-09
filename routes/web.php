@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\SpreadsheetFormatterController;
+use App\Models\Role;
 
 Route::inertia("/", "Home")->name("home");
 Route::inertia("/tools", "Tools/Index")->name("tools");
@@ -36,3 +37,11 @@ Route::prefix("tools")->group(function () {
         SpreadsheetFormatterController::class, "download"
     ])->name("tools.spreadsheet-formatter.download");
 });
+
+Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
+    ->prefix("admin")
+    ->group(function () {
+        Route::inertia("/users", "Admin/Users")->name("admin.users");
+        Route::inertia("/jobs", "Admin/Jobs")->name("admin.jobs");
+        Route::inertia("/logs", "Admin/Logs")->name("admin.logs");
+    });
