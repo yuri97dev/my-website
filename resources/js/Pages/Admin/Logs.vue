@@ -21,10 +21,65 @@
 
             <v-divider></v-divider>
 
-            <pre
-                v-if="content"
-                class="overflow-y-auto flex-grow-1 pa-4 ma-0 font-monospace text-pre-wrap"
-            >{{ content }}</pre>
+            <template v-if="logs.length > 0">
+                <v-virtual-scroll
+                    item-key="id"
+                    height="500px"
+                    style="resize: vertical"
+                    :items="logs"
+                >
+                    <template #default="{ item }">
+                        <v-list-item class="py-4">
+                            <span
+                                v-if="item.datetime"
+                                class="d-flex align-center justify-space-between ga-2 mb-2"
+                            >
+                                <v-chip
+                                    size="small"
+                                    variant="tonal"
+                                    class="font-monospace"
+                                    :color="logLevelColor(item.level)"
+                                >
+                                    {{ item.level || item.type || "LOG" }}
+                                </v-chip>
+
+                                <span class="text-grey">
+                                    <v-icon icon="mdi-clock-outline" size="16"></v-icon>
+                                    {{ format(item.datetime, "dd/MM/yyyy HH:mm:ss") }}
+                                </span>
+                            </span>
+
+                            <v-list-item-title class="font-monospace text-wrap">
+                                {{ item.message }}
+                            </v-list-item-title>
+
+                            <div
+                                v-if="item.trace.length > 0"
+                                class="mt-2 w-100"
+                            >
+                                <v-btn
+                                    size="small"
+                                    variant="tonal"
+                                    :prepend-icon="expandedTraces.has(item.id)
+                                        ? 'mdi-chevron-up'
+                                        : 'mdi-chevron-down'"
+                                    :text="expandedTraces.has(item.id)
+                                        ? 'Ocultar trace'
+                                        : `Ver trace (${item.trace.length})`"
+                                    @click="toggleTrace(item.id)"
+                                ></v-btn>
+
+                                <pre
+                                    v-show="expandedTraces.has(item.id)"
+                                    class="text-medium-emphasis font-monospace pa-2 rounded bg-surface-light overflow-x-auto"
+                                >{{ item.trace.join("\n") }}</pre>
+                            </div>
+                        </v-list-item>
+
+                        <v-divider></v-divider>
+                    </template>
+                </v-virtual-scroll>
+            </template>
 
             <v-card-item v-else>
                 <div
@@ -51,7 +106,7 @@
 </template>
 
 <script setup>
-    import { ref, watch, onMounted } from "vue";
+    import { ref, computed, watch, onMounted } from "vue";
     import { format } from "date-fns";
 
     import api from "@/api";
@@ -59,13 +114,34 @@
     import Container from "@/Components/Container.vue";
 
     import { alertError } from "@/Utils/Alert";
+    import { parseLogs, logLevelColor } from "@/Utils/ParseLogs";
 
     const date = ref(format(new Date(), "yyyy-MM-dd"));
     const content = ref("");
     const loading = ref(false);
+    const expandedTraces = ref(new Set());
+
+    const logs = computed(() => parseLogs(content.value)
+        .map((log, index) => ({
+            ...log,
+            id: `${log.datetime || "unknown"}-${index}`,
+        })));
+
+    function toggleTrace(id) {
+        const next = new Set(expandedTraces.value);
+
+        if( next.has(id) ) {
+            next.delete(id);
+        } else {
+            next.add(id);
+        }
+
+        expandedTraces.value = next;
+    }
 
     async function getLogs() {
         loading.value = true;
+        expandedTraces.value = new Set();
 
         try {
             const url = route("api.logs.show", date.value);
