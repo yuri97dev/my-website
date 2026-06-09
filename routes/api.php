@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Admin\JobController;
 use App\Http\Controllers\Admin\SessionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\SpreadsheetFormatterController;
@@ -73,6 +74,10 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
         Route::get("/users", [
             UserController::class, "index",
         ])->name("api.users.index");
+
+        Route::get("/jobs", [
+            JobController::class, "index",
+        ])->name("api.jobs.index");
     });
 
 Route::prefix("tools")->group(function() {
