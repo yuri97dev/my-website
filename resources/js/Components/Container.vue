@@ -39,10 +39,16 @@
                     <slot />
                 </div>
 
+                <div
+                    v-else-if="gapped"
+                    class="d-flex flex-column ga-4 h-100"
+                >
+                    <slot />
+                </div>
+
                 <slot v-else />
             </v-container>
         </v-main>
-
     </v-app>
 </template>
 
@@ -59,6 +65,7 @@
 
     const props = defineProps({
         centered: Boolean,
+        gapped: Boolean,
     });
 
     const page = usePage();

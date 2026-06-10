@@ -51,6 +51,7 @@ function parseLogBlock(block, index) {
 
     return {
         id: `${index}-${datetime || "unknown"}`,
+        index,
         datetime,
         type,
         level,

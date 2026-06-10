@@ -1,41 +1,41 @@
 <template>
-    <Container>
+    <Container gapped>
+        <v-row>
+            <v-col cols="12" lg="8">
+                <v-card hover border>
+                    <v-text-field
+                        type="search"
+                        placeholder="Pesquisar"
+                        prepend-inner-icon="mdi-magnify"
+                        append-inner-icon="mdi-refresh"
+                        variant="solo"
+                        clearable
+                        @click:append-inner="getLogs"
+                        v-model="search"
+                    ></v-text-field>
+                </v-card>
+            </v-col>
+
+            <v-col cols="12" lg="4">
+                <v-card hover border>
+                    <v-date-input
+                        variant="solo"
+                        prepend-icon=""
+                        prepend-inner-icon="mdi-calendar-outline"
+                        v-model="date"
+                    ></v-date-input>
+                </v-card>
+            </v-col>
+        </v-row>
+
         <v-card
             class="d-flex flex-column w-100 h-100"
             :loading="loading"
         >
-            <v-card-item>
-                <v-row>
-                    <v-col cols="12" lg="8">
-                        <v-text-field
-                            type="search"
-                            label="Pesquisar"
-                            prepend-inner-icon="mdi-magnify"
-                            clearable
-                            v-model="search"
-                        ></v-text-field>
-                    </v-col>
-
-                    <v-col cols="12" lg="4">
-                        <v-text-field
-                            type="date"
-                            label="Data"
-                            append-inner-icon="mdi-refresh"
-                            :loading="loading"
-                            @click:append-inner="getLogs"
-                            v-model="date"
-                        ></v-text-field>
-                    </v-col>
-                </v-row>
-            </v-card-item>
-
-            <v-divider></v-divider>
-
             <template v-if="logs.length > 0">
                 <v-virtual-scroll
                     item-key="id"
                     height="400px"
-                    style="resize: vertical"
                     :items="filteredLogs"
                 >
                     <template #default="{ item }">
@@ -44,14 +44,20 @@
                                 v-if="item.datetime"
                                 class="d-flex align-center justify-space-between ga-2 mb-2"
                             >
-                                <v-chip
-                                    size="small"
-                                    variant="tonal"
-                                    class="font-monospace"
-                                    :color="logLevelColor(item.level)"
-                                >
-                                    {{ item.level || item.type || "LOG" }}
-                                </v-chip>
+                                <span class="d-flex align-center ga-2">
+                                    <strong class="text-purple-lighten-2">
+                                        # {{ item.index + 1 }}
+                                    </strong>
+
+                                    <v-chip
+                                        size="small"
+                                        variant="tonal"
+                                        class="font-monospace"
+                                        :color="logLevelColor(item.level)"
+                                    >
+                                        {{ item.level || item.type || "LOG" }}
+                                    </v-chip>
+                                </span>
 
                                 <span class="d-flex align-center ga-2 text-grey">
                                     <v-icon icon="mdi-clock-outline" size="16"></v-icon>
@@ -125,10 +131,12 @@
     import { formatText } from "@/Utils/Common";
 
     const search = ref("");
-    const date = ref(format(new Date(), "yyyy-MM-dd"));
+    const date = ref(new Date());
     const content = ref("");
     const loading = ref(false);
     const expandedTraces = ref(new Set());
+
+    const dateString = computed(() => format(date.value, "yyyy-MM-dd"));
 
     const logs = computed(() => parseLogs(content.value).reverse());
 
@@ -159,11 +167,12 @@
         expandedTraces.value = new Set();
 
         try {
-            const url = route("api.logs.show", date.value);
+            const url = route("api.logs.show", dateString.value);
             const { data } = await api.get(url);
 
             content.value = data.content;
         } catch (e) {
+            // console.log(e);
             content.value = "";
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao buscar logs");
