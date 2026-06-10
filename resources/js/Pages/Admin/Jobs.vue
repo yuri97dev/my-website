@@ -49,11 +49,15 @@
                 </template>
 
                 <template #item.expires_at="{ item }">
-                    {{ format(item.expires_at, "dd/MM/yyyy HH:mm") }}
+                    <span v-if="!!item.expires_at">
+                        {{ format(item.expires_at, "dd/MM/yyyy HH:mm") }}
+                    </span>
                 </template>
 
                 <template #item.file_removed_at="{ item }">
-                    {{ format(item.file_removed_at, "dd/MM/yyyy HH:mm") }}
+                    <span v-if="!!item.file_removed_at">
+                        {{ format(item.file_removed_at, "dd/MM/yyyy HH:mm") }}
+                    </span>
                 </template>
             </v-data-table-server>
         </v-card>
