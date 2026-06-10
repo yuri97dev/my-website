@@ -23,6 +23,13 @@
 
     const ADMIN_LINKS = [
         {
+            key: "sessions",
+            icon: "mdi-monitor-account",
+            text: "Sessões",
+            href: route("admin.sessions"),
+            active: route().current("admin.sessions"),
+        },
+        {
             key: "users",
             icon: "mdi-account-group",
             text: "Usuários",
@@ -31,7 +38,7 @@
         },
         {
             key: "jobs",
-            icon: "mdi-briefcase",
+            icon: "mdi-progress-clock",
             text: "Jobs",
             href: route("admin.jobs"),
             active: route().current("admin.jobs"),
