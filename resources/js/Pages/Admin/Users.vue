@@ -1,21 +1,20 @@
 <template>
     <Container>
+        <v-card hover border class="mb-4">
+            <v-text-field
+                type="search"
+                placeholder="Pesquisar"
+                prepend-inner-icon="mdi-magnify"
+                append-inner-icon="mdi-refresh"
+                variant="solo"
+                clearable
+                @keyup.enter="handleSearch"
+                @click:append-inner="getUsers"
+                v-model="search"
+            ></v-text-field>
+        </v-card>
+
         <v-card>
-            <v-card-item>
-                <v-text-field
-                    type="search"
-                    label="Pesquisar"
-                    prepend-inner-icon="mdi-magnify"
-                    append-inner-icon="mdi-refresh"
-                    clearable
-                    @keyup.enter="handleSearch"
-                    @click:append-inner="getUsers"
-                    v-model="search"
-                ></v-text-field>
-            </v-card-item>
-
-            <v-divider></v-divider>
-
             <v-data-table-server
                 :headers="headers"
                 :items="users"
