@@ -1,7 +1,7 @@
 <template>
     <Container>
         <v-card
-            class="d-flex flex-column w-100"
+            class="d-flex flex-column w-100 h-100"
             :loading="loading"
         >
             <v-card-item>
@@ -24,7 +24,7 @@
             <template v-if="logs.length > 0">
                 <v-virtual-scroll
                     item-key="id"
-                    height="500px"
+                    height="400px"
                     style="resize: vertical"
                     :items="logs"
                 >
@@ -43,7 +43,7 @@
                                     {{ item.level || item.type || "LOG" }}
                                 </v-chip>
 
-                                <span class="text-grey">
+                                <span class="d-flex align-center ga-2 text-grey">
                                     <v-icon icon="mdi-clock-outline" size="16"></v-icon>
                                     {{ format(item.datetime, "dd/MM/yyyy HH:mm:ss") }}
                                 </span>
@@ -71,7 +71,7 @@
 
                                 <pre
                                     v-show="expandedTraces.has(item.id)"
-                                    class="text-medium-emphasis font-monospace pa-2 rounded bg-surface-light overflow-x-auto"
+                                    class="text-medium-emphasis font-monospace pa-2 ma-0 mt-2 rounded bg-surface-light overflow-x-auto"
                                 >{{ item.trace.join("\n") }}</pre>
                             </div>
                         </v-list-item>
