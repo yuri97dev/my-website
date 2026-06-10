@@ -91,11 +91,8 @@
                 </v-virtual-scroll>
             </template>
 
-            <v-card-item v-else>
-                <div
-                    style="height: var(--center-height);"
-                    class="d-flex flex-column align-center justify-center ga-2"
-                >
+            <v-card-item v-else class="h-100">
+                <div class="d-flex flex-column align-center justify-center ga-2">
                     <v-icon
                         icon="mdi-file-search-outline"
                         size="56"
