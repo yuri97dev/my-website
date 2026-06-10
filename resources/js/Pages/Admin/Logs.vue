@@ -133,7 +133,7 @@
     const loading = ref(false);
     const expandedTraces = ref(new Set());
 
-    const logs = computed(() => parseLogs(content.value));
+    const logs = computed(() => parseLogs(content.value).reverse());
 
     const filteredLogs = computed(() => {
         const keywords = formatText(search.value || "").split(" ");
