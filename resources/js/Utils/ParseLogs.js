@@ -1,8 +1,10 @@
+import { formatText } from "@/Utils/Common";
+
 const LOG_HEADER_REGEX = /^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\] ([\w.]+): (.*)$/;
 const LOG_BLOCK_START_REGEX = /^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\]/gm;
 const TRACE_LINE_REGEX = /^#\d+\s/;
 
-function parseLogBlock(block) {
+function parseLogBlock(block, index) {
     const lines = block.split("\n");
     const headerMatch = lines[0].match(LOG_HEADER_REGEX);
 
@@ -45,12 +47,16 @@ function parseLogBlock(block) {
         ? type.split(".").at(-1)
         : type;
 
+    const forSearch = formatText(block);
+
     return {
+        id: `${index}-${datetime || "unknown"}`,
         datetime,
         type,
         level,
         message: [firstMessage, ...messageLines].join("\n").trim(),
         trace,
+        forSearch,
     };
 }
 
@@ -74,7 +80,7 @@ export function parseLogs(content) {
             ? starts[index + 1].index
             : content.length;
 
-        return parseLogBlock(content.slice(start, end).trim());
+        return parseLogBlock(content.slice(start, end).trim(), index);
     });
 }
 

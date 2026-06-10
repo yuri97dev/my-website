@@ -5,7 +5,17 @@
             :loading="loading"
         >
             <v-card-item>
-                <v-row align="center" justify="end">
+                <v-row>
+                    <v-col cols="12" lg="8">
+                        <v-text-field
+                            type="search"
+                            label="Pesquisar"
+                            prepend-inner-icon="mdi-magnify"
+                            clearable
+                            v-model="search"
+                        ></v-text-field>
+                    </v-col>
+
                     <v-col cols="12" lg="4">
                         <v-text-field
                             type="date"
@@ -26,7 +36,7 @@
                     item-key="id"
                     height="400px"
                     style="resize: vertical"
-                    :items="logs"
+                    :items="filteredLogs"
                 >
                     <template #default="{ item }">
                         <v-list-item class="py-4">
@@ -115,17 +125,25 @@
 
     import { alertError } from "@/Utils/Alert";
     import { parseLogs, logLevelColor } from "@/Utils/ParseLogs";
+    import { formatText } from "@/Utils/Common";
 
+    const search = ref("");
     const date = ref(format(new Date(), "yyyy-MM-dd"));
     const content = ref("");
     const loading = ref(false);
     const expandedTraces = ref(new Set());
 
-    const logs = computed(() => parseLogs(content.value)
-        .map((log, index) => ({
-            ...log,
-            id: `${log.datetime || "unknown"}-${index}`,
-        })));
+    const logs = computed(() => parseLogs(content.value));
+
+    const filteredLogs = computed(() => {
+        const keywords = formatText(search.value || "").split(" ");
+
+        if( keywords.length === 0 ) return logs.value;
+
+        return logs.value.filter(log => {
+            return keywords.every(keyword => log.forSearch.includes(keyword));
+        });
+    });
 
     function toggleTrace(id) {
         const next = new Set(expandedTraces.value);

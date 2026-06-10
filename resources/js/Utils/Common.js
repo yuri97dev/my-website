@@ -48,6 +48,20 @@ export function formatBytes(bytes) {
     return `${formatValue(bytes / KB)} KB`;
 }
 
+export function formatText(text) {
+    if( !text || typeof text !== "string" ) {
+        return text;
+    }
+
+    return text
+        .toUpperCase()
+        .split(" ")
+        .filter(palavra => !!palavra)
+        .join(" ")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+}
+
 export function validEmail(email) {
     if( !email || typeof email !== "string" ) {
         return false;
