@@ -80,6 +80,10 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             JobController::class, "index",
         ])->name("api.jobs.index");
 
+        Route::get("/jobs/spreadsheet-formatter", [
+            JobController::class, "spreadsheetFormatter",
+        ])->name("api.jobs.spreadsheet-formatter");
+
         Route::get("/logs/{date}", [
             LogController::class, "show",
         ])->name("api.logs.show");

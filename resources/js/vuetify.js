@@ -49,5 +49,10 @@ export default createVuetify({
             crossfade: true,
             class: "overflow-visible",
         },
+        VDataTableServer: {
+            itemsPerPageOptions: [10, 25, 50, 100, 200],
+            noDataText: "Nenhum resultado encontrado",
+            itemsPerPageText: "Itens por página",
+        },
     },
 });
