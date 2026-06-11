@@ -1,5 +1,5 @@
 <template>
-    <Container centered>
+    <Container title="Ferramentas" centered>
         <div
             class="d-flex flex-column ga-4"
             style="width: 100%; max-width: var(--center-width);"

@@ -1,5 +1,7 @@
 <template>
     <v-app>
+        <Head :title="pageTitle" />
+
         <v-app-bar elevation="0" class="border-b">
             <v-app-bar-nav-icon
                 variant="text"
@@ -14,7 +16,7 @@
                 @click="goTo"
             >
                 <v-icon icon="mdi-brain"></v-icon>
-                {{ appName }}
+                {{ pageTitle }}
             </v-app-bar-title>
 
             <v-spacer></v-spacer>
@@ -55,7 +57,7 @@
 <script setup>
     import { ref, computed, watch } from "vue";
 
-    import { usePage } from "@inertiajs/vue3";
+    import { usePage, Head } from "@inertiajs/vue3";
     import { useTheme, useDisplay } from "vuetify";
 
     import AuthMenu from "@/Components/AuthMenu.vue";
@@ -66,11 +68,17 @@
     const props = defineProps({
         centered: Boolean,
         gapped: Boolean,
+        title: String,
     });
 
     const page = usePage();
     const theme = useTheme();
     const { lgAndUp } = useDisplay();
+
+    const pageTitle = computed(() => {
+        if( !props.title ) return appName.value;
+        return `${appName.value} - ${props.title}`;
+    });
 
     const drawer = ref(lgAndUp.value ? true : false);
 
