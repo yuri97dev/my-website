@@ -8,6 +8,10 @@
     --v-col-gap-y: 16px !important;
 }
 
+.v-table.text-no-wrap table {
+    text-wrap: nowrap !important;
+}
+
 a {
     text-decoration: none;
 }
