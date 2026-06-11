@@ -7,6 +7,9 @@ use App\Http\Controllers\Admin\JobController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\SessionController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Blog\PostCategoryController;
+use App\Http\Controllers\Blog\PostController;
+use App\Http\Controllers\Blog\PostTagController;
 use App\Http\Controllers\SpreadsheetFormatterController;
 use App\Models\Role;
 
@@ -103,4 +106,44 @@ Route::prefix("tools")->group(function() {
     Route::delete("/spreadsheet-formatter/files/{uuid}", [
         SpreadsheetFormatterController::class, "destroy"
     ])->name("api.tools.spreadsheet-formatter.files.destroy");
+});
+
+Route::prefix("blog/posts")->group(function () {
+    Route::get("/", [
+        PostController::class, "index",
+    ])->name("api.blog.posts.index");
+
+    Route::get("/categories", [
+        PostCategoryController::class, "index",
+    ])->name("api.blog.posts.categories.index");
+
+    Route::get("/tags", [
+        PostTagController::class, "index",
+    ])->name("api.blog.posts.tags.index");
+
+    Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])->group(function () {
+        Route::post("/categories", [
+            PostCategoryController::class, "store",
+        ])->name("api.blog.posts.categories.store");
+
+        Route::put("/categories/{postCategory}", [
+            PostCategoryController::class, "update",
+        ])->name("api.blog.posts.categories.update");
+
+        Route::delete("/categories/{postCategory}", [
+            PostCategoryController::class, "destroy",
+        ])->name("api.blog.posts.categories.destroy");
+
+        Route::post("/tags", [
+            PostTagController::class, "store",
+        ])->name("api.blog.posts.tags.store");
+
+        Route::put("/tags/{postTag}", [
+            PostTagController::class, "update",
+        ])->name("api.blog.posts.tags.update");
+
+        Route::delete("/tags/{postTag}", [
+            PostTagController::class, "destroy",
+        ])->name("api.blog.posts.tags.destroy");
+    });
 });
