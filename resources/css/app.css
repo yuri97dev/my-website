@@ -3,6 +3,10 @@
     --center-height: 400px;
 }
 
+html {
+    overflow-y: scroll;
+}
+
 .v-row--density-default {
     --v-col-gap-x: 16px !important;
     --v-col-gap-y: 16px !important;
