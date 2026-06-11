@@ -1,5 +1,5 @@
 <template>
-    <Container centered>
+    <Container title="Formatador de CSV e XLSX" centered>
         <div style="width: 100%; max-width: var(--center-width);">
             <v-alert
                 v-if="shouldShowFileSizeInfo"

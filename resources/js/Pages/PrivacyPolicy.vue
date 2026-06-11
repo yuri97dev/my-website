@@ -1,5 +1,5 @@
 <template>
-    <Container centered>
+    <Container title="Política de Privacidade" centered>
         <v-card class="w-100" style="max-width: 800px">
             <v-card-title class="text-center text-primary">
                 Política de Privacidade

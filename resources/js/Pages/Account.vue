@@ -1,5 +1,5 @@
 <template>
-    <Container>
+    <Container title="Conta">
         <v-alert
             v-if="emailNotVerified"
             type="warning"

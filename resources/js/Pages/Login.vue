@@ -1,5 +1,5 @@
 <template>
-    <Container centered>
+    <Container title="Login" centered>
         <v-form
             style="width: 100%; max-width: var(--center-width);"
             @submit.prevent="login"

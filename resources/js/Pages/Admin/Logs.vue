@@ -1,5 +1,5 @@
 <template>
-    <Container gapped>
+    <Container title="Logs" gapped>
         <v-row>
             <v-col cols="12" lg="8">
                 <v-card hover border>

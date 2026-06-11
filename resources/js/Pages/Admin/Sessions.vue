@@ -1,5 +1,5 @@
 <template>
-    <Container>
+    <Container title="Sessões">
         <v-card hover border class="mb-4">
             <v-text-field
                 type="search"

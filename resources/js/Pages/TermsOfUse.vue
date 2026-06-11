@@ -1,5 +1,5 @@
 <template>
-    <Container centered>
+    <Container title="Termos de Uso" centered>
         <v-card style="width: 100%; max-width: 800px">
             <v-card-title class="text-center text-primary">
                 Termos de Uso

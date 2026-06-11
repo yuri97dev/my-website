@@ -1,5 +1,5 @@
 <template>
-    <Container centered>
+    <Container title="Arquivos" centered>
         <div style="width: 100%; max-width: var(--center-width);">
             <v-alert
                 type="info"
