@@ -1,6 +1,6 @@
 # My Website
 
-Laravel blog with PostgreSQL, Redis, and Nginx.
+Laravel blog with PostgreSQL, Redis, Ollama, and Nginx.
 
 ## Prerequisites
 
@@ -34,8 +34,43 @@ Edit `.env` and set at least:
 - `DB_PASSWORD` — PostgreSQL password
 - `REDIS_PASSWORD` — Redis password (required)
 - `HTTP_PORT` — port exposed by Nginx (default: `8080`)
+- `OLLAMA_PORT` — port exposed by Ollama (default: `11434`)
+- `OLLAMA_EMBED_MODEL` — embedding model for semantic search (default: `bge-m3`)
+- `OLLAMA_EMBED_DIMENSION` — vector dimensions for pgvector (default: `1024` for `bge-m3`)
 
 Also set `USER_ID` and `GROUP_ID` to the server user's IDs (`id -u` and `id -g`) to avoid volume permission issues.
+
+### 2.2 Ollama (semantic search)
+
+The stack includes [Ollama](https://docs.ollama.com/docker) for local embeddings. By default it runs on CPU.
+
+- **Containers** (app, worker, external stacks on the same network) reach it at `http://ollama-server:11434`
+- **Host** reaches it at `http://127.0.0.1:11434` only (not exposed on LAN/internet)
+- **Shared network** name: `my-website-internal` (configurable via `DOCKER_NETWORK`)
+
+**NVIDIA GPU** (requires [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)):
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --build --wait
+```
+
+**AMD GPU** (uses the `rocm` image tag per official docs):
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.amd.yml up -d --build --wait
+```
+
+After the first start, pull the embedding model:
+
+```bash
+docker exec my-website-ollama ollama pull bge-m3
+```
+
+Verify the API from the host:
+
+```bash
+curl http://localhost:11434/api/tags
+```
 
 ### 2.1 Host Nginx reverse proxy (production-like local setup)
 

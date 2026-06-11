@@ -1,0 +1,10 @@
+# AMD GPU override (official Ollama Docker docs).
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.amd.yml up -d --build --wait
+services:
+  ollama-server:
+    image: ollama/ollama:rocm
+    devices:
+      - /dev/kfd
+      - /dev/dri
