@@ -12,7 +12,9 @@ class PostController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = min($request->integer("per_page", 15), 100);
+        $is_system_admin = (bool) $request->user()?->isSystemAdmin();
+
+        $per_page = min($request->integer("per_page", 15), 100);
 
         $query = Post::query()
             ->published()
@@ -35,7 +37,11 @@ class PostController extends Controller
                 "tags:id,slug,name",
             ])
             ->orderByDesc("published_at");
-        
+
+        if( $is_system_admin ) {
+            $query->withTrashed()->orderByDesc("deleted_at");
+        }
+
         if( $request->has("id") ) {
             $query->where("id", $request->integer("id"));
         }
@@ -48,7 +54,7 @@ class PostController extends Controller
             $query->where("post_category_id", $request->integer("category"));
         }
 
-        $paginator = $query->paginate($perPage);
+        $paginator = $query->paginate($per_page);
 
         return response()->json([
             "current_page" => $paginator->currentPage(),
@@ -122,6 +128,15 @@ class PostController extends Controller
 
         return response()->json([
             "post" => $post,
+        ], 200);
+    }
+
+    public function destroy(Post $post)
+    {
+        $post->delete();
+
+        return response()->json([
+            "message" => "Post removido com sucesso.",
         ], 200);
     }
 }

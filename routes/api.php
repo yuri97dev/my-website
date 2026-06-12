@@ -130,6 +130,10 @@ Route::prefix("blog/posts")->group(function () {
             PostController::class, "update",
         ])->name("api.blog.posts.update");
 
+        Route::delete("/{post}", [
+            PostController::class, "destroy",
+        ])->name("api.blog.posts.destroy");
+
         Route::post("/categories", [
             PostCategoryController::class, "store",
         ])->name("api.blog.posts.categories.store");
