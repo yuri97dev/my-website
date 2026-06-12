@@ -90,6 +90,7 @@
     import PasswordField from "@/Components/PasswordField.vue";
 
     import { goTo } from "@/Utils/Common";
+    import { refreshCsrfCookie } from "@/Utils/Session";
 
     const page = usePage();
 
@@ -121,11 +122,13 @@
         }
     }
 
-    onMounted(() => {
+    onMounted(async () => {
         const { error } = page.props?.flash || {};
 
         if( error ) {
             mainError.value = error;
         }
+
+        await refreshCsrfCookie();
     });
 </script>
