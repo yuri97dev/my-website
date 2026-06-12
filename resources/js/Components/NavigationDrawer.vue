@@ -23,6 +23,13 @@
 
     const ADMIN_LINKS = [
         {
+            key: "blog-posts",
+            icon: "mdi-file-document",
+            text: "Posts",
+            href: route("admin.blog.posts"),
+            active: route().current("admin.blog.posts"),
+        },
+        {
             key: "sessions",
             icon: "mdi-monitor-account",
             text: "Sessões",

@@ -36,10 +36,10 @@ class PostController extends Controller
                 "category:id,slug,name",
                 "tags:id,slug,name",
             ])
-            ->orderByDesc("published_at");
+            ->orderByDesc("id");
 
         if( $is_system_admin ) {
-            $query->withTrashed()->orderByDesc("deleted_at");
+            $query->withTrashed();
         }
 
         if( $request->has("id") ) {
