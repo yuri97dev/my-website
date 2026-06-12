@@ -4,7 +4,6 @@ namespace App\Http\Requests\Account;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use App\Helpers\TextFormatter;
 
 class UpdatePersonalDataRequest extends FormRequest
@@ -42,11 +41,7 @@ class UpdatePersonalDataRequest extends FormRequest
                 "max:255",
                 "regex:/^[\p{L}'\-.]+\s+[\p{L}'\-.]+/u",
             ],
-            "email" => [
-                "required",
-                "email",
-                Rule::unique("users", "email")->ignore($this->user()->id),
-            ],
+            "email" => "required|email",
             "accepts_marketing" => "nullable|boolean",
         ];
     }
@@ -60,7 +55,6 @@ class UpdatePersonalDataRequest extends FormRequest
             "name.regex" => "Informe o nome completo, incluindo pelo menos um sobrenome.",
             "email.required" => "O e-mail é obrigatório.",
             "email.email" => "Informe um e-mail válido.",
-            "email.unique" => "Este e-mail já está em uso.",
             "accepts_marketing.boolean" => "O valor de aceite de marketing deve ser verdadeiro ou falso.",
         ];
     }

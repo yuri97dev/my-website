@@ -106,6 +106,14 @@ class AccountController extends Controller
         $user = $request->user();
         $validated = $request->validated();
 
+        if( $validated["email"] !== $user->email ) {
+            $email_exists = User::where("email", $validated["email"])->exists();
+
+            if( $email_exists ) return response()->json([
+                "message" => "Este e-mail já está em uso.",
+            ], 422);
+        }
+
         $user->fill($validated);
 
         if( $user->isDirty("email") ) {

@@ -28,7 +28,15 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request)
     {
-        $user = User::create($request->validated());
+        $validated = $request->validated();
+
+        $email_exists = User::where("email", $validated["email"])->exists();
+
+        if( $email_exists ) return response()->json([
+            "message" => "Não foi possível processar sua solicitação.",
+        ], 422);
+
+        $user = User::create($validated);
 
         $user->sendEmailVerificationNotification();
 
