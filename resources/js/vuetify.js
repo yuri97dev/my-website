@@ -24,6 +24,9 @@ export default createVuetify({
         VTextField: {
             hideDetails: "auto",
         },
+        VTextarea: {
+            hideDetails: "auto",
+        },
         VSelect: {
             hideDetails: "auto",
         },

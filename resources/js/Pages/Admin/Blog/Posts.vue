@@ -1,6 +1,6 @@
 <template>
-    <Container title="Posts">
-        <v-card hover border class="mb-4">
+    <Container title="Posts" gapped>
+        <v-card hover border>
             <v-text-field
                 type="search"
                 placeholder="Pesquisar"
@@ -22,6 +22,7 @@
                 :loading="loading"
                 class="text-no-wrap"
                 @update:options="getPosts"
+                @click:row="handleRowClick"
                 v-model:page="pagination.page"
                 v-model:items-per-page="pagination.perPage"
             >
@@ -50,6 +51,18 @@
                 </template>
             </v-data-table-server>
         </v-card>
+
+        <PostForm
+            ref="postFormRef"
+        ></PostForm>
+
+        <v-fab
+            app
+            icon="mdi-plus"
+            size="large"
+            color="primary"
+            @click="postFormRef.open()"
+        ></v-fab>
     </Container>
 </template>
 
@@ -60,8 +73,11 @@
     import api from "@/api";
 
     import Container from "@/Components/Container.vue";
+    import PostForm from "@/Components/Admin/Blog/PostForm.vue";
 
     import { alertError } from "@/Utils/Alert";
+
+    const postFormRef = ref(null);
 
     const search = ref("");
     const posts = ref([]);
@@ -137,5 +153,9 @@
     async function handleSearch() {
         pagination.page = 1;
         await getPosts();
+    }
+
+    function handleRowClick(e, { item }) {
+        postFormRef.value.open(item);
     }
 </script>

@@ -98,6 +98,29 @@ class PostController extends Controller
         ], 201);
     }
 
+    public function show(Request $request, Post $post)
+    {
+        $is_system_admin = (bool) $request->user()?->isSystemAdmin();
+
+        $is_published = $post->status === Post::STATUS_PUBLISHED
+            && $post->published_at !== null
+            && $post->published_at->isPast();
+
+        if( !$is_system_admin && !$is_published ) {
+            abort(404);
+        }
+
+        $post->load([
+            "author:id,name",
+            "category:id,slug,name",
+            "tags:id,slug,name",
+        ]);
+
+        return response()->json([
+            "post" => $post,
+        ], 200);
+    }
+
     public function update(UpdatePostRequest $request, Post $post)
     {
         $validated = $request->validated();
