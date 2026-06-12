@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Blog;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Http\Requests\Blog\StorePostRequest;
 use App\Models\Post;
 
 class PostController extends Controller
@@ -55,5 +56,40 @@ class PostController extends Controller
             "total" => $paginator->total(),
             "posts" => $paginator->items(),
         ], 200);
+    }
+
+    public function store(StorePostRequest $request)
+    {
+        $validated = $request->validated();
+
+        $tags = $validated["tags"] ?? [];
+
+        unset($validated["tags"]);
+
+        $validated["author_id"] = $request->user()->id;
+        $validated["status"] ??= Post::STATUS_DRAFT;
+
+        if(
+            $validated["status"] === Post::STATUS_PUBLISHED
+            && empty($validated["published_at"])
+        ) {
+            $validated["published_at"] = now();
+        }
+
+        $post = Post::create($validated);
+
+        if( $tags !== [] ) {
+            $post->tags()->sync($tags);
+        }
+
+        $post->load([
+            "author:id,name",
+            "category:id,slug,name",
+            "tags:id,slug,name",
+        ]);
+
+        return response()->json([
+            "post" => $post,
+        ], 201);
     }
 }

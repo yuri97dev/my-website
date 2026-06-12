@@ -122,6 +122,10 @@ Route::prefix("blog/posts")->group(function () {
     ])->name("api.blog.posts.tags.index");
 
     Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])->group(function () {
+        Route::post("/", [
+            PostController::class, "store",
+        ])->name("api.blog.posts.store");
+
         Route::post("/categories", [
             PostCategoryController::class, "store",
         ])->name("api.blog.posts.categories.store");
