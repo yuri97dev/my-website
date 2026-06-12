@@ -126,6 +126,10 @@ Route::prefix("blog/posts")->group(function () {
             PostController::class, "store",
         ])->name("api.blog.posts.store");
 
+        Route::put("/{post}", [
+            PostController::class, "update",
+        ])->name("api.blog.posts.update");
+
         Route::post("/categories", [
             PostCategoryController::class, "store",
         ])->name("api.blog.posts.categories.store");

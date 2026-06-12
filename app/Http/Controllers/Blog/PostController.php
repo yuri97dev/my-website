@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Blog;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\Blog\StorePostRequest;
+use App\Http\Requests\Blog\UpdatePostRequest;
 use App\Models\Post;
 
 class PostController extends Controller
@@ -65,20 +66,18 @@ class PostController extends Controller
         $tags = $validated["tags"] ?? [];
 
         unset($validated["tags"]);
+        unset($validated["published_at"]);
 
         $validated["author_id"] = $request->user()->id;
         $validated["status"] ??= Post::STATUS_DRAFT;
 
-        if(
-            $validated["status"] === Post::STATUS_PUBLISHED
-            && empty($validated["published_at"])
-        ) {
+        if( $validated["status"] === Post::STATUS_PUBLISHED ) {
             $validated["published_at"] = now();
         }
 
         $post = Post::create($validated);
 
-        if( $tags !== [] ) {
+        if( !empty($tags) ) {
             $post->tags()->sync($tags);
         }
 
@@ -91,5 +90,38 @@ class PostController extends Controller
         return response()->json([
             "post" => $post,
         ], 201);
+    }
+
+    public function update(UpdatePostRequest $request, Post $post)
+    {
+        $validated = $request->validated();
+
+        $tags = $validated["tags"] ?? [];
+
+        unset($validated["tags"]);
+        unset($validated["published_at"]);
+        unset($validated["author_id"]);
+
+        $validated["status"] ??= Post::STATUS_DRAFT;
+
+        if( $validated["status"] === Post::STATUS_PUBLISHED ) {
+            $validated["published_at"] = now();
+        }
+
+        $post->update($validated);
+
+        if( !empty($tags) ) {
+            $post->tags()->sync($tags);
+        }
+
+        $post->load([
+            "author:id,name",
+            "category:id,slug,name",
+            "tags:id,slug,name",
+        ]);
+
+        return response()->json([
+            "post" => $post,
+        ], 200);
     }
 }
