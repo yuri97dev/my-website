@@ -48,6 +48,17 @@
                             v-model="form.category"
                         ></v-autocomplete>
 
+                        <v-autocomplete
+                            label="Tags"
+                            class="mb-4"
+                            item-title="name"
+                            item-value="id"
+                            chips
+                            multiple
+                            :items="tags"
+                            v-model="form.tags"
+                        ></v-autocomplete>
+
                         <v-textarea
                             label="Conteúdo"
                             required
@@ -92,6 +103,7 @@
     const form = ref({});
     const post = ref({});
     const categories = ref([]);
+    const tags = ref([]);
 
     const errors = ref({});
     const loading = ref(false);
@@ -139,6 +151,22 @@
         }
     }
 
+    async function getTags() {
+        loading.value = true;
+
+        try {
+            const url = route("api.blog.posts.tags.index");
+            const { data } = await api.get(url);
+
+            tags.value = data.tags;
+        } catch (e) {
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao buscar tags");
+        } finally {
+            loading.value = false;
+        }
+    }
+
     function open(data = {}) {
         document.documentElement.style.overflowY = "hidden";
 
@@ -180,6 +208,7 @@
 
     onMounted(async () => {
         await getCategories();
+        await getTags();
     });
 
     defineExpose({
