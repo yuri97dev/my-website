@@ -15,11 +15,13 @@ class PostImageController extends Controller
     public function index(Request $request)
     {
         $query = PostImage::query()
-            ->select(["id", "post_id", "path", "created_at", "updated_at"])
+            ->select(["id", "post_id", "created_at", "updated_at"])
+            ->limit(100)
             ->orderByDesc("id");
 
         if( $request->has("post_id") ) {
-            $query->where("post_id", $request->integer("post_id"));
+            $post_ids = (array) $request->input("post_id");
+            $query->whereIn("post_id", $post_ids);
         }
 
         if( $request->has("available") ) {
@@ -43,7 +45,7 @@ class PostImageController extends Controller
 
         $image = PostImage::create([
             "post_id" => $request->input("post_id"),
-            "path" => $stored_path,
+            "path" => "/" . ltrim($stored_path, "/"),
         ]);
 
         return response()->json([

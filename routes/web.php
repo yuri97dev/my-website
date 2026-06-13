@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\SpreadsheetFormatterController;
+use App\Http\Controllers\Blog\PostImageController;
 use App\Models\Role;
 
 Route::inertia("/", "Home")->name("home");
@@ -47,3 +48,7 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
         Route::inertia("/jobs", "Admin/Jobs")->name("admin.jobs");
         Route::inertia("/logs", "Admin/Logs")->name("admin.logs");
     });
+
+Route::get("/blog/images/{postImage}", [
+    PostImageController::class, "show",
+])->name("blog.images.show");

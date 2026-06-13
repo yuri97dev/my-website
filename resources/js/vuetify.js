@@ -42,6 +42,9 @@ export default createVuetify({
         VRadio: {
             hideDetails: "auto",
         },
+        VFileInput: {
+            hideDetails: "auto",
+        },
         VFileUpload: {
             hideDetails: "auto",
         },

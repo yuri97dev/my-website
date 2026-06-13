@@ -122,10 +122,6 @@ Route::prefix("blog/posts")->group(function () {
         PostTagController::class, "index",
     ])->name("api.blog.posts.tags.index");
 
-    Route::get("/images/{postImage}", [
-        PostImageController::class, "show",
-    ])->name("api.blog.posts.images.show");
-
     Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])->group(function () {
         Route::get("/images", [
             PostImageController::class, "index",

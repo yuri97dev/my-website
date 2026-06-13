@@ -69,3 +69,31 @@ export function validEmail(email) {
 
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
+
+export async function copyText(text) {
+    try {
+        if( navigator.clipboard ) {
+            await navigator.clipboard.writeText(text);
+            return { success: true };
+        }
+
+        const textarea = document.createElement("textarea");
+
+        textarea.value = text;
+        textarea.style.position = "absolute";
+        textarea.style.left = "-9999px";
+
+        document.body.appendChild(textarea);
+
+        textarea.select();
+
+        document.execCommand("copy");
+
+        document.body.removeChild(textarea);
+
+        return { success: true };
+    } catch(e) {
+        const error = e?.message || "Falha ao copiar";
+        return { success: false, error };
+    }
+}
