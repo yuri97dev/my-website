@@ -60,6 +60,15 @@
                             v-model="form.tags"
                         ></v-autocomplete>
 
+                        <v-switch
+                            label="Publicar"
+                            color="primary"
+                            false-value="draft"
+                            true-value="published"
+                            class="mb-4"
+                            v-model="form.status"
+                        ></v-switch>
+
                         <v-textarea
                             label="Conteúdo"
                             required
@@ -102,6 +111,7 @@
                     variant="tonal"
                     color="primary"
                     prepend-icon="mdi-content-save"
+                    @click="handleSave"
                 >
                     Salvar
                 </v-btn>
@@ -188,6 +198,46 @@
             alertError("Ooops", message || "Erro ao buscar tags");
         } finally {
             loading.value.tags = false;
+        }
+    }
+
+    async function savePost() {
+        loading.value.post = true;
+
+        try {
+            const url = route("api.blog.posts.update", post.value.id);
+            await api.put(url, form.value);
+
+            alertSuccess("Ok", "Post salvo com sucesso");
+        } catch (e) {
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao salvar post");
+        } finally {
+            loading.value.post = false;
+        }
+    }
+
+    async function createPost() {
+        loading.value.post = true;
+
+        try {
+            const url = route("api.blog.posts.store");
+            await api.post(url, form.value);
+
+            alertSuccess("Ok", "Post criado com sucesso");
+        } catch (e) {
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao criar post");
+        } finally {
+            loading.value.post = false;
+        }
+    }
+
+    async function handleSave() {
+        if( isEditing.value ) {
+            await savePost();
+        } else {
+            await createPost();
         }
     }
 

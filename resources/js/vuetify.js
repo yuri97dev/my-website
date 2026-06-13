@@ -37,6 +37,7 @@ export default createVuetify({
             hideDetails: "auto",
         },
         VSwitch: {
+            inset: "material",
             hideDetails: "auto",
         },
         VRadio: {
