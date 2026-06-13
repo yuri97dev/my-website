@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\SessionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Blog\PostCategoryController;
 use App\Http\Controllers\Blog\PostController;
+use App\Http\Controllers\Blog\PostImageController;
 use App\Http\Controllers\Blog\PostTagController;
 use App\Http\Controllers\SpreadsheetFormatterController;
 use App\Models\Role;
@@ -120,6 +121,24 @@ Route::prefix("blog/posts")->group(function () {
     Route::get("/tags", [
         PostTagController::class, "index",
     ])->name("api.blog.posts.tags.index");
+
+    Route::get("/images/{postImage}", [
+        PostImageController::class, "show",
+    ])->name("api.blog.posts.images.show");
+
+    Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])->group(function () {
+        Route::get("/images", [
+            PostImageController::class, "index",
+        ])->name("api.blog.posts.images.index");
+
+        Route::post("/images", [
+            PostImageController::class, "store",
+        ])->name("api.blog.posts.images.store");
+
+        Route::delete("/images/{postImage}", [
+            PostImageController::class, "destroy",
+        ])->name("api.blog.posts.images.destroy");
+    });
 
     Route::get("/{post}", [
         PostController::class, "show",

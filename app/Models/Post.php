@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Post extends Model
@@ -49,6 +50,11 @@ class Post extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(PostTag::class, "post_tag", "post_id", "post_tag_id");
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(PostImage::class);
     }
 
     public function scopePublished(Builder $query): Builder

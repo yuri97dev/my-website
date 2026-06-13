@@ -98,8 +98,9 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId("post_id")
+                ->nullable()
                 ->constrained()
-                ->cascadeOnDelete();
+                ->nullOnDelete();
 
             $table->string("path", 500);
             $table->timestamps();
