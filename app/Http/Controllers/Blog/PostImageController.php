@@ -22,6 +22,10 @@ class PostImageController extends Controller
             $query->where("post_id", $request->integer("post_id"));
         }
 
+        if( $request->has("available") ) {
+            $query->whereNull("post_id");
+        }
+
         return response()->json([
             "images" => $query->get(),
         ], 200);
