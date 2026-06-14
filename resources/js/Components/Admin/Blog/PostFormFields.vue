@@ -46,7 +46,18 @@
                             :loading="loading.categories"
                             :items="categories"
                             v-model="form.category"
-                        ></v-autocomplete>
+                        >
+                            <template #append-inner>
+                                <v-btn
+                                    size="small"
+                                    icon="mdi-playlist-edit"
+                                    variant="tonal"
+                                    color="primary"
+                                    class="rounded"
+                                    @click.prevent="openCategoryManager"
+                                ></v-btn>
+                            </template>
+                        </v-autocomplete>
 
                         <v-autocomplete
                             label="Tags"
@@ -58,7 +69,18 @@
                             :loading="loading.tags"
                             :items="tags"
                             v-model="form.tags"
-                        ></v-autocomplete>
+                        >
+                            <template #append-inner>
+                                <v-btn
+                                    size="small"
+                                    icon="mdi-playlist-edit"
+                                    variant="tonal"
+                                    color="primary"
+                                    class="rounded"
+                                    @click.prevent="openTagManager"
+                                ></v-btn>
+                            </template>
+                        </v-autocomplete>
 
                         <v-switch
                             label="Publicar"
@@ -111,12 +133,25 @@
             </v-card-actions>
         </v-card>
     </v-dialog>
+
+    <CategoryManager
+        ref="categoryManagerRef"
+        @update="getCategories"
+    />
+
+    <TagManager
+        ref="tagManagerRef"
+        @update="getTags"
+    />
 </template>
 
 <script setup>
     import { ref, computed, nextTick, onMounted } from "vue";
 
     import api from "@/api";
+
+    import CategoryManager from "@/Components/Admin/Blog/CategoryManager.vue";
+    import TagManager from "@/Components/Admin/Blog/TagManager.vue";
 
     import { alertError, alertSuccess } from "@/Utils/Alert";
 
@@ -126,6 +161,9 @@
     ]);
 
     const isDialogOpen = ref(false);
+
+    const categoryManagerRef = ref(null);
+    const tagManagerRef = ref(null);
 
     const form = ref({});
     const post = ref({});
@@ -247,6 +285,14 @@
         } else {
             await createPost();
         }
+    }
+
+    function openCategoryManager() {
+        categoryManagerRef.value?.openList();
+    }
+
+    function openTagManager() {
+        tagManagerRef.value?.openList();
     }
 
     function open(data = {}) {
