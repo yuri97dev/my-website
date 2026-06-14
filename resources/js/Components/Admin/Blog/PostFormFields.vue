@@ -23,81 +23,106 @@
             <v-card-text>
                 <v-row>
                     <v-col cols="12" xl="5" lg="6">
-                        <v-text-field
-                            label="Título"
-                            class="mb-4"
-                            required
-                            v-model="form.title"
-                        ></v-text-field>
+                        <v-tabs v-model="tab">
+                            <v-tab value="header">
+                                Cabeçalho
+                            </v-tab>
 
-                        <v-text-field
-                            label="Slug"
-                            class="mb-4"
-                            required
-                            v-model="form.slug"
-                        ></v-text-field>
+                            <v-tab value="content">
+                                Conteúdo
+                            </v-tab>
+                        </v-tabs>
 
-                        <v-autocomplete
-                            label="Categoria"
-                            class="mb-4"
-                            item-title="name"
-                            item-value="id"
-                            required
-                            :loading="loading.categories"
-                            :items="categories"
-                            :return-object="false"
-                            v-model="form.category_id"
-                        >
-                            <template #append-inner>
-                                <v-btn
-                                    size="small"
-                                    icon="mdi-playlist-edit"
-                                    variant="tonal"
+                        <v-divider class="mb-4"></v-divider>
+
+                        <v-tabs-window v-model="tab">
+                            <v-tabs-window-item value="header">
+                                <v-text-field
+                                    label="Título"
+                                    class="mb-4"
+                                    required
+                                    v-model="form.title"
+                                ></v-text-field>
+
+                                <v-text-field
+                                    label="Slug"
+                                    class="mb-4"
+                                    required
+                                    v-model="form.slug"
+                                ></v-text-field>
+
+                                <v-text-field
+                                    label="Thumbnail (URL)"
+                                    class="mb-4"
+                                    @paste="handlePasteThumbnail"
+                                    v-model="form.thumbnail_path"
+                                ></v-text-field>
+
+                                <v-autocomplete
+                                    label="Categoria"
+                                    class="mb-4"
+                                    item-title="name"
+                                    item-value="id"
+                                    required
+                                    :loading="loading.categories"
+                                    :items="categories"
+                                    :return-object="false"
+                                    v-model="form.category_id"
+                                >
+                                    <template #append-inner>
+                                        <v-btn
+                                            size="small"
+                                            icon="mdi-playlist-edit"
+                                            variant="tonal"
+                                            color="primary"
+                                            class="rounded"
+                                            @click.prevent="openCategoryManager"
+                                        ></v-btn>
+                                    </template>
+                                </v-autocomplete>
+
+                                <v-autocomplete
+                                    label="Tags"
+                                    class="mb-4"
+                                    item-title="name"
+                                    item-value="id"
+                                    chips
+                                    multiple
+                                    :loading="loading.tags"
+                                    :items="tags"
+                                    v-model="form.tags"
+                                >
+                                    <template #append-inner>
+                                        <v-btn
+                                            size="small"
+                                            icon="mdi-playlist-edit"
+                                            variant="tonal"
+                                            color="primary"
+                                            class="rounded"
+                                            @click.prevent="openTagManager"
+                                        ></v-btn>
+                                    </template>
+                                </v-autocomplete>
+
+                                <v-switch
+                                    label="Publicar"
                                     color="primary"
-                                    class="rounded"
-                                    @click.prevent="openCategoryManager"
-                                ></v-btn>
-                            </template>
-                        </v-autocomplete>
+                                    false-value="draft"
+                                    true-value="published"
+                                    class="mb-4"
+                                    v-model="form.status"
+                                ></v-switch>
+                            </v-tabs-window-item>
 
-                        <v-autocomplete
-                            label="Tags"
-                            class="mb-4"
-                            item-title="name"
-                            item-value="id"
-                            chips
-                            multiple
-                            :loading="loading.tags"
-                            :items="tags"
-                            v-model="form.tags"
-                        >
-                            <template #append-inner>
-                                <v-btn
-                                    size="small"
-                                    icon="mdi-playlist-edit"
-                                    variant="tonal"
-                                    color="primary"
-                                    class="rounded"
-                                    @click.prevent="openTagManager"
-                                ></v-btn>
-                            </template>
-                        </v-autocomplete>
-
-                        <v-switch
-                            label="Publicar"
-                            color="primary"
-                            false-value="draft"
-                            true-value="published"
-                            class="mb-4"
-                            v-model="form.status"
-                        ></v-switch>
-
-                        <v-textarea
-                            label="Conteúdo"
-                            required
-                            auto-grow
-                            v-model="form.content"
-                        ></v-textarea>
+                            <v-tabs-window-item value="content">
+                                <v-textarea
+                                    label="HTML"
+                                    required
+                                    auto-grow
+                                    v-model="form.content"
+                                ></v-textarea>
+                            </v-tabs-window-item>
+                        </v-tabs-window>
                     </v-col>
 
                     <v-col cols="12" xl="7" lg="6">
@@ -162,6 +187,8 @@
     ]);
 
     const isDialogOpen = ref(false);
+
+    const tab = ref("header");
 
     const categoryManagerRef = ref(null);
     const tagManagerRef = ref(null);
@@ -283,6 +310,21 @@
         }
     }
 
+    function handlePasteThumbnail(e) {
+        const text = e.clipboardData.getData("text");
+
+        const container = document.createElement("div");
+
+        container.innerHTML = text;
+
+        const image = container.querySelector("img");
+
+        if( !!image?.src ) {
+            e.preventDefault();
+            form.value.thumbnail_path = new URL(image.src).pathname;
+        }
+    }
+
     function openCategoryManager() {
         categoryManagerRef.value?.openList();
     }
@@ -325,6 +367,7 @@
             content: null,
             excerpt: null,
             meta_description: null,
+            thumbnail_path: null,
             tags: [],
         };
     }

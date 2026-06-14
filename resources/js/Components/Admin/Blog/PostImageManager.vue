@@ -250,7 +250,7 @@
     }
 
     async function copyImage({ id }) {
-        const url = route("blog.images.show", id);
+        const url = route("blog.images.show", id, false);
 
         const content = `<div class="blog-img-container rounded">
             <img src="${url}" />
