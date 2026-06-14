@@ -150,7 +150,13 @@
 
     import api from "@/api";
 
-    import { alertError, alertSuccess } from "@/Utils/Alert";
+    import {
+        alertError,
+        alertSuccess,
+        toastError,
+        toastSuccess,
+    } from "@/Utils/Alert";
+
     import { copyText } from "@/Utils/Common";
 
     const isOpen = ref(false);
@@ -253,9 +259,9 @@
         const { success, error } = await copyText(content);
 
         if( !success ) {
-            alertError("Ooops", error || "Erro ao copiar imagem");
+            toastError("Ooops", error || "Erro ao copiar imagem");
         } else {
-            alertSuccess("Ok", "Imagem copiada com sucesso");
+            toastSuccess("Ok", "Imagem copiada com sucesso");
         }
     }
 
