@@ -20,131 +20,155 @@
                 ></v-btn>
             </v-toolbar>
 
-            <v-card-text>
-                <v-row>
-                    <v-col cols="12" xl="5" lg="6">
-                        <v-tabs v-model="tab">
-                            <v-tab value="header">
-                                Cabeçalho
-                            </v-tab>
+            <Splitpanes
+                :horizontal="!lgAndUp"
+                class="default-theme overflow-hidden"
+            >
+                <Pane
+                    min-size="30"
+                    size="40"
+                    class="pa-4"
+                    style="background: transparent"
+                >
+                    <div class="d-flex flex-column ga-4 h-100">
+                        <div>
+                            <v-tabs inset grow v-model="tab">
+                                <v-tab value="header">
+                                    Cabeçalho
+                                </v-tab>
 
-                            <v-tab value="content">
-                                Conteúdo
-                            </v-tab>
-                        </v-tabs>
+                                <v-tab value="content">
+                                    Conteúdo
+                                </v-tab>
+                            </v-tabs>
+                        </div>
 
-                        <v-divider class="mb-4"></v-divider>
-
-                        <v-tabs-window v-model="tab">
-                            <v-tabs-window-item value="header">
-                                <v-text-field
-                                    label="Título"
-                                    class="mb-4"
-                                    required
-                                    v-model="form.title"
-                                ></v-text-field>
-
-                                <v-text-field
-                                    label="Slug"
-                                    class="mb-4"
-                                    required
-                                    v-model="form.slug"
-                                ></v-text-field>
-
-                                <v-text-field
-                                    label="Thumbnail (URL)"
-                                    class="mb-4"
-                                    @paste="handlePasteThumbnail"
-                                    v-model="form.thumbnail_path"
-                                ></v-text-field>
-
-                                <v-autocomplete
-                                    label="Categoria"
-                                    class="mb-4"
-                                    item-title="name"
-                                    item-value="id"
-                                    required
-                                    :loading="loading.categories"
-                                    :items="categories"
-                                    :return-object="false"
-                                    v-model="form.category_id"
+                        <div class="flex-grow-1 overflow-y-hidden">
+                            <v-tabs-window class="h-100" v-model="tab">
+                                <v-tabs-window-item
+                                    value="header"
+                                    class="w-100 mx-auto"
+                                    style="max-width: var(--center-width)"
                                 >
-                                    <template #append-inner>
-                                        <v-btn
-                                            size="small"
-                                            icon="mdi-playlist-edit"
-                                            variant="tonal"
-                                            color="primary"
-                                            class="rounded"
-                                            @click.prevent="openCategoryManager"
-                                        ></v-btn>
-                                    </template>
-                                </v-autocomplete>
+                                    <v-text-field
+                                        label="Título"
+                                        class="mb-4"
+                                        required
+                                        v-model="form.title"
+                                    ></v-text-field>
 
-                                <v-autocomplete
-                                    label="Tags"
-                                    class="mb-4"
-                                    item-title="name"
-                                    item-value="id"
-                                    chips
-                                    multiple
-                                    :loading="loading.tags"
-                                    :items="tags"
-                                    v-model="form.tags"
+                                    <v-text-field
+                                        label="Slug"
+                                        class="mb-4"
+                                        required
+                                        v-model="form.slug"
+                                    ></v-text-field>
+
+                                    <v-text-field
+                                        label="Thumbnail (URL)"
+                                        class="mb-4"
+                                        @paste="handlePasteThumbnail"
+                                        v-model="form.thumbnail_path"
+                                    ></v-text-field>
+
+                                    <v-autocomplete
+                                        label="Categoria"
+                                        class="mb-4"
+                                        item-title="name"
+                                        item-value="id"
+                                        required
+                                        :loading="loading.categories"
+                                        :items="categories"
+                                        :return-object="false"
+                                        v-model="form.category_id"
+                                    >
+                                        <template #append-inner>
+                                            <v-btn
+                                                size="small"
+                                                icon="mdi-playlist-edit"
+                                                variant="tonal"
+                                                color="primary"
+                                                class="rounded"
+                                                @click.prevent="openCategoryManager"
+                                            ></v-btn>
+                                        </template>
+                                    </v-autocomplete>
+
+                                    <v-autocomplete
+                                        label="Tags"
+                                        class="mb-4"
+                                        item-title="name"
+                                        item-value="id"
+                                        chips
+                                        multiple
+                                        :loading="loading.tags"
+                                        :items="tags"
+                                        v-model="form.tags"
+                                    >
+                                        <template #append-inner>
+                                            <v-btn
+                                                size="small"
+                                                icon="mdi-playlist-edit"
+                                                variant="tonal"
+                                                color="primary"
+                                                class="rounded"
+                                                @click.prevent="openTagManager"
+                                            ></v-btn>
+                                        </template>
+                                    </v-autocomplete>
+
+                                    <v-switch
+                                        label="Publicar"
+                                        color="primary"
+                                        false-value="draft"
+                                        true-value="published"
+                                        class="mb-4"
+                                        v-model="form.status"
+                                    ></v-switch>
+                                </v-tabs-window-item>
+
+                                <v-tabs-window-item
+                                    value="content"
+                                    class="h-100"
                                 >
-                                    <template #append-inner>
-                                        <v-btn
-                                            size="small"
-                                            icon="mdi-playlist-edit"
-                                            variant="tonal"
-                                            color="primary"
-                                            class="rounded"
-                                            @click.prevent="openTagManager"
-                                        ></v-btn>
-                                    </template>
-                                </v-autocomplete>
+                                    <v-card
+                                        variant="tonal"
+                                        class="bg-surface-light pa-1 h-100"
+                                    >
+                                        <MonacoEditor
+                                            language="html"
+                                            class="rounded-lg"
+                                            v-model="form.content"
+                                        />
+                                    </v-card>
+                                </v-tabs-window-item>
+                            </v-tabs-window>
+                        </div>
+                    </div>
+                </Pane>
 
-                                <v-switch
-                                    label="Publicar"
-                                    color="primary"
-                                    false-value="draft"
-                                    true-value="published"
-                                    class="mb-4"
-                                    v-model="form.status"
-                                ></v-switch>
-                            </v-tabs-window-item>
+                <Pane
+                    min-size="30"
+                    size="60"
+                    class="pa-4"
+                    style="background: transparent"
+                >
+                    <v-card
+                        variant="tonal"
+                        class="h-100"
+                        :loading="loading.post"
+                    >
+                        <v-card-text style="max-height: 100%; overflow-y: auto">
+                            <div v-html="htmlContent"></div>
 
-                            <v-tabs-window-item value="content">
-                                <v-card
-                                    min-height="400"
-                                    class="bg-surface-light"
-                                >
-                                    <MonacoEditor
-                                        language="html"
-                                        v-model="form.content"
-                                    />
-                                </v-card>
-                            </v-tabs-window-item>
-                        </v-tabs-window>
-                    </v-col>
-
-                    <v-col cols="12" xl="7" lg="6">
-                        <v-card
-                            variant="tonal"
-                            :loading="loading.post"
-                        >
-                            <v-card-text>
-                                <div v-html="htmlContent"></div>
-
-                                <v-skeleton-loader
-                                    v-if="loading.post"
-                                    type="paragraph@3"
-                                ></v-skeleton-loader>
-                            </v-card-text>
-                        </v-card>
-                    </v-col>
-                </v-row>
-            </v-card-text>
+                            <v-skeleton-loader
+                                v-if="loading.post"
+                                type="paragraph@3"
+                            ></v-skeleton-loader>
+                        </v-card-text>
+                    </v-card>
+                </Pane>
+            </Splitpanes>
 
             <v-divider></v-divider>
 
@@ -176,6 +200,10 @@
 
 <script setup>
     import { ref, computed, nextTick, onMounted, defineAsyncComponent } from "vue";
+    import { useDisplay } from "vuetify";
+
+    import { Splitpanes, Pane } from "splitpanes";
+    import "splitpanes/dist/splitpanes.css";
 
     const MonacoEditor = defineAsyncComponent(() => import("@/Components/MonacoEditor.vue"));
 
@@ -190,6 +218,8 @@
         "close",
         "open-images",
     ]);
+
+    const { lgAndUp } = useDisplay();
 
     const isDialogOpen = ref(false);
 
