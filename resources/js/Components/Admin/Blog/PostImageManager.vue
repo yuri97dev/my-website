@@ -252,8 +252,8 @@
     async function copyImage({ id }) {
         const url = route("blog.images.show", id);
 
-        const content = `<div style="text-align: center">
-            <img src="${url}" style="max-width: 100%; max-height: 300px;">
+        const content = `<div class="blog-img-container rounded">
+            <img src="${url}" />
         </div>`;
 
         const { success, error } = await copyText(content);

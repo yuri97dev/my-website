@@ -21,11 +21,15 @@ class PostImageController extends Controller
 
         if( $request->has("post_id") ) {
             $post_ids = (array) $request->input("post_id");
-            $query->whereIn("post_id", $post_ids);
-        }
 
-        if( $request->has("available") ) {
-            $query->whereNull("post_id");
+            $query->where(function ($query) use ($post_ids) {
+                $query->whereIn("post_id", $post_ids);
+                $query->orWhereNull("post_id");
+            });
+        } else {
+            if( $request->has("available") ) {
+                $query->whereNull("post_id");
+            }
         }
 
         return response()->json([
