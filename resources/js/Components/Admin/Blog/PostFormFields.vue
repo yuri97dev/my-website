@@ -115,12 +115,15 @@
                             </v-tabs-window-item>
 
                             <v-tabs-window-item value="content">
-                                <v-textarea
-                                    label="HTML"
-                                    required
-                                    auto-grow
-                                    v-model="form.content"
-                                ></v-textarea>
+                                <v-card
+                                    min-height="400"
+                                    class="bg-surface-light"
+                                >
+                                    <MonacoEditor
+                                        language="html"
+                                        v-model="form.content"
+                                    />
+                                </v-card>
                             </v-tabs-window-item>
                         </v-tabs-window>
                     </v-col>
@@ -172,7 +175,9 @@
 </template>
 
 <script setup>
-    import { ref, computed, nextTick, onMounted } from "vue";
+    import { ref, computed, nextTick, onMounted, defineAsyncComponent } from "vue";
+
+    const MonacoEditor = defineAsyncComponent(() => import("@/Components/MonacoEditor.vue"));
 
     import api from "@/api";
 
