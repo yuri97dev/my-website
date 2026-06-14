@@ -1,14 +1,14 @@
 <template>
-    <PostFormFields
-        ref="formFieldsRef"
-        @close="handleClose"
-        @open-images="openImageManager"
-        v-model="isDialogOpen"
-    ></PostFormFields>
+    <PostFormFields ref="formFieldsRef">
+        <template #action-buttons>
+            <v-btn
+                prepend-icon="mdi-image-multiple"
+                @click="openImageManager"
+            >Imagens</v-btn>
+        </template>
+    </PostFormFields>
 
-    <PostImageManager
-        ref="imageManagerRef"
-    ></PostImageManager>
+    <PostImageManager ref="imageManagerRef"/>
 </template>
 
 <script setup>
@@ -17,30 +17,21 @@
     import PostFormFields from "@/Components/Admin/Blog/PostFormFields.vue";
     import PostImageManager from "@/Components/Admin/Blog/PostImageManager.vue";
 
-    const isDialogOpen = defineModel();
-
     const formFieldsRef = ref(null);
     const imageManagerRef = ref(null);
 
-    function openImageManager(postId) {
-        imageManagerRef.value?.open(postId);
-    }
+    const post = ref(null);
 
     function open(data = {}) {
+        post.value = data;
         formFieldsRef.value?.open(data);
     }
 
-    function reset() {
-        formFieldsRef.value?.reset();
-    }
-
-    function handleClose() {
-        reset();
-        document.documentElement.style.overflowY = "scroll";
+    function openImageManager() {
+        imageManagerRef.value?.open(post.value.id);
     }
 
     defineExpose({
         open,
-        reset,
     });
 </script>

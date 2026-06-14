@@ -97,8 +97,6 @@
 
             <v-card-actions>
                 <v-btn
-                    variant="tonal"
-                    color="primary"
                     prepend-icon="mdi-refresh"
                     @click="getImages"
                 >

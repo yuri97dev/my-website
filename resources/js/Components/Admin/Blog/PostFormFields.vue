@@ -3,7 +3,7 @@
         scrollable
         fullscreen
         transition="dialog-bottom-transition"
-        @after-leave="$emit('close')"
+        @after-leave="handleClose"
         v-model="isDialogOpen"
     >
         <v-card rounded="none">
@@ -98,14 +98,7 @@
             <v-divider></v-divider>
 
             <v-card-actions>
-                <v-btn
-                    variant="tonal"
-                    color="secondary"
-                    prepend-icon="mdi-image-multiple"
-                    @click="$emit('open-images', post.id ?? null)"
-                >
-                    Imagens
-                </v-btn>
+                <slot name="action-buttons"></slot>
 
                 <v-btn
                     variant="tonal"
@@ -125,11 +118,14 @@
 
     import api from "@/api";
 
-    import { alertError } from "@/Utils/Alert";
+    import { alertError, alertSuccess } from "@/Utils/Alert";
 
-    const isDialogOpen = defineModel();
+    defineEmits([
+        "close",
+        "open-images",
+    ]);
 
-    defineEmits(["close", "open-images"]);
+    const isDialogOpen = ref(false);
 
     const form = ref({});
     const post = ref({});
@@ -206,10 +202,16 @@
 
         try {
             const url = route("api.blog.posts.update", post.value.id);
-            await api.put(url, form.value);
+
+            await api.put(url, {
+                ...form.value,
+                post_category_id: form.value.category?.id,
+                tags: (form.value.tags ?? []).map(tag => tag.id),
+            });
 
             alertSuccess("Ok", "Post salvo com sucesso");
         } catch (e) {
+            console.error(e);
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao salvar post");
         } finally {
@@ -222,10 +224,16 @@
 
         try {
             const url = route("api.blog.posts.store");
-            await api.post(url, form.value);
+
+            await api.post(url, {
+                ...form.value,
+                post_category_id: form.value.category?.id,
+                tags: (form.value.tags ?? []).map(tag => tag.id),
+            });
 
             alertSuccess("Ok", "Post criado com sucesso");
         } catch (e) {
+            console.error(e);
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao criar post");
         } finally {
@@ -271,6 +279,11 @@
             meta_description: null,
             tags: [],
         };
+    }
+
+    function handleClose() {
+        reset();
+        document.documentElement.style.overflowY = "scroll";
     }
 
     reset();
