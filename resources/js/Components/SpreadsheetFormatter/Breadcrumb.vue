@@ -1,6 +1,6 @@
 <template>
     <v-breadcrumbs
-        class="my-0 justify-center"
+        class="my-0 justify-center text-center"
         :items="items"
     >
         <template #item="{ item, key }">

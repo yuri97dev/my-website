@@ -9,7 +9,11 @@
                 class="mb-4"
             >
                 O limite atual é de {{ MAX_FILE_SIZE_MB }} MB por arquivo.
-                Estamos trabalhando para oferecer contas gratuitas e opções pagas com limites maiores no futuro.
+
+                <template v-if="!user">
+                    <Link :href="route('register')">Crie uma conta gratuita</Link>
+                    para aumentar esse limite.
+                </template>
             </v-alert>
 
             <v-card>
@@ -126,6 +130,7 @@
 
 <script setup>
     import { ref, computed, watch, onMounted } from "vue";
+    import { usePage, Link } from "@inertiajs/vue3";
 
     import api from "@/api";
 
@@ -138,6 +143,8 @@
     const props = defineProps({
         max_upload_size: Number,
     });
+
+    const page = usePage();
 
     const MAX_FILE_SIZE_MB = props.max_upload_size / 1024;
     const BYTES_PER_MB = 1024 * 1024;
@@ -165,6 +172,8 @@
 
     const isUploading = ref(false);
     const uploadProgress = ref(0);
+
+    const user = computed(() => page.props.auth.user);
 
     const isFileSizeValid = computed(() => {
         const { file } = form.value;
