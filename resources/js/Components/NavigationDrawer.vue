@@ -1,6 +1,27 @@
 <template>
     <v-navigation-drawer v-model="drawer">
-        <v-list nav>
+        <v-list nav :opened="opened">
+            <v-list-group v-if="isAdmin" value="admin">
+                <template v-slot:activator="{ props }">
+                    <v-list-item
+                        prepend-icon="mdi-shield-account"
+                        title="Admin"
+                        v-bind="props"
+                    ></v-list-item>
+                </template>
+
+                <v-list-item
+                    v-for="link in adminLinks"
+                    :key="link.key"
+                    :prepend-icon="link.icon"
+                    :title="link.text"
+                    :href="link.href"
+                    :active="link.active"
+                    color="primary"
+                    @click.prevent="goTo(link.href)"
+                ></v-list-item>
+            </v-list-group>
+
             <v-list-item
                 v-for="link in links"
                 :key="link.key"
@@ -21,7 +42,22 @@
 
     import { goTo } from "@/Utils/Common";
 
-    const ADMIN_LINKS = [
+    const drawer = defineModel();
+    const page = usePage();
+
+    const isAdmin = computed(() => page.props?.auth?.isSysAdmin);
+
+    const links = computed(() => [
+        {
+            key: "tools",
+            icon: "mdi-tools",
+            text: "Ferramentas",
+            href: route("tools"),
+            active: route().current("tools"),
+        },
+    ]);
+
+    const adminLinks = computed(() => [
         {
             key: "blog-posts",
             icon: "mdi-file-document",
@@ -57,21 +93,11 @@
             href: route("admin.logs"),
             active: route().current("admin.logs"),
         },
-    ];
-
-    const drawer = defineModel();
-    const page = usePage();
-
-    const isAdmin = computed(() => page.props?.auth?.isSysAdmin);
-
-    const links = computed(() => [
-        {
-            key: "tools",
-            icon: "mdi-tools",
-            text: "Ferramentas",
-            href: route("tools"),
-            active: route().current("tools"),
-        },
-        ...(isAdmin.value ? ADMIN_LINKS : []),
     ]);
+
+    const opened = computed(() => {
+        if( !isAdmin.value ) return [];
+        const isAdminGroupOpen = adminLinks.value.some(link => link.active);
+        return isAdminGroupOpen ? [ "admin" ] : [];
+    });
 </script>
