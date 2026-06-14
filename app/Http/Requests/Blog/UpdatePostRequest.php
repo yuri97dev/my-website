@@ -56,7 +56,7 @@ class UpdatePostRequest extends FormRequest
                 Rule::unique("posts", "slug")
                     ->ignore($this->route("post")),
             ],
-            "post_category_id" => [
+            "category_id" => [
                 "sometimes",
                 "nullable",
                 "integer",
@@ -93,8 +93,8 @@ class UpdatePostRequest extends FormRequest
             "slug.string" => "O slug deve ser um texto válido.",
             "slug.max" => "O slug não pode ter mais de 255 caracteres.",
             "slug.unique" => "Este slug já está em uso. Informe outro slug.",
-            "post_category_id.integer" => "A categoria deve ser um identificador válido.",
-            "post_category_id.exists" => "A categoria informada não existe.",
+            "category_id.integer" => "A categoria deve ser um identificador válido.",
+            "category_id.exists" => "A categoria informada não existe.",
             "status.string" => "O status deve ser um texto válido.",
             "status.in" => "O status informado é inválido.",
             "excerpt.string" => "O resumo deve ser um texto válido.",

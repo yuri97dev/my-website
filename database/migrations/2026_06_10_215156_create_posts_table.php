@@ -31,7 +31,7 @@ return new class extends Migration
                 ->constrained("users")
                 ->nullOnDelete();
 
-            $table->foreignId("post_category_id")
+            $table->foreignId("category_id")
                 ->nullable()
                 ->constrained("post_categories")
                 ->nullOnDelete();
@@ -47,7 +47,7 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
 
-            $table->index(["post_category_id", "published_at"]);
+            $table->index(["category_id", "published_at"]);
             $table->index(["status", "published_at"]);
         });
 

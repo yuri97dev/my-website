@@ -17,11 +17,10 @@ class PostController extends Controller
         $per_page = min($request->integer("per_page", 15), 100);
 
         $query = Post::query()
-            ->published()
             ->select([
                 "id",
                 "author_id",
-                "post_category_id",
+                "category_id",
                 "slug",
                 "title",
                 "excerpt",
@@ -40,6 +39,8 @@ class PostController extends Controller
 
         if( $is_system_admin ) {
             $query->withTrashed();
+        } else {
+            $query->published();
         }
 
         if( $request->has("id") ) {
@@ -50,8 +51,8 @@ class PostController extends Controller
             $query->where("slug", $request->string("slug"));
         }
 
-        if( $request->has("category") ) {
-            $query->where("post_category_id", $request->integer("category"));
+        if( $request->has("category_id") ) {
+            $query->where("category_id", $request->integer("category_id"));
         }
 
         $paginator = $query->paginate($per_page);

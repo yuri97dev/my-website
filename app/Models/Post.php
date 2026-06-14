@@ -19,7 +19,7 @@ class Post extends Model
 
     protected $fillable = [
         "author_id",
-        "post_category_id",
+        "category_id",
         "slug",
         "title",
         "status",
@@ -44,7 +44,7 @@ class Post extends Model
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(PostCategory::class, "post_category_id");
+        return $this->belongsTo(PostCategory::class, "category_id");
     }
 
     public function tags(): BelongsToMany

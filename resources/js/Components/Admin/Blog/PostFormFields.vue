@@ -45,7 +45,8 @@
                             required
                             :loading="loading.categories"
                             :items="categories"
-                            v-model="form.category"
+                            :return-object="false"
+                            v-model="form.category_id"
                         >
                             <template #append-inner>
                                 <v-btn
@@ -193,8 +194,13 @@
             const url = route("api.blog.posts.show", post.value.id);
             const { data } = await api.get(url);
 
-            form.value = data.post;
-            post.value = data.post;
+            const postData = {
+                ...data.post,
+                tags: data.post.tags?.map(tag => tag.id),
+            };
+
+            form.value = postData;
+            post.value = postData;
         } catch (e) {
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao buscar post");
@@ -235,17 +241,12 @@
         }
     }
 
-    async function savePost() {
+    async function updatePost() {
         loading.value.post = true;
 
         try {
             const url = route("api.blog.posts.update", post.value.id);
-
-            await api.put(url, {
-                ...form.value,
-                post_category_id: form.value.category?.id,
-                tags: (form.value.tags ?? []).map(tag => tag.id),
-            });
+            await api.put(url, form.value);
 
             alertSuccess("Ok", "Post salvo com sucesso");
         } catch (e) {
@@ -262,12 +263,7 @@
 
         try {
             const url = route("api.blog.posts.store");
-
-            await api.post(url, {
-                ...form.value,
-                post_category_id: form.value.category?.id,
-                tags: (form.value.tags ?? []).map(tag => tag.id),
-            });
+            await api.post(url, form.value);
 
             alertSuccess("Ok", "Post criado com sucesso");
         } catch (e) {
@@ -281,7 +277,7 @@
 
     async function handleSave() {
         if( isEditing.value ) {
-            await savePost();
+            await updatePost();
         } else {
             await createPost();
         }
@@ -298,8 +294,14 @@
     function open(data = {}) {
         document.documentElement.style.overflowY = "hidden";
 
-        post.value = data;
-        form.value = { ...form.value, ...data };
+        const postData = {
+            id: data?.id || null,
+            title: data?.title || null,
+            slug: data?.slug || null,
+        };
+
+        post.value = postData;
+        form.value = { ...form.value, ...postData };
 
         isDialogOpen.value = true;
 
@@ -318,8 +320,8 @@
             id: null,
             title: null,
             slug: null,
-            category: null,
-            status: null,
+            category_id: null,
+            status: "draft",
             content: null,
             excerpt: null,
             meta_description: null,
