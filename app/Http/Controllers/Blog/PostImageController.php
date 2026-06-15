@@ -17,7 +17,7 @@ class PostImageController extends Controller
         $query = PostImage::query()
             ->select(["id", "post_id", "created_at", "updated_at"])
             ->limit(100)
-            ->orderByDesc("id");
+            ->orderByDesc("created_at");
 
         if( $request->has("post_id") ) {
             $post_ids = (array) $request->input("post_id");

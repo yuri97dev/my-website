@@ -95,7 +95,7 @@ return new class extends Migration
         });
 
         Schema::create("post_images", function (Blueprint $table) {
-            $table->id();
+            $table->uuid("id")->primary();
 
             $table->foreignId("post_id")
                 ->nullable()
