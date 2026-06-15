@@ -54,7 +54,7 @@
                                         class="w-100 mx-auto"
                                         style="max-width: var(--center-width)"
                                     >
-                                        <v-card-item style="max-height: 100%; overflow-y: auto">
+                                        <v-card-text style="max-height: 100%; overflow-y: auto">
                                             <v-text-field
                                                 label="Título"
                                                 class="mb-4"
@@ -122,6 +122,14 @@
                                                 </template>
                                             </v-autocomplete>
 
+                                            <v-textarea
+                                                label="Resumo"
+                                                class="mb-4"
+                                                rows="1"
+                                                auto-grow
+                                                v-model="form.excerpt"
+                                            ></v-textarea>
+
                                             <v-switch
                                                 label="Publicar"
                                                 color="primary"
@@ -129,7 +137,7 @@
                                                 true-value="published"
                                                 v-model="form.status"
                                             ></v-switch>
-                                        </v-card-item>
+                                        </v-card-text>
                                     </v-card>
                                 </v-tabs-window-item>
 
