@@ -146,7 +146,7 @@
 </template>
 
 <script setup>
-    import { ref, computed, nextTick } from "vue";
+    import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 
     import api from "@/api";
 
@@ -198,16 +198,13 @@
         }
     }
 
-    async function handleFileChange(e) {
-        const files = Array.from(e.target.files);
-
-        if( !files.length ) return;
-
-        e.target.value = null;
-
+    async function sendImages(files) {
         loading.value = true;
 
-        for(const file of files) {
+        const filteredImages = files
+            .filter(file => file.type.startsWith("image/"));
+
+        for(const file of filteredImages) {
             const formData = new FormData();
 
             formData.append("image", file);
@@ -229,6 +226,30 @@
         await getImages();
     }
 
+    async function handleFileChange(e) {
+        const files = Array.from(e.target.files);
+
+        if( !files.length ) return;
+
+        e.target.value = null;
+
+        await sendImages(files);
+    }
+
+    async function handlePasteImage(e) {
+        if( !isOpen.value ) return;
+
+        const files = Array.from(e.clipboardData?.items || [])
+            .map(item => item.getAsFile())
+            .filter(Boolean);
+
+        if( !files.length ) return;
+
+        e.preventDefault();
+
+        await sendImages(files);
+    }
+
     async function removeImage() {
         isConfirmRemoveDialogOpen.value = false;
 
@@ -238,7 +259,7 @@
             const url = route("api.blog.posts.images.destroy", selectedImage.value.id);
             await api.delete(url);
 
-            alertSuccess("Ok", "Imagem removida com sucesso");
+            toastSuccess("Ok", "Imagem removida com sucesso");
         } catch (e) {
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao remover imagem");
@@ -280,6 +301,18 @@
             await getImages();
         });
     }
+
+    watch(isOpen, (open) => {
+        if( open ) {
+            document.addEventListener("paste", handlePasteImage);
+        } else {
+            document.removeEventListener("paste", handlePasteImage);
+        }
+    });
+
+    onBeforeUnmount(() => {
+        document.removeEventListener("paste", handlePasteImage);
+    });
 
     defineExpose({
         open,
