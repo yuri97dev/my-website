@@ -122,6 +122,10 @@ Route::prefix("blog/posts")->group(function () {
         PostTagController::class, "index",
     ])->name("api.blog.posts.tags.index");
 
+    Route::get("/slug/{slug}", [
+        PostController::class, "showBySlug",
+    ])->name("api.blog.posts.show-by-slug");
+
     Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])->group(function () {
         Route::get("/images", [
             PostImageController::class, "index",
@@ -134,13 +138,11 @@ Route::prefix("blog/posts")->group(function () {
         Route::delete("/images/{postImage}", [
             PostImageController::class, "destroy",
         ])->name("api.blog.posts.images.destroy");
-    });
 
-    Route::get("/{post}", [
-        PostController::class, "show",
-    ])->name("api.blog.posts.show");
+        Route::get("/{post}", [
+            PostController::class, "show",
+        ])->name("api.blog.posts.show");
 
-    Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])->group(function () {
         Route::post("/", [
             PostController::class, "store",
         ])->name("api.blog.posts.store");

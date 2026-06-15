@@ -49,6 +49,13 @@
 
     const links = computed(() => [
         {
+            key: "blog",
+            icon: "mdi-newspaper",
+            text: "Blog",
+            href: route("blog.index"),
+            active: route().current("blog.index"),
+        },
+        {
             key: "tools",
             icon: "mdi-tools",
             text: "Ferramentas",

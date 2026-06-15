@@ -99,7 +99,21 @@ class PostController extends Controller
         ], 201);
     }
 
+    public function showBySlug(Request $request, string $slug)
+    {
+        $post = Post::query()
+            ->where("slug", $slug)
+            ->firstOrFail();
+
+        return $this->showPost($request, $post);
+    }
+
     public function show(Request $request, Post $post)
+    {
+        return $this->showPost($request, $post);
+    }
+
+    private function showPost(Request $request, Post $post)
     {
         $is_system_admin = (bool) $request->user()?->isSystemAdmin();
 

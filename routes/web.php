@@ -39,6 +39,11 @@ Route::prefix("tools")->group(function () {
     ])->name("tools.spreadsheet-formatter.download");
 });
 
+Route::prefix("blog")->group(function () {
+    Route::inertia("/", "Blog/Index")->name("blog.index");
+    Route::inertia("/{slug}", "Blog/Show")->name("blog.show");
+});
+
 Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
     ->prefix("admin")
     ->group(function () {

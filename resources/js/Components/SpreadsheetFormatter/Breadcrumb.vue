@@ -1,46 +1,30 @@
 <template>
-    <v-breadcrumbs
-        class="my-0 justify-center text-center"
+    <Breadcrumb
+        centered
         :items="items"
-    >
-        <template #item="{ item, key }">
-            <v-breadcrumbs-item
-                :href="item.href"
-                :disabled="item.disabled"
-                @click.prevent="goTo(item.href)"
-            >
-                <v-icon v-if="!!item.icon" :icon="item.icon"></v-icon>
-                {{ item.title }}
-            </v-breadcrumbs-item>
-        </template>
-    </v-breadcrumbs>
-
-    <v-divider></v-divider>
+    ></Breadcrumb>
 </template>
 
 <script setup>
     import { ref } from "vue";
 
-    import { goTo } from "@/Utils/Common";
+    import Breadcrumb from "@/Components/Breadcrumb.vue";
 
     const items = ref([
         {
+            key: "tools",
             icon: "mdi-tools",
             title: "Ferramentas",
-            href: route("tools"),
-            disabled: route().current("tools"),
         },
         {
+            key: "tools.spreadsheet-formatter",
             icon: "mdi-table-edit",
             title: "Formatador",
-            href: route("tools.spreadsheet-formatter"),
-            disabled: route().current("tools.spreadsheet-formatter"),
         },
         {
+            key: "tools.spreadsheet-formatter.files",
             icon: "mdi-file-multiple",
             title: "Arquivos",
-            href: route("tools.spreadsheet-formatter.files"),
-            disabled: route().current("tools.spreadsheet-formatter.files"),
         },
     ]);
 </script>
