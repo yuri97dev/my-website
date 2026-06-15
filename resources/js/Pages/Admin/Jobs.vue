@@ -40,22 +40,22 @@
                 </template>
 
                 <template #item.created_at="{ item }">
-                    {{ format(item.created_at, "dd/MM/yyyy HH:mm") }}
+                    {{ formatDate(item.created_at, "dd/MM/yyyy HH:mm") }}
                 </template>
 
                 <template #item.updated_at="{ item }">
-                    {{ format(item.updated_at, "dd/MM/yyyy HH:mm") }}
+                    {{ formatDate(item.updated_at, "dd/MM/yyyy HH:mm") }}
                 </template>
 
                 <template #item.expires_at="{ item }">
                     <span v-if="!!item.expires_at">
-                        {{ format(item.expires_at, "dd/MM/yyyy HH:mm") }}
+                        {{ formatDate(item.expires_at, "dd/MM/yyyy HH:mm") }}
                     </span>
                 </template>
 
                 <template #item.file_removed_at="{ item }">
                     <span v-if="!!item.file_removed_at">
-                        {{ format(item.file_removed_at, "dd/MM/yyyy HH:mm") }}
+                        {{ formatDate(item.file_removed_at, "dd/MM/yyyy HH:mm") }}
                     </span>
                 </template>
             </v-data-table-server>
@@ -65,14 +65,13 @@
 
 <script setup>
     import { ref, reactive, onMounted } from "vue";
-    import { format } from "date-fns";
 
     import Container from "@/Components/Container.vue";
 
     import api from "@/api";
 
     import { alertError } from "@/Utils/Alert";
-    import { formatBytes } from "@/Utils/Common";
+    import { formatBytes, formatDate } from "@/Utils/Common";
 
     const search = ref("");
     const jobs = ref([]);

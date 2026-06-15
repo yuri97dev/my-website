@@ -35,11 +35,11 @@
                 </template>
 
                 <template #item.created_at="{ item }">
-                    {{ format(item.created_at, "dd/MM/yyyy HH:mm") }}
+                    {{ formatDate(item.created_at, "dd/MM/yyyy HH:mm") }}
                 </template>
 
                 <template #item.updated_at="{ item }">
-                    {{ format(item.updated_at, "dd/MM/yyyy HH:mm") }}
+                    {{ formatDate(item.updated_at, "dd/MM/yyyy HH:mm") }}
                 </template>
             </v-data-table-server>
         </v-card>
@@ -48,13 +48,13 @@
 
 <script setup>
     import { ref, reactive, onMounted } from "vue";
-    import { format } from "date-fns";
 
     import Container from "@/Components/Container.vue";
 
     import api from "@/api";
 
     import { alertError } from "@/Utils/Alert";
+    import { formatDate } from "@/Utils/Common";
 
     const search = ref("");
     const users = ref([]);

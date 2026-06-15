@@ -28,25 +28,25 @@
             >
                 <template #item.created_at="{ item }">
                     <span v-if="!!item.created_at">
-                        {{ format(item.created_at, "dd/MM/yyyy HH:mm") }}
+                        {{ formatDate(item.created_at, "dd/MM/yyyy HH:mm") }}
                     </span>
                 </template>
 
                 <template #item.published_at="{ item }">
                     <span v-if="!!item.published_at">
-                        {{ format(item.published_at, "dd/MM/yyyy HH:mm") }}
+                        {{ formatDate(item.published_at, "dd/MM/yyyy HH:mm") }}
                     </span>
                 </template>
 
                 <template #item.updated_at="{ item }">
                     <span v-if="!!item.updated_at">
-                        {{ format(item.updated_at, "dd/MM/yyyy HH:mm") }}
+                        {{ formatDate(item.updated_at, "dd/MM/yyyy HH:mm") }}
                     </span>
                 </template>
 
                 <template #item.deleted_at="{ item }">
                     <span v-if="!!item.deleted_at">
-                        {{ format(item.deleted_at, "dd/MM/yyyy HH:mm") }}
+                        {{ formatDate(item.deleted_at, "dd/MM/yyyy HH:mm") }}
                     </span>
                 </template>
             </v-data-table-server>
@@ -68,7 +68,6 @@
 
 <script setup>
     import { ref, reactive } from "vue";
-    import { format } from "date-fns";
 
     import api from "@/api";
 
@@ -76,6 +75,7 @@
     import PostForm from "@/Components/Admin/Blog/PostForm.vue";
 
     import { alertError } from "@/Utils/Alert";
+    import { formatDate } from "@/Utils/Common";
 
     const postFormRef = ref(null);
 

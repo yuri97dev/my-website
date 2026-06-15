@@ -26,7 +26,9 @@
                 v-model:items-per-page="pagination.perPage"
             >
                 <template #item.last_activity="{ item }">
-                    {{ format(item.last_activity, "dd/MM/yyyy HH:mm") }}
+                    <span v-if="!!item.last_activity">
+                        {{ formatDate(item.last_activity, "dd/MM/yyyy HH:mm") }}
+                    </span>
                 </template>
             </v-data-table-server>
         </v-card>
@@ -35,13 +37,13 @@
 
 <script setup>
     import { ref, reactive, onMounted } from "vue";
-    import { format } from "date-fns";
 
     import Container from "@/Components/Container.vue";
 
     import api from "@/api";
 
     import { alertError } from "@/Utils/Alert";
+    import { formatDate } from "@/Utils/Common";
 
     const search = ref("");
     const sessions = ref([]);

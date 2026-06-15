@@ -1,29 +1,5 @@
 import { router } from "@inertiajs/vue3";
-
-export function goTo(p) {
-    if( !p ) {
-        throw new Error("No event or href provided");
-    }
-
-    if( typeof p == "string" ) {
-        router.visit(p);
-        return;
-    }
-
-    if( p instanceof Event ) {
-        p.preventDefault();
-
-        const href = p.currentTarget?.getAttribute("href");
-
-        if( href ) {
-            router.visit(href);
-        }
-
-        return;
-    }
-
-    throw new Error("Invalid parameter provided");
-}
+import { format as formatDateFns, isValid } from "date-fns";
 
 const KB = 1024;
 const MB = KB * 1024;
@@ -34,6 +10,53 @@ function formatValue(value) {
     }
 
     return value.toFixed(1).replace(/\.0$/, "");
+}
+
+function normalizeDateString(value) {
+    if( value.includes("T") || value.includes("Z") ) {
+        return value;
+    }
+
+    return value.replace(" ", "T");
+}
+
+export function parseDate(value) {
+    if( value == null || value === "" ) {
+        return null;
+    }
+
+    if( value instanceof Date ) {
+        return isValid(value) ? value : null;
+    }
+
+    if(
+        typeof value === "number"
+        || (typeof value === "string" && /^\d+$/.test(value.trim()))
+    ) {
+        const timestamp = Number(value);
+        const milliseconds = timestamp < 1e11 ? timestamp * 1000 : timestamp;
+        const date = new Date(milliseconds);
+
+        return isValid(date) ? date : null;
+    }
+
+    if( typeof value === "string" ) {
+        const date = new Date(normalizeDateString(value.trim()));
+
+        return isValid(date) ? date : null;
+    }
+
+    return null;
+}
+
+export function formatDate(value, pattern, fallback = "") {
+    const date = parseDate(value);
+
+    if( !date ) {
+        return fallback;
+    }
+
+    return formatDateFns(date, pattern);
 }
 
 export function formatBytes(bytes) {
@@ -96,4 +119,29 @@ export async function copyText(text) {
         const error = e?.message || "Falha ao copiar";
         return { success: false, error };
     }
+}
+
+export function goTo(p) {
+    if( !p ) {
+        throw new Error("No event or href provided");
+    }
+
+    if( typeof p == "string" ) {
+        router.visit(p);
+        return;
+    }
+
+    if( p instanceof Event ) {
+        p.preventDefault();
+
+        const href = p.currentTarget?.getAttribute("href");
+
+        if( href ) {
+            router.visit(href);
+        }
+
+        return;
+    }
+
+    throw new Error("Invalid parameter provided");
 }

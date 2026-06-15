@@ -61,7 +61,7 @@
 
                                 <span class="d-flex align-center ga-2 text-grey">
                                     <v-icon icon="mdi-clock-outline" size="16"></v-icon>
-                                    {{ format(item.datetime, "dd/MM/yyyy HH:mm:ss") }}
+                                    {{ formatDate(item.datetime, "dd/MM/yyyy HH:mm:ss") }}
                                 </span>
                             </span>
 
@@ -120,7 +120,6 @@
 
 <script setup>
     import { ref, computed, watch, onMounted } from "vue";
-    import { format } from "date-fns";
 
     import api from "@/api";
 
@@ -128,7 +127,7 @@
 
     import { alertError } from "@/Utils/Alert";
     import { parseLogs, logLevelColor } from "@/Utils/ParseLogs";
-    import { formatText } from "@/Utils/Common";
+    import { formatDate, formatText } from "@/Utils/Common";
 
     const search = ref("");
     const date = ref(new Date());
@@ -136,7 +135,7 @@
     const loading = ref(false);
     const expandedTraces = ref(new Set());
 
-    const dateString = computed(() => format(date.value, "yyyy-MM-dd"));
+    const dateString = computed(() => formatDate(date.value, "yyyy-MM-dd"));
 
     const logs = computed(() => parseLogs(content.value).reverse());
 
