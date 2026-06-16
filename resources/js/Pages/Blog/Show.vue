@@ -12,9 +12,17 @@
 
             <template v-else>
                 <h1 class="text-primary">{{ post.title }}</h1>
-                <div v-html="post.content"></div>
+
+                <div
+                    @click="handleContentClick"
+                    v-html="post.content"
+                ></div>
             </template>
         </div>
+
+        <ImageViewerDialog
+            ref="imageViewerDialogRef"
+        ></ImageViewerDialog>
     </Container>
 </template>
 
@@ -23,10 +31,13 @@
 
     import Container from "@/Components/Container.vue";
     import Breadcrumb from "@/Components/Breadcrumb.vue";
+    import ImageViewerDialog from "@/Components/ImageViewerDialog.vue";
 
     import api from "@/api";
 
     import { alertError } from "@/Utils/Alert";
+
+    const imageViewerDialogRef = ref(null);
 
     const post = ref({});
     const loading = ref(true);
@@ -63,6 +74,12 @@
             alertError("Ooops", message || "Erro ao buscar post");
         } finally {
             loading.value = false;
+        }
+    }
+
+    function handleContentClick(e) {
+        if( e.target.tagName === "IMG" ) {
+            imageViewerDialogRef.value.open(e.target.src);
         }
     }
 
