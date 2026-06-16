@@ -8,6 +8,8 @@ use App\Http\Requests\Blog\StorePostRequest;
 use App\Http\Requests\Blog\UpdatePostRequest;
 use App\Models\Post;
 use App\Helpers\TextFormatter;
+use League\HTMLToMarkdown\HtmlConverter;
+use League\HTMLToMarkdown\Converter\TableConverter;
 
 class PostController extends Controller
 {
@@ -95,6 +97,10 @@ class PostController extends Controller
             $validated["published_at"] = now();
         }
 
+        if( empty($validated["excerpt"]) ) {
+            $validated["excerpt"] = $this->generateExcerpt($validated["content"]);
+        }
+
         $post = Post::create($validated);
 
         if( !empty($tags) ) {
@@ -165,6 +171,10 @@ class PostController extends Controller
             $validated["published_at"] = now();
         }
 
+        if( empty($validated["excerpt"]) ) {
+            $validated["excerpt"] = $this->generateExcerpt($validated["content"]);
+        }
+
         $post->update($validated);
 
         if( !empty($tags) ) {
@@ -189,5 +199,15 @@ class PostController extends Controller
         return response()->json([
             "message" => "Post removido com sucesso.",
         ], 200);
+    }
+
+    private function generateExcerpt(string $content): string
+    {
+        $converter = new HtmlConverter([ "strip_tags" => true ]);
+        $converter->getEnvironment()->addConverter(new TableConverter());
+
+        $excerpt = $converter->convert($content);
+
+        return mb_substr($excerpt, 0, 160) . "...";
     }
 }
