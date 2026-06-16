@@ -57,11 +57,25 @@ class Post extends Model
         return $this->hasMany(PostImage::class);
     }
 
+    public function chunks(): HasMany
+    {
+        return $this->hasMany(PostChunk::class);
+    }
+
     public function scopePublished(Builder $query): Builder
     {
         return $query
             ->where("status", self::STATUS_PUBLISHED)
             ->whereNotNull("published_at")
             ->where("published_at", "<=", now());
+    }
+
+    protected static function booted(): void
+    {
+        static::updated(function(Post $post) {
+            if( $post->wasChanged("content") ) {
+                $post->chunks()->delete();
+            }
+        });
     }
 }
