@@ -228,9 +228,8 @@
 
     import { alertError, alertSuccess } from "@/Utils/Alert";
 
-    defineEmits([
+    const emit = defineEmits([
         "close",
-        "open-images",
     ]);
 
     const { lgAndUp } = useDisplay();
@@ -339,9 +338,15 @@
 
         try {
             const url = route("api.blog.posts.store");
-            await api.post(url, form.value);
+            const { data } = await api.post(url, form.value);
+
+            post.value.id = data.post.id;
 
             alertSuccess("Ok", "Post criado com sucesso");
+
+            nextTick(async () => {
+                await getPost();
+            });
         } catch (e) {
             console.error(e);
             const { message } = e?.response?.data || {};
@@ -423,7 +428,12 @@
 
     function handleClose() {
         reset();
+
         document.documentElement.style.overflowY = "scroll";
+
+        nextTick(() => {
+            emit("close");
+        });
     }
 
     reset();

@@ -54,6 +54,7 @@
 
         <PostForm
             ref="postFormRef"
+            @form-closed="getPosts"
         ></PostForm>
 
         <v-fab

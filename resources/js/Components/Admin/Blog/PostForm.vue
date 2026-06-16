@@ -1,5 +1,8 @@
 <template>
-    <PostFormFields ref="formFieldsRef">
+    <PostFormFields
+        ref="formFieldsRef"
+        @close="handleFormClosed"
+    >
         <template #action-buttons>
             <v-btn
                 prepend-icon="mdi-image-multiple"
@@ -17,6 +20,10 @@
     import PostFormFields from "@/Components/Admin/Blog/PostFormFields.vue";
     import PostImageManager from "@/Components/Admin/Blog/PostImageManager.vue";
 
+    const emit = defineEmits([
+        "form-closed",
+    ]);
+
     const formFieldsRef = ref(null);
     const imageManagerRef = ref(null);
 
@@ -29,6 +36,10 @@
 
     function openImageManager() {
         imageManagerRef.value?.open(post.value.id);
+    }
+
+    function handleFormClosed() {
+        emit("form-closed");
     }
 
     defineExpose({
