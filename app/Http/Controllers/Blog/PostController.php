@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\Blog\StorePostRequest;
 use App\Http\Requests\Blog\UpdatePostRequest;
 use App\Models\Post;
+use App\Helpers\TextFormatter;
 
 class PostController extends Controller
 {
@@ -39,12 +40,12 @@ class PostController extends Controller
 
         if( $is_system_admin ) {
             $query->withTrashed();
+
+            if( $request->has("id") ) {
+                $query->where("id", $request->integer("id"));
+            }
         } else {
             $query->published();
-        }
-
-        if( $request->has("id") ) {
-            $query->where("id", $request->integer("id"));
         }
 
         if( $request->has("slug") ) {
@@ -53,6 +54,18 @@ class PostController extends Controller
 
         if( $request->has("category_id") ) {
             $query->where("category_id", $request->integer("category_id"));
+        }
+
+        if( $request->has("search") ) {
+            $search = TextFormatter::all($request->string("search"));
+            $search = TextFormatter::removeStopWords($search);
+
+            $keywords = explode(" ", $search);
+            $keywords = array_filter($keywords);
+
+            foreach($keywords as $keyword) {
+                $query->whereRaw("UPPER(title || ' ' || excerpt) LIKE ?", ["%" . $keyword . "%"]);
+            }
         }
 
         $paginator = $query->paginate($per_page);

@@ -63,4 +63,29 @@ class TextFormatter
 
         return $text;
     }
+
+    public static function removeStopWords(string | null $text): string
+    {
+        if( empty($text) ) return (string) $text;
+
+        $stop_words = array_flip([
+            "o", "a", "os", "as", "um", "uma", "uns", "umas",
+            "de", "do", "da", "dos", "das", "em", "no", "na", "nos", "nas",
+            "por", "pelo", "pela", "pelos", "pelas", "para", "com", "sem",
+            "e", "ou", "mas", "nem", "que", "se", "como",
+            "eu", "tu", "ele", "ela", "eles", "elas", "me", "te", "lhe", "nos", "vos",
+            "nao", "sim",
+        ]);
+
+        $keywords = explode(" ", $text);
+
+        $filtered_keywords = array_filter(
+            $keywords,
+            function($keyword) use ($stop_words) {
+                $keyword = mb_strtolower($keyword);
+                return !isset($stop_words[$keyword]);
+            });
+
+        return implode(" ", $filtered_keywords);
+    }
 }

@@ -7,11 +7,25 @@
                 prepend-inner-icon="mdi-magnify"
                 variant="solo"
                 clearable
-                @keyup.enter=""
+                @keyup.enter="handleSearch"
+                v-model="search"
             ></v-text-field>
         </v-card>
 
         <v-row>
+            <template v-if="loading">
+                <v-col
+                    v-for="n in 5"
+                    :key="n"
+                    cols="12"
+                    lg="6" xl="4"
+                >
+                    <v-skeleton-loader
+                        type="card"
+                    ></v-skeleton-loader>
+                </v-col>
+            </template>
+
             <v-col
                 v-for="post in posts"
                 :key="post.id"
@@ -49,32 +63,62 @@
 </template>
 
 <script setup>
-    import { ref, onMounted } from "vue";
+    import { ref, reactive, onMounted } from "vue";
 
     import Container from "@/Components/Container.vue";
 
     import api from "@/api";
 
     import { toastError } from "@/Utils/Alert";
-    import { goTo } from "@/Utils/Common";
+    import { goTo, formatText } from "@/Utils/Common";
 
     const posts = ref([]);
     const loading = ref(false);
+
+    const search = ref("");
+
+    const pagination = reactive({
+        page: 1,
+        perPage: 50,
+        total: 0,
+    });
 
     async function getPosts() {
         loading.value = true;
 
         try {
             const url = route("api.blog.posts.index");
-            const { data } = await api.get(url);
+
+            const params = {
+                search: formatText(search.value),
+                page: pagination.page,
+                per_page: pagination.perPage,
+            };
+
+            const { data } = await api.get(url, { params });
 
             posts.value = data.posts;
+
+            pagination.page = data.current_page;
+            pagination.perPage = data.per_page;
+            pagination.total = data.total;
         } catch (e) {
             const { message } = e?.response?.data || {};
             toastError("Ooops", message || "Erro ao buscar posts");
         } finally {
             loading.value = false;
         }
+    }
+
+    async function handleSearch() {
+        pagination.page = 1;
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
+
+        await getPosts();
     }
 
     function goToPostDetail(post) {
