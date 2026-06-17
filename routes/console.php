@@ -4,6 +4,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 use App\Actions\RemoveExpiredSpreadsheetFiles;
+use App\Actions\GeneratePostChunks;
 
 Artisan::command("inspire", function () {
     $this->comment(Inspiring::quote());
@@ -12,4 +13,9 @@ Artisan::command("inspire", function () {
 Schedule::call(new RemoveExpiredSpreadsheetFiles)
     ->name("remove-expired-spreadsheet-files")
     ->everyMinute()
+    ->withoutOverlapping();
+
+Schedule::call(new GeneratePostChunks)
+    ->name("generate-post-chunks")
+    ->everyThirtySeconds()
     ->withoutOverlapping();
