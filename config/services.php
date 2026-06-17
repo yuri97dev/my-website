@@ -36,7 +36,7 @@ return [
     ],
 
     'ollama' => [
-        'base_url' => env('OLLAMA_BASE_URL', 'http://localhost:11434'),
+        'base_url' => env('OLLAMA_BASE_URL', 'http://localhost:11434/api/'),
         'embed_model' => env('OLLAMA_EMBED_MODEL', 'bge-m3'),
         'timeout' => env('OLLAMA_TIMEOUT'),
         'keep_alive' => env('OLLAMA_KEEP_ALIVE', '5m'),

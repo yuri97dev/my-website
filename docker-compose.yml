@@ -82,13 +82,10 @@ services:
       - .:/var/www/html
     env_file:
       - .env
-    environment:
-      - DB_HOST=postgres
-      - REDIS_HOST=redis
-      - "OLLAMA_BASE_URL=http://ollama-server:11434"
-      - "OLLAMA_EMBED_MODEL=${OLLAMA_EMBED_MODEL:-bge-m3}"
-      - "OLLAMA_EMBED_DIMENSION=${OLLAMA_EMBED_DIMENSION:-1024}"
     user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
+    environment:
+      DB_HOST: "postgres"
+      REDIS_HOST: "redis"
     depends_on:
       postgres:
         condition: service_healthy
@@ -118,13 +115,10 @@ services:
       - ./docker/supervisor/supervisord.conf:/etc/supervisor/supervisord.conf:ro
     env_file:
       - .env
-    environment:
-      - DB_HOST=postgres
-      - REDIS_HOST=redis
-      - "OLLAMA_BASE_URL=http://ollama-server:11434"
-      - "OLLAMA_EMBED_MODEL=${OLLAMA_EMBED_MODEL:-bge-m3}"
-      - "OLLAMA_EMBED_DIMENSION=${OLLAMA_EMBED_DIMENSION:-1024}"
     user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
+    environment:
+      DB_HOST: "postgres"
+      REDIS_HOST: "redis"
     depends_on:
       postgres:
         condition: service_healthy
