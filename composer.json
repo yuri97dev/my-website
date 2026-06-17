@@ -20,7 +20,6 @@
         "league/html-to-markdown": "*",
         "matomo/device-detector": "*",
         "mk-j/php_xlsxwriter": "*",
-        "theodo-group/llphant": "*",
         "tightenco/ziggy": "*"
     },
     "require-dev": {
