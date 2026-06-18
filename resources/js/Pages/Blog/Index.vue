@@ -8,6 +8,7 @@
                 variant="solo"
                 clearable
                 @keyup.enter="handleSearch"
+                @click:clear="handleSearch"
                 v-model="search"
             ></v-text-field>
         </v-card>
@@ -15,14 +16,22 @@
         <v-row>
             <template v-if="loading">
                 <v-col
-                    v-for="n in 5"
+                    v-for="n in 3"
                     :key="n"
                     cols="12"
                     lg="6" xl="4"
                 >
-                    <v-skeleton-loader
-                        type="card"
-                    ></v-skeleton-loader>
+                    <v-card border class="h-100">
+                        <v-img
+                            height="200px"
+                            class="bg-surface-light rounded-lg"
+                            cover
+                        ></v-img>
+
+                        <v-skeleton-loader
+                            type="paragraph"
+                        ></v-skeleton-loader>
+                    </v-card>
                 </v-col>
             </template>
 
@@ -70,7 +79,7 @@
     import api from "@/api";
 
     import { toastError } from "@/Utils/Alert";
-    import { goTo, formatText } from "@/Utils/Common";
+    import { goTo } from "@/Utils/Common";
 
     const posts = ref([]);
     const loading = ref(false);
@@ -90,7 +99,7 @@
             const url = route("api.blog.posts.index");
 
             const params = {
-                search: formatText(search.value),
+                search: search.value,
                 page: pagination.page,
                 per_page: pagination.perPage,
             };

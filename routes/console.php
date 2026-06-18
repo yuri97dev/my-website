@@ -17,5 +17,5 @@ Schedule::call(new RemoveExpiredSpreadsheetFiles)
 
 Schedule::call(new GeneratePostChunks)
     ->name("generate-post-chunks")
-    ->everyThirtySeconds()
+    ->everyTenSeconds()
     ->withoutOverlapping();

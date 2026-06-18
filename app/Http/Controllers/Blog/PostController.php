@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Blog;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Requests\Blog\StorePostRequest;
 use App\Http\Requests\Blog\UpdatePostRequest;
-use App\Models\Post;
-use App\Helpers\TextFormatter;
 use League\HTMLToMarkdown\HtmlConverter;
 use League\HTMLToMarkdown\Converter\TableConverter;
+use App\Models\Post;
+use App\Models\PostChunk;
+use App\Helpers\Ollama;
+use Exception;
 
 class PostController extends Controller
 {
@@ -37,8 +40,7 @@ class PostController extends Controller
                 "author:id,name",
                 "category:id,slug,name",
                 "tags:id,slug,name",
-            ])
-            ->orderByDesc("id");
+            ]);
 
         if( $is_system_admin ) {
             $query->withTrashed();
@@ -58,16 +60,61 @@ class PostController extends Controller
             $query->where("category_id", $request->integer("category_id"));
         }
 
-        if( $request->has("search") ) {
-            $search = TextFormatter::all($request->string("search"));
-            $search = TextFormatter::removeStopWords($search);
+        $search = $request->string("search", "");
+        $search = trim($search);
 
-            $keywords = explode(" ", $search);
-            $keywords = array_filter($keywords);
+        if( !empty($search) ) {
+            $embedding = null;
 
-            foreach($keywords as $keyword) {
-                $query->whereRaw("UPPER(title || ' ' || excerpt) LIKE ?", ["%" . $keyword . "%"]);
+            try {
+                $ollama_response = Ollama::embed($search);
+
+                if( !empty($ollama_response["embeddings"]) ) {
+                    $embedding = json_encode($ollama_response["embeddings"][0]);
+                }
+            } catch(Exception $e) {
+                report($e);
             }
+
+            $query_lexical_similarity = "ts_rank(
+                to_tsvector('portuguese', content),
+                websearch_to_tsquery('portuguese', ?)
+            )";
+
+            $query_semantic_similarity = !!$embedding
+                ? "(1 - (embedding <=> ?::vector))"
+                : "0";
+
+            $query_chunks = PostChunk::query()
+                ->select([
+                    "post_id",
+                    DB::raw("MAX(
+                        ({$query_lexical_similarity} * 0.3) +
+                        ({$query_semantic_similarity} * 0.7)
+                    ) AS similarity_score"),
+                ])
+                ->groupBy("post_id")
+                ->addBinding($search, "select");
+
+            if( !!$embedding ) {
+                $query_chunks->addBinding($embedding, "select");
+            }
+
+            $query->joinSub($query_chunks, "chunks", "chunks.post_id", "posts.id");
+
+            if( !!$embedding ) {
+                $query->whereRaw("chunks.similarity_score > 0.2");
+            } else {
+                $query->whereRaw("chunks.similarity_score > 0.01");
+            }
+
+            $query->addSelect([
+                "chunks.similarity_score",
+            ]);
+
+            $query->orderByDesc("similarity_score");
+        } else {
+            $query->orderByDesc("id");
         }
 
         $paginator = $query->paginate($per_page);

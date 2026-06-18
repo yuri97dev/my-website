@@ -32,7 +32,9 @@ class GeneratePostChunks
         $converter = new HtmlConverter([ "strip_tags" => true ]);
         $converter->getEnvironment()->addConverter(new TableConverter());
 
-        $content = $converter->convert($post->content);
+        $html_content = "<h1>{$post->title}</h1>\n\n{$post->content}";
+
+        $content = $converter->convert($html_content);
 
         $chunks = TextChunker::strategy("sentence")
             ->size(6)
