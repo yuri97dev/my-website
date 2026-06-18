@@ -6,11 +6,17 @@ use Illuminate\Support\Arr;
 
 class Meta
 {
-    public static function get(string $key): array
+    private static array $data = [];
+
+    public static function get(): array
     {
+        $key = request()->route()?->getName() ?? "";
+
         if( empty($key) ) return [];
 
-        $meta = Arr::get(config("meta"), $key, []);
+        $data = array_merge(config("meta"), self::$data);
+
+        $meta = Arr::get($data, $key, []);
 
         if( empty($meta["og_title"]) && !empty($meta["title"]) ) {
             $meta["og_title"] = $meta["title"];
@@ -21,5 +27,14 @@ class Meta
         }
 
         return $meta;
+    }
+
+    public static function set(array $data): void
+    {
+        $key = request()->route()?->getName() ?? "";
+
+        if( empty($key) ) return;
+
+        self::$data[$key] = $data;
     }
 }

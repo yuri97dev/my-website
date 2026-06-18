@@ -12,6 +12,7 @@ use League\HTMLToMarkdown\HtmlConverter;
 use League\HTMLToMarkdown\Converter\TableConverter;
 use App\Models\Post;
 use App\Models\PostChunk;
+use App\Helpers\Meta;
 use App\Helpers\Ollama;
 use Inertia\Inertia;
 use Exception;
@@ -37,6 +38,14 @@ class PostController extends Controller
         if( $post->category->slug !== $category ) {
             abort(404);
         }
+
+        Meta::set([
+            "title" => $post->title,
+            "description" => $post->excerpt,
+            "og_title" => $post->title,
+            "og_description" => $post->excerpt,
+            "og_image" => $post->thumbnail_path,
+        ]);
 
         return Inertia::render("Blog/Show", compact("post"));
     }

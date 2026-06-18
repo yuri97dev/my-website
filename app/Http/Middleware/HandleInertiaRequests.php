@@ -42,7 +42,7 @@ class HandleInertiaRequests extends Middleware
                 "success" => $request->session()->get("success"),
                 "error" => $request->session()->get("error"),
             ],
-            "meta" => fn () => Meta::get($request->route()?->getName() ?? ""),
+            "meta" => fn () => Meta::get(),
             "auth.user" => fn () => $request->user()?->only([
                 "id",
                 "name",
