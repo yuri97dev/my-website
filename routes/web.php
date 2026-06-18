@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\SpreadsheetFormatterController;
+use App\Http\Controllers\Blog\PostController;
 use App\Http\Controllers\Blog\PostImageController;
 use App\Models\Role;
 
@@ -40,8 +41,17 @@ Route::prefix("tools")->group(function () {
 });
 
 Route::prefix("blog")->group(function () {
-    Route::inertia("/", "Blog/Index")->name("blog.index");
-    Route::inertia("/{slug}", "Blog/Show")->name("blog.show");
+    Route::get("/images/{postImage}", [
+        PostImageController::class, "show",
+    ])->name("blog.images.show");
+
+    Route::get("/{category?}", [
+        PostController::class, "index"
+    ])->name("blog.index");
+
+    Route::get("/{category}/{slug}", [
+        PostController::class, "show"
+    ])->name("blog.show");
 });
 
 Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
@@ -53,7 +63,3 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
         Route::inertia("/jobs", "Admin/Jobs")->name("admin.jobs");
         Route::inertia("/logs", "Admin/Logs")->name("admin.logs");
     });
-
-Route::get("/blog/images/{postImage}", [
-    PostImageController::class, "show",
-])->name("blog.images.show");

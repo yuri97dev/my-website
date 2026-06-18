@@ -45,7 +45,8 @@
                     hover
                     border
                     class="h-100"
-                    @click="goToPostDetail(post)"
+                    :href="post.href"
+                    @click.prevent="goToPostDetail(post)"
                 >
                     <v-img
                         :src="post.thumbnail_path"
@@ -81,6 +82,13 @@
     import { toastError } from "@/Utils/Alert";
     import { goTo } from "@/Utils/Common";
 
+    const props = defineProps({
+        category: {
+            type: String,
+            required: false,
+        },
+    });
+
     const posts = ref([]);
     const loading = ref(false);
 
@@ -102,16 +110,25 @@
                 search: search.value,
                 page: pagination.page,
                 per_page: pagination.perPage,
+                category: props.category,
             };
 
             const { data } = await api.get(url, { params });
 
-            posts.value = data.posts;
+            posts.value = data.posts.map(post => {
+                post.href = route("blog.show", {
+                    category: post.category.slug,
+                    slug: post.slug,
+                });
+
+                return post;
+            });
 
             pagination.page = data.current_page;
             pagination.perPage = data.per_page;
             pagination.total = data.total;
         } catch (e) {
+            console.log(e);
             const { message } = e?.response?.data || {};
             toastError("Ooops", message || "Erro ao buscar posts");
         } finally {
@@ -131,7 +148,7 @@
     }
 
     function goToPostDetail(post) {
-        goTo(route("blog.show", post.slug));
+        goTo(post.href);
     }
 
     onMounted(async () => {

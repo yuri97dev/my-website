@@ -266,7 +266,7 @@
         loading.value.post = true;
 
         try {
-            const url = route("api.blog.posts.show", post.value.id);
+            const url = route("api.blog.posts.get-by-id", post.value.id);
             const { data } = await api.get(url);
 
             const postData = {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Blog;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Requests\Blog\StorePostRequest;
 use App\Http\Requests\Blog\UpdatePostRequest;
 use League\HTMLToMarkdown\HtmlConverter;
@@ -12,11 +13,35 @@ use League\HTMLToMarkdown\Converter\TableConverter;
 use App\Models\Post;
 use App\Models\PostChunk;
 use App\Helpers\Ollama;
+use Inertia\Inertia;
 use Exception;
 
 class PostController extends Controller
 {
-    public function index(Request $request)
+    public function index(?string $category = null)
+    {
+        return Inertia::render("Blog/Index", compact("category"));
+    }
+
+    public function show(string $category, string $slug)
+    {
+        $post = Post::query()
+            ->where("slug", $slug)
+            ->with([
+                "author:id,name",
+                "category:id,slug,name",
+                "tags:id,slug,name",
+            ])
+            ->firstOrFail();
+
+        if( $post->category->slug !== $category ) {
+            abort(404);
+        }
+
+        return Inertia::render("Blog/Show", compact("post"));
+    }
+
+    public function list(Request $request)
     {
         $is_system_admin = (bool) $request->user()?->isSystemAdmin();
 
@@ -58,6 +83,16 @@ class PostController extends Controller
 
         if( $request->has("category_id") ) {
             $query->where("category_id", $request->integer("category_id"));
+        }
+
+        if( $request->input("category") ) {
+            $category = DB::table("post_categories")
+                ->where("slug", $request->string("category"))
+                ->first();
+
+            $category_id = $category->id ?? -1;
+
+            $query->where("category_id", $category_id);
         }
 
         $search = $request->string("search", "");
@@ -128,6 +163,29 @@ class PostController extends Controller
         ], 200);
     }
 
+    public function getById(Request $request, Post $post)
+    {
+        $is_system_admin = (bool) $request->user()?->isSystemAdmin();
+
+        $is_published = $post->status === Post::STATUS_PUBLISHED
+            && $post->published_at !== null
+            && $post->published_at->isPast();
+
+        if( !$is_system_admin && !$is_published ) {
+            abort(404);
+        }
+
+        $post->load([
+            "author:id,name",
+            "category:id,slug,name",
+            "tags:id,slug,name",
+        ]);
+
+        return response()->json([
+            "post" => $post,
+        ], 200);
+    }
+
     public function store(StorePostRequest $request)
     {
         $validated = $request->validated();
@@ -163,43 +221,6 @@ class PostController extends Controller
         return response()->json([
             "post" => $post,
         ], 201);
-    }
-
-    public function showBySlug(Request $request, string $slug)
-    {
-        $post = Post::query()
-            ->where("slug", $slug)
-            ->firstOrFail();
-
-        return $this->showPost($request, $post);
-    }
-
-    public function show(Request $request, Post $post)
-    {
-        return $this->showPost($request, $post);
-    }
-
-    private function showPost(Request $request, Post $post)
-    {
-        $is_system_admin = (bool) $request->user()?->isSystemAdmin();
-
-        $is_published = $post->status === Post::STATUS_PUBLISHED
-            && $post->published_at !== null
-            && $post->published_at->isPast();
-
-        if( !$is_system_admin && !$is_published ) {
-            abort(404);
-        }
-
-        $post->load([
-            "author:id,name",
-            "category:id,slug,name",
-            "tags:id,slug,name",
-        ]);
-
-        return response()->json([
-            "post" => $post,
-        ], 200);
     }
 
     public function update(UpdatePostRequest $request, Post $post)

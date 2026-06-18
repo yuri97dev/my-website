@@ -5,19 +5,12 @@
                 :items="breadcrumbs"
             ></Breadcrumb>
 
-            <div v-if="loading" class="d-flex flex-column ga-2">
-                <v-skeleton-loader type="heading" class="bg-transparent" />
-                <v-skeleton-loader type="paragraph@5" class="bg-transparent" />
-            </div>
+            <h1 class="text-primary">{{ post.title }}</h1>
 
-            <template v-else>
-                <h1 class="text-primary">{{ post.title }}</h1>
-
-                <div
-                    @click="handleContentClick"
-                    v-html="post.content"
-                ></div>
-            </template>
+            <div
+                @click="handleContentClick"
+                v-html="post.content"
+            ></div>
         </div>
 
         <ImageViewerDialog
@@ -27,27 +20,29 @@
 </template>
 
 <script setup>
-    import { ref, computed, onMounted } from "vue";
+    import { ref, computed } from "vue";
 
     import Container from "@/Components/Container.vue";
     import Breadcrumb from "@/Components/Breadcrumb.vue";
     import ImageViewerDialog from "@/Components/ImageViewerDialog.vue";
 
-    import api from "@/api";
-
-    import { alertError } from "@/Utils/Alert";
+    const props = defineProps({
+        post: {
+            type: Object,
+            required: true,
+        },
+    });
 
     const imageViewerDialogRef = ref(null);
 
-    const post = ref({});
-    const loading = ref(true);
-
-    const slug = computed(() => route().params.slug);
+    const slug = computed(() => props.post.slug);
+    const category = computed(() => props.post.category);
 
     const pageTitle = computed(() => {
-        if( loading.value ) return "Carregando";
-        return post.value.title || "Post não encontrado";
+        const { title } = props.post;
+        return title || "Post não encontrado";
     });
+
 
     const breadcrumbs = computed(() => [
         {
@@ -55,35 +50,25 @@
             title: "Blog",
         },
         {
+            key: "blog.index",
+            value: {
+                category: category.value.slug,
+            },
+            title: category.value.name,
+        },
+        {
             key: "blog.show",
-            value: slug.value,
+            value: {
+                category: category.value.slug,
+                slug: slug.value,
+            },
             title: slug.value,
         },
     ].filter(Boolean));
-
-    async function getPost() {
-        loading.value = true;
-
-        try {
-            const url = route("api.blog.posts.show-by-slug", slug.value);
-            const { data } = await api.get(url);
-
-            post.value = data.post;
-        } catch (e) {
-            const { message } = e?.response?.data || {};
-            alertError("Ooops", message || "Erro ao buscar post");
-        } finally {
-            loading.value = false;
-        }
-    }
 
     function handleContentClick(e) {
         if( e.target.tagName === "IMG" ) {
             imageViewerDialogRef.value.open(e.target.src);
         }
     }
-
-    onMounted(async () => {
-        await getPost();
-    });
 </script>
