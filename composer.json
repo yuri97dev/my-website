@@ -21,6 +21,8 @@
         "league/html-to-markdown": "*",
         "matomo/device-detector": "*",
         "mk-j/php_xlsxwriter": "*",
+        "symfony/dom-crawler": "*",
+        "symfony/html-sanitizer": "*",
         "tightenco/ziggy": "*"
     },
     "require-dev": {
