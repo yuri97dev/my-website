@@ -9,11 +9,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         supervisor \
         libpq-dev \
         libzip-dev \
+        libtidy-dev \
     && docker-php-ext-install \
         pdo_pgsql \
         bcmath \
         zip \
         pcntl \
+        tidy \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
