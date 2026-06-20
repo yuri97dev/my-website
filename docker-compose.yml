@@ -86,6 +86,7 @@ services:
     environment:
       DB_HOST: "postgres"
       REDIS_HOST: "redis"
+      HOME: /tmp
     depends_on:
       postgres:
         condition: service_healthy
@@ -119,6 +120,7 @@ services:
     environment:
       DB_HOST: "postgres"
       REDIS_HOST: "redis"
+      HOME: /tmp
     depends_on:
       postgres:
         condition: service_healthy

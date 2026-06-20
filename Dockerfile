@@ -3,13 +3,17 @@ FROM php:8.5.0-fpm-bookworm
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y \
         git \
         unzip \
         supervisor \
         libpq-dev \
         libzip-dev \
         libtidy-dev \
+    && apt-get install -y --no-install-recommends \
+        chromium \
+        chromium-driver \
+        fonts-liberation \
     && docker-php-ext-install \
         pdo_pgsql \
         bcmath \
