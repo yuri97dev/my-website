@@ -4,18 +4,18 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\ScrapeItem;
+use App\Models\ScrapedArticle;
 
-class ScrapeItemController extends Controller
+class ScrapedArticleController extends Controller
 {
     public function index(Request $request)
     {
         $perPage = min($request->integer("per_page", 15), 100);
 
-        $paginator = ScrapeItem::query()
+        $paginator = ScrapedArticle::query()
             ->select([
                 "id",
-                "scrape_target_id",
+                "article_source_id",
                 "post_id",
                 "url",
                 "title",
@@ -24,7 +24,7 @@ class ScrapeItemController extends Controller
                 "created_at",
                 "updated_at",
             ])
-            ->with("target:id,name")
+            ->with("source:id,name")
             ->orderByDesc("id")
             ->paginate($perPage);
 
@@ -33,26 +33,26 @@ class ScrapeItemController extends Controller
             "last_page" => $paginator->lastPage(),
             "per_page" => $paginator->perPage(),
             "total" => $paginator->total(),
-            "scrape_items" => $paginator->items(),
+            "scraped_articles" => $paginator->items(),
         ], 200);
     }
 
-    public function show(ScrapeItem $scrapeItem)
+    public function show(ScrapedArticle $scrapedArticle)
     {
-        $scrapeItem->load("target:id,name,driver");
+        $scrapedArticle->load("source:id,name,driver");
 
         return response()->json([
-            "scrape_item" => $scrapeItem,
+            "scraped_article" => $scrapedArticle,
         ], 200);
     }
 
-    public function disable(ScrapeItem $scrapeItem)
+    public function disable(ScrapedArticle $scrapedArticle)
     {
-        $scrapeItem->update(["is_enabled" => false]);
+        $scrapedArticle->update(["is_enabled" => false]);
 
         return response()->json([
-            "scrape_item" => $scrapeItem->fresh(),
-            "message" => "Item inativado com sucesso.",
+            "scraped_article" => $scrapedArticle->fresh(),
+            "message" => "Artigo inativado com sucesso.",
         ], 200);
     }
 }

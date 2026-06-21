@@ -7,7 +7,7 @@
             <v-btn
                 v-if="!post?.id"
                 prepend-icon="mdi-import"
-                @click="openScrapeItemManager"
+                @click="openScrapedArticleManager"
             >Importar</v-btn>
 
             <v-btn
@@ -19,16 +19,16 @@
 
     <PostImageManager ref="imageManagerRef"/>
 
-    <ScrapeItemManager ref="scrapeItemManagerRef">
+    <ScrapedArticleManager ref="scrapedArticleManagerRef">
         <template #content-action-buttons>
             <v-btn
                 variant="tonal"
                 color="primary"
                 prepend-icon="mdi-import"
-                @click="handleImportScrapeItem"
+                @click="handleImportScrapedArticle"
             >Importar</v-btn>
         </template>
-    </ScrapeItemManager>
+    </ScrapedArticleManager>
 </template>
 
 <script setup>
@@ -36,7 +36,7 @@
 
     import PostFormFields from "@/Components/Admin/Blog/PostFormFields.vue";
     import PostImageManager from "@/Components/Admin/Blog/PostImageManager.vue";
-    import ScrapeItemManager from "@/Components/Admin/Blog/ScrapeItemManager.vue";
+    import ScrapedArticleManager from "@/Components/Admin/Blog/ScrapedArticleManager.vue";
 
     const emit = defineEmits([
         "form-closed",
@@ -44,7 +44,7 @@
 
     const formFieldsRef = ref(null);
     const imageManagerRef = ref(null);
-    const scrapeItemManagerRef = ref(null);
+    const scrapedArticleManagerRef = ref(null);
 
     const post = ref(null);
 
@@ -57,23 +57,23 @@
         imageManagerRef.value?.open(post.value.id);
     }
 
-    function openScrapeItemManager() {
-        scrapeItemManagerRef.value?.open();
+    function openScrapedArticleManager() {
+        scrapedArticleManagerRef.value?.open();
     }
 
-    function handleImportScrapeItem() {
+    function handleImportScrapedArticle() {
         const {
-            selectedScrapeItem,
-            close: closeScrapeItemManager,
-        } = scrapeItemManagerRef.value;
+            selectedScrapedArticle,
+            close: closeScrapedArticleManager,
+        } = scrapedArticleManagerRef.value;
 
-        if( !selectedScrapeItem ) return;
+        if( !selectedScrapedArticle ) return;
 
-        closeScrapeItemManager();
+        closeScrapedArticleManager();
 
         open({
-            title: selectedScrapeItem.title,
-            content: selectedScrapeItem.content,
+            title: selectedScrapedArticle.title,
+            content: selectedScrapedArticle.content,
         });
     }
 

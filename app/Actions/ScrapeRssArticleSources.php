@@ -6,35 +6,35 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\DomCrawler\Crawler;
-use App\Models\ScrapeTarget;
-use App\Models\ScrapeItem;
+use App\Models\ArticleSource;
+use App\Models\ScrapedArticle;
 use App\Helpers\HtmlFormatter;
 use Exception;
 
-class ScrapeRssTargets
+class ScrapeRssArticleSources
 {
     public function __invoke(): void
     {
-        $targets = ScrapeTarget::driver("rss")
+        $sources = ArticleSource::driver("rss")
             ->enabled()
             ->get();
         
-        if( $targets->isEmpty() ) {
+        if( $sources->isEmpty() ) {
             return;
         }
 
-        foreach($targets as $target) {
+        foreach($sources as $source) {
             try {
-                $this->scrape($target);
+                $this->scrape($source);
             } catch (Exception $e) {
-                Log::error("ScrapeRssTargets: failed to scrape target {$target->name}: {$e->getMessage()}");
+                Log::error("ScrapeRssArticleSources: failed to scrape source {$source->name}: {$e->getMessage()}");
             }
         }
     }
 
-    private function scrape(ScrapeTarget $target): void
+    private function scrape(ArticleSource $source): void
     {
-        $response = Http::{$target->http_method}($target->list_url)->throw();
+        $response = Http::{$source->http_method}($source->list_url)->throw();
 
         $xml = simplexml_load_string($response->body());
 
@@ -44,7 +44,7 @@ class ScrapeRssTargets
 
         $data = json_decode(json_encode($xml), true);
 
-        $list = Arr::get($data, $target->list_item_selector);
+        $list = Arr::get($data, $source->list_item_selector);
 
         if( empty($list) || !is_array($list) ) {
             throw new Exception("List selector not found.");
@@ -52,22 +52,22 @@ class ScrapeRssTargets
 
         $items = collect($list)
             ->map(fn(array $item) => (object) [
-                "title" => Arr::get($item, $target->item_title_selector),
-                "link" => Arr::get($item, $target->item_link_selector),
+                "title" => Arr::get($item, $source->item_title_selector),
+                "link" => Arr::get($item, $source->item_link_selector),
             ])
             ->filter(fn($item) => !!$item->title && !!$item->link)
             ->take(10);
 
         foreach($items as $item) {
-            $this->scrapeItem($target, $item);
+            $this->scrapeArticle($source, $item);
             sleep(rand(1, 5));
         }
     }
 
-    private function scrapeItem(ScrapeTarget $target, object $item): void
+    private function scrapeArticle(ArticleSource $source, object $item): void
     {
-        $already_scraped = ScrapeItem::query()
-            ->where("scrape_target_id", $target->id)
+        $already_scraped = ScrapedArticle::query()
+            ->where("article_source_id", $source->id)
             ->where("url", $item->link)
             ->exists();
 
@@ -75,20 +75,20 @@ class ScrapeRssTargets
             return;
         }
 
-        $response = Http::{$target->http_method}($item->link)->throw();
+        $response = Http::{$source->http_method}($item->link)->throw();
 
         $content = $response->body();
 
         $crawler = new Crawler($content);
 
         $main_content = $crawler
-            ->filter($target->content_selector)
+            ->filter($source->content_selector)
             ->html("body");
 
         $formatted_content = HtmlFormatter::all($main_content);
 
-        ScrapeItem::create([
-            "scrape_target_id" => $target->id,
+        ScrapedArticle::create([
+            "article_source_id" => $source->id,
             "url" => $item->link,
             "title" => $item->title,
             "content" => $formatted_content,

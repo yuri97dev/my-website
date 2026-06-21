@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ScrapeItem extends Model
+class ScrapedArticle extends Model
 {
     protected $fillable = [
-        "scrape_target_id",
+        "article_source_id",
         "post_id",
         "url",
         "title",
@@ -31,9 +31,9 @@ class ScrapeItem extends Model
         return $query->where("is_enabled", true);
     }
 
-    public function target(): BelongsTo
+    public function source(): BelongsTo
     {
-        return $this->belongsTo(ScrapeTarget::class, "scrape_target_id");
+        return $this->belongsTo(ArticleSource::class, "article_source_id");
     }
 
     public function post(): BelongsTo

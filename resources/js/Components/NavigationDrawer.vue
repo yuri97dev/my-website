@@ -73,11 +73,11 @@
             active: route().current("admin.blog.posts"),
         },
         {
-            key: "blog-scrape-targets",
+            key: "blog-article-sources",
             icon: "mdi-web",
-            text: "Sites",
-            href: route("admin.blog.scrape-targets"),
-            active: route().current("admin.blog.scrape-targets"),
+            text: "Fontes de Artigos",
+            href: route("admin.blog.article-sources"),
+            active: route().current("admin.blog.article-sources"),
         },
         {
             key: "sessions",

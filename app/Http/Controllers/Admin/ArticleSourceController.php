@@ -4,17 +4,17 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Http\Requests\Scrape\StoreScrapeTargetRequest;
-use App\Http\Requests\Scrape\UpdateScrapeTargetRequest;
-use App\Models\ScrapeTarget;
+use App\Http\Requests\ArticleSource\StoreArticleSourceRequest;
+use App\Http\Requests\ArticleSource\UpdateArticleSourceRequest;
+use App\Models\ArticleSource;
 
-class ScrapeTargetController extends Controller
+class ArticleSourceController extends Controller
 {
     public function index(Request $request)
     {
         $perPage = min($request->integer("per_page", 15), 100);
 
-        $paginator = ScrapeTarget::query()
+        $paginator = ArticleSource::query()
             ->select([
                 "id",
                 "driver",
@@ -38,35 +38,35 @@ class ScrapeTargetController extends Controller
             "last_page" => $paginator->lastPage(),
             "per_page" => $paginator->perPage(),
             "total" => $paginator->total(),
-            "scrape_targets" => $paginator->items(),
+            "article_sources" => $paginator->items(),
         ], 200);
     }
 
-    public function store(StoreScrapeTargetRequest $request)
+    public function store(StoreArticleSourceRequest $request)
     {
-        $target = ScrapeTarget::create($request->validated());
+        $articleSource = ArticleSource::create($request->validated());
 
         return response()->json([
-            "scrape_target" => $target,
+            "article_source" => $articleSource,
         ], 201);
     }
 
-    public function update(UpdateScrapeTargetRequest $request, ScrapeTarget $scrapeTarget)
+    public function update(UpdateArticleSourceRequest $request, ArticleSource $articleSource)
     {
-        $scrapeTarget->update($request->validated());
+        $articleSource->update($request->validated());
 
         return response()->json([
-            "scrape_target" => $scrapeTarget->fresh(),
+            "article_source" => $articleSource->fresh(),
         ], 200);
     }
 
-    public function disable(ScrapeTarget $scrapeTarget)
+    public function disable(ArticleSource $articleSource)
     {
-        $scrapeTarget->update(["is_enabled" => false]);
+        $articleSource->update(["is_enabled" => false]);
 
         return response()->json([
-            "scrape_target" => $scrapeTarget->fresh(),
-            "message" => "Target desabilitado com sucesso.",
+            "article_source" => $articleSource->fresh(),
+            "message" => "Fonte desabilitada com sucesso.",
         ], 200);
     }
 }

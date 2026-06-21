@@ -5,20 +5,20 @@ namespace App\Actions;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Panther\Client;
 use Facebook\WebDriver\Remote\RemoteWebElement;
-use App\Models\ScrapeTarget;
-use App\Models\ScrapeItem;
+use App\Models\ArticleSource;
+use App\Models\ScrapedArticle;
 use App\Helpers\HtmlFormatter;
 use Exception;
 
-class ScrapeBrowserTargets
+class ScrapeBrowserArticleSources
 {
     public function __invoke(): void
     {
-        $targets = ScrapeTarget::driver("browser")
+        $sources = ArticleSource::driver("browser")
             ->enabled()
             ->get();
 
-        if( $targets->isEmpty() ) {
+        if( $sources->isEmpty() ) {
             return;
         }
 
@@ -32,28 +32,28 @@ class ScrapeBrowserTargets
             "--window-size=1200,1100",
         ]);
 
-        foreach($targets as $target) {
+        foreach($sources as $source) {
             try {
-                $this->scrape($client, $target);
+                $this->scrape($client, $source);
             } catch (Exception $e) {
-                Log::error("ScrapeBrowserTargets: failed to scrape target {$target->name}: {$e->getMessage()}");
+                Log::error("ScrapeBrowserArticleSources: failed to scrape source {$source->name}: {$e->getMessage()}");
             }
         }
 
         $client->quit();
     }
 
-    private function scrape(Client $client, ScrapeTarget $target): void
+    private function scrape(Client $client, ArticleSource $source): void
     {
-        $client->request($target->http_method, $target->list_url);
+        $client->request($source->http_method, $source->list_url);
 
-        $client->waitFor($target->list_item_selector);
+        $client->waitFor($source->list_item_selector);
 
-        $list = $client->getCrawler()->filter($target->list_item_selector);
+        $list = $client->getCrawler()->filter($source->list_item_selector);
 
-        $items = $list->each(function($node) use ($target) {
-            $title = $node->filter($target->item_title_selector)->text();
-            $link = $node->filter($target->item_link_selector)->attr("href");
+        $items = $list->each(function($node) use ($source) {
+            $title = $node->filter($source->item_title_selector)->text();
+            $link = $node->filter($source->item_link_selector)->attr("href");
 
             return (object) [
                 "title" => $title,
@@ -70,15 +70,15 @@ class ScrapeBrowserTargets
         }
 
         foreach($items as $item) {
-            $this->scrapeItem($client, $target, $item);
+            $this->scrapeArticle($client, $source, $item);
             sleep(rand(1, 5));
         }
     }
 
-    private function scrapeItem(Client $client, ScrapeTarget $target, object $item): void
+    private function scrapeArticle(Client $client, ArticleSource $source, object $item): void
     {
-        $already_scraped = ScrapeItem::query()
-            ->where("scrape_target_id", $target->id)
+        $already_scraped = ScrapedArticle::query()
+            ->where("article_source_id", $source->id)
             ->where("url", $item->link)
             ->exists();
 
@@ -88,19 +88,19 @@ class ScrapeBrowserTargets
 
         $client->get($item->link);
 
-        $client->waitFor($target->content_selector);
+        $client->waitFor($source->content_selector);
 
         /** @var RemoteWebElement $element */
         $element = $client->getCrawler()
-            ->filter($target->content_selector)
+            ->filter($source->content_selector)
             ->getElement(0);
 
         $content = $element->getDomProperty("innerHTML");
 
         $formatted_content = HtmlFormatter::all($content);
 
-        ScrapeItem::create([
-            "scrape_target_id" => $target->id,
+        ScrapedArticle::create([
+            "article_source_id" => $source->id,
             "url" => $item->link,
             "title" => $item->title,
             "content" => $formatted_content,

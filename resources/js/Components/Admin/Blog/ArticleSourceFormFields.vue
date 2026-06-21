@@ -153,26 +153,26 @@
     const loading = ref(false);
     const errors = ref({});
 
-    const scrapeTarget = ref({});
+    const articleSource = ref({});
     const form = ref({});
 
-    const isEditing = computed(() => !!scrapeTarget.value.id);
+    const isEditing = computed(() => !!articleSource.value.id);
 
-    async function updateScrapeTarget() {
+    async function updateArticleSource() {
         errors.value = {};
         loading.value = true;
 
         try {
-            const url = route("api.scrape-targets.update", scrapeTarget.value.id);
+            const url = route("api.article-sources.update", articleSource.value.id);
             const { data } = await api.put(url, form.value);
 
             alertSuccess("Ok", "Site atualizado com sucesso");
 
-            scrapeTarget.value = data.scrape_target;
+            articleSource.value = data.article_source;
 
             form.value = {
                 ...form.value,
-                ...data.scrape_target,
+                ...data.article_source,
             };
         } catch (e) {
             const { message, errors: responseErrors } = e?.response?.data || {};
@@ -183,21 +183,21 @@
         }
     }
 
-    async function createScrapeTarget() {
+    async function createArticleSource() {
         errors.value = {};
         loading.value = true;
 
         try {
-            const url = route("api.scrape-targets.store");
+            const url = route("api.article-sources.store");
             const { data } = await api.post(url, form.value);
 
             alertSuccess("Ok", "Site criado com sucesso");
 
-            scrapeTarget.value = data.scrape_target;
+            articleSource.value = data.article_source;
 
             form.value = {
                 ...form.value,
-                ...data.scrape_target,
+                ...data.article_source,
             };
         } catch (e) {
             const { message, errors: responseErrors } = e?.response?.data || {};
@@ -210,16 +210,16 @@
 
     async function handleSave() {
         if( isEditing.value ) {
-            await updateScrapeTarget();
+            await updateArticleSource();
         } else {
-            await createScrapeTarget();
+            await createArticleSource();
         }
     }
 
     function open(data = {}) {
         document.documentElement.style.overflowY = "hidden";
 
-        scrapeTarget.value = data;
+        articleSource.value = data;
 
         form.value = {
             ...form.value,
@@ -232,7 +232,7 @@
     function reset() {
         errors.value = {};
 
-        scrapeTarget.value = {};
+        articleSource.value = {};
 
         form.value = {
             name: null,

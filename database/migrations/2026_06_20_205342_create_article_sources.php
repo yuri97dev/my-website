@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create("scrape_targets", function (Blueprint $table) {
+        Schema::create("article_sources", function (Blueprint $table) {
             $table->id();
             $table->enum("driver", ["rss", "browser"]);
             $table->string("name", 100)->unique();
@@ -26,11 +26,11 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create("scrape_items", function (Blueprint $table) {
+        Schema::create("scraped_articles", function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId("scrape_target_id")
-                ->constrained("scrape_targets")
+            $table->foreignId("article_source_id")
+                ->constrained("article_sources")
                 ->cascadeOnDelete();
 
             $table->foreignId("post_id")
@@ -53,7 +53,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists("scrape_items");
-        Schema::dropIfExists("scrape_targets");
+        Schema::dropIfExists("scraped_articles");
+        Schema::dropIfExists("article_sources");
     }
 };

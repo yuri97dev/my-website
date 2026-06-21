@@ -40,7 +40,7 @@
                     </template>
 
                     <v-col
-                        v-for="(scrapeItem, index) in scrapeItems"
+                        v-for="(scrapedArticle, index) in scrapedArticles"
                         :key="index"
                         cols="12"
                         xl="4" lg="6"
@@ -49,16 +49,16 @@
                             border
                             hover
                             variant="tonal"
-                            @click="handleItemClick(scrapeItem)"
+                            @click="handleItemClick(scrapedArticle)"
                         >
                             <v-card-title class="text-wrap">
                                 <div class="lines-2">
-                                    {{ scrapeItem.title }}
+                                    {{ scrapedArticle.title }}
                                 </div>
                             </v-card-title>
 
                             <v-card-text class="text-primary">
-                                {{ scrapeItem.target.name }}
+                                {{ scrapedArticle.source.name }}
                             </v-card-text>
                         </v-card>
                     </v-col>
@@ -70,18 +70,18 @@
     <v-dialog
         scrollable
         max-width="900px"
-        v-model="isScrapeItemContentDialogOpen"
+        v-model="isScrapedArticleContentDialogOpen"
     >
         <v-toolbar class="rounded-t-lg">
             <v-toolbar-title>
-                {{ selectedScrapeItem.title }}
+                {{ selectedScrapedArticle.title }}
             </v-toolbar-title>
 
             <v-btn
                 icon="mdi-close"
                 variant="tonal"
                 color="primary"
-                @click="isScrapeItemContentDialogOpen = false"
+                @click="isScrapedArticleContentDialogOpen = false"
             ></v-btn>
         </v-toolbar>
 
@@ -90,18 +90,18 @@
             height="70dvh"
         >
             <v-card-text>
-                <div v-html="selectedScrapeItem.content"></div>
+                <div v-html="selectedScrapedArticle.content"></div>
             </v-card-text>
 
             <v-divider></v-divider>
 
             <v-card-actions class="justify-space-between flex-wrap">
                 <v-btn
-                    v-if="selectedScrapeItem.is_enabled"
+                    v-if="selectedScrapedArticle.is_enabled"
                     variant="tonal"
                     color="error"
                     prepend-icon="mdi-block-helper"
-                    @click="handleDisableScrapeItem"
+                    @click="handleDisableScrapedArticle"
                 >Desativar</v-btn>
 
                 <v-spacer></v-spacer>
@@ -113,11 +113,11 @@
 
     <v-dialog
         max-width="400px"
-        v-model="isDisableScrapeItemDialogOpen"
+        v-model="isDisableScrapedArticleDialogOpen"
     >
         <v-card>
             <v-card-text>
-                <p>Desativar o item?</p>
+                <p>Desativar o artigo?</p>
             </v-card-text>
 
             <v-card-actions>
@@ -125,12 +125,12 @@
                     variant="tonal"
                     color="error"
                     prepend-icon="mdi-block-helper"
-                    @click="disableScrapeItem"
+                    @click="disableScrapedArticle"
                 >Desativar</v-btn>
 
                 <v-btn
                     prepend-icon="mdi-close"
-                    @click="isDisableScrapeItemDialogOpen = false"
+                    @click="isDisableScrapedArticleDialogOpen = false"
                 >Cancelar</v-btn>
             </v-card-actions>
         </v-card>
@@ -148,109 +148,109 @@
     } from "@/Utils/Alert";
 
     const isOpen = ref(false);
-    const isScrapeItemContentDialogOpen = ref(false);
-    const isDisableScrapeItemDialogOpen = ref(false);
+    const isScrapedArticleContentDialogOpen = ref(false);
+    const isDisableScrapedArticleDialogOpen = ref(false);
 
-    const scrapeItems = ref([]);
-    const scrapeTarget = ref(null);
+    const scrapedArticles = ref([]);
+    const articleSource = ref(null);
 
-    const selectedScrapeItem = ref(null);
+    const selectedScrapedArticle = ref(null);
 
     const loading = ref(false);
 
-    async function getScrapeItems() {
+    async function getScrapedArticles() {
         loading.value = true;
 
         try {
-            const url = route("api.scrape-items.index");
+            const url = route("api.scraped-articles.index");
             const { data } = await api.get(url);
 
-            scrapeItems.value = data.scrape_items;
+            scrapedArticles.value = data.scraped_articles;
         } catch (e) {
             console.error(e);
             const { message } = e?.response?.data || {};
-            alertError("Ooops", message || "Erro ao buscar itens");
+            alertError("Ooops", message || "Erro ao buscar artigos");
         } finally {
             loading.value = false;
         }
     }
 
-    async function getScrapeItemById(id) {
+    async function getScrapedArticleById(id) {
         loading.value = true;
 
         try {
-            const url = route("api.scrape-items.show", id);
+            const url = route("api.scraped-articles.show", id);
             const { data } = await api.get(url);
 
-            selectedScrapeItem.value = data.scrape_item;
+            selectedScrapedArticle.value = data.scraped_article;
         } catch (e) {
             console.error(e);
             const { message } = e?.response?.data || {};
-            alertError("Ooops", message || "Erro ao buscar item");
-            isScrapeItemContentDialogOpen.value = false;
+            alertError("Ooops", message || "Erro ao buscar artigo");
+            isScrapedArticleContentDialogOpen.value = false;
         } finally {
             loading.value = false;
         }
     }
 
-    async function disableScrapeItem() {
+    async function disableScrapedArticle() {
         loading.value = true;
 
         try {
-            const url = route("api.scrape-items.disable", selectedScrapeItem.value.id);
+            const url = route("api.scraped-articles.disable", selectedScrapedArticle.value.id);
             await api.patch(url);
 
-            alertSuccess("Ok", "Item desativado com sucesso");
+            alertSuccess("Ok", "Artigo desativado com sucesso");
 
-            isDisableScrapeItemDialogOpen.value = false;
-            isScrapeItemContentDialogOpen.value = false;
+            isDisableScrapedArticleDialogOpen.value = false;
+            isScrapedArticleContentDialogOpen.value = false;
 
             nextTick(async () => {
-                await getScrapeItems();
+                await getScrapedArticles();
             });
         } catch (e) {
             console.error(e);
             const { message } = e?.response?.data || {};
-            alertError("Ooops", message || "Erro ao desativar item");
+            alertError("Ooops", message || "Erro ao desativar artigo");
         } finally {
             loading.value = false;
         }
     }
 
-    function handleItemClick(scrapeItem) {
-        selectedScrapeItem.value = {
+    function handleItemClick(scrapedArticle) {
+        selectedScrapedArticle.value = {
             content: "",
         };
 
-        isScrapeItemContentDialogOpen.value = true;
+        isScrapedArticleContentDialogOpen.value = true;
 
         nextTick(async () => {
-            await getScrapeItemById(scrapeItem.id);
+            await getScrapedArticleById(scrapedArticle.id);
         });
     }
 
-    function handleDisableScrapeItem() {
-        if( !selectedScrapeItem.value.is_enabled ) return;
-        isDisableScrapeItemDialogOpen.value = true;
+    function handleDisableScrapedArticle() {
+        if( !selectedScrapedArticle.value.is_enabled ) return;
+        isDisableScrapedArticleDialogOpen.value = true;
     }
 
     function open(data = {}) {
-        scrapeTarget.value = data;
+        articleSource.value = data;
         isOpen.value = true;
 
         nextTick(async () => {
-            await getScrapeItems();
+            await getScrapedArticles();
         });
     }
 
     function close() {
-        isScrapeItemContentDialogOpen.value = false;
+        isScrapedArticleContentDialogOpen.value = false;
         isOpen.value = false;
     }
 
     defineExpose({
         open,
         close,
-        selectedScrapeItem,
+        selectedScrapedArticle,
     });
 </script>

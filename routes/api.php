@@ -5,8 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\JobController;
 use App\Http\Controllers\Admin\LogController;
-use App\Http\Controllers\Admin\ScrapeItemController;
-use App\Http\Controllers\Admin\ScrapeTargetController;
+use App\Http\Controllers\Admin\ArticleSourceController;
+use App\Http\Controllers\Admin\ScrapedArticleController;
 use App\Http\Controllers\Admin\SessionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Blog\PostCategoryController;
@@ -94,33 +94,33 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             LogController::class, "show",
         ])->name("api.logs.show");
 
-        Route::get("/scrape-targets", [
-            ScrapeTargetController::class, "index",
-        ])->name("api.scrape-targets.index");
+        Route::get("/article-sources", [
+            ArticleSourceController::class, "index",
+        ])->name("api.article-sources.index");
 
-        Route::post("/scrape-targets", [
-            ScrapeTargetController::class, "store",
-        ])->name("api.scrape-targets.store");
+        Route::post("/article-sources", [
+            ArticleSourceController::class, "store",
+        ])->name("api.article-sources.store");
 
-        Route::put("/scrape-targets/{scrapeTarget}", [
-            ScrapeTargetController::class, "update",
-        ])->name("api.scrape-targets.update");
+        Route::put("/article-sources/{articleSource}", [
+            ArticleSourceController::class, "update",
+        ])->name("api.article-sources.update");
 
-        Route::patch("/scrape-targets/{scrapeTarget}/disable", [
-            ScrapeTargetController::class, "disable",
-        ])->name("api.scrape-targets.disable");
+        Route::patch("/article-sources/{articleSource}/disable", [
+            ArticleSourceController::class, "disable",
+        ])->name("api.article-sources.disable");
 
-        Route::get("/scrape-items", [
-            ScrapeItemController::class, "index",
-        ])->name("api.scrape-items.index");
+        Route::get("/scraped-articles", [
+            ScrapedArticleController::class, "index",
+        ])->name("api.scraped-articles.index");
 
-        Route::get("/scrape-items/{scrapeItem}", [
-            ScrapeItemController::class, "show",
-        ])->name("api.scrape-items.show");
+        Route::get("/scraped-articles/{scrapedArticle}", [
+            ScrapedArticleController::class, "show",
+        ])->name("api.scraped-articles.show");
 
-        Route::patch("/scrape-items/{scrapeItem}/disable", [
-            ScrapeItemController::class, "disable",
-        ])->name("api.scrape-items.disable");
+        Route::patch("/scraped-articles/{scrapedArticle}/disable", [
+            ScrapedArticleController::class, "disable",
+        ])->name("api.scraped-articles.disable");
     });
 
 Route::prefix("tools")->group(function() {

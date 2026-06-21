@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Http\Requests\Scrape;
+namespace App\Http\Requests\ArticleSource;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Models\ScrapeTarget;
+use App\Models\ArticleSource;
 use App\Helpers\TextFormatter;
 
-class StoreScrapeTargetRequest extends FormRequest
+class StoreArticleSourceRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -44,15 +44,15 @@ class StoreScrapeTargetRequest extends FormRequest
                 "required",
                 "string",
                 Rule::in([
-                    ScrapeTarget::DRIVER_RSS,
-                    ScrapeTarget::DRIVER_BROWSER,
+                    ArticleSource::DRIVER_RSS,
+                    ArticleSource::DRIVER_BROWSER,
                 ]),
             ],
             "name" => [
                 "required",
                 "string",
                 "max:100",
-                Rule::unique("scrape_targets", "name"),
+                Rule::unique("article_sources", "name"),
             ],
             "locale" => ["sometimes", "required", "string", "max:10"],
             "http_method" => ["sometimes", "required", "string", "max:10"],
@@ -60,7 +60,7 @@ class StoreScrapeTargetRequest extends FormRequest
                 "required",
                 "string",
                 "max:255",
-                Rule::unique("scrape_targets", "list_url"),
+                Rule::unique("article_sources", "list_url"),
             ],
             "list_item_selector" => ["required", "string", "max:255"],
             "item_title_selector" => ["required", "string", "max:255"],

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class ScrapeTarget extends Model
+class ArticleSource extends Model
 {
     public const DRIVER_RSS = "rss";
     public const DRIVER_BROWSER = "browser";
@@ -31,9 +31,9 @@ class ScrapeTarget extends Model
         ];
     }
 
-    public function items(): HasMany
+    public function articles(): HasMany
     {
-        return $this->hasMany(ScrapeItem::class);
+        return $this->hasMany(ScrapedArticle::class);
     }
 
     public function scopeEnabled(Builder $query): Builder

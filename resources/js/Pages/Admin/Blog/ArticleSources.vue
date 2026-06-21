@@ -1,5 +1,5 @@
 <template>
-    <Container title="Scrape Targets" gapped>
+    <Container title="Fontes de Artigos" gapped>
         <v-card hover border>
             <v-text-field
                 type="search"
@@ -9,7 +9,7 @@
                 variant="solo"
                 clearable
                 @keyup.enter="handleSearch"
-                @click:append-inner="getScrapeTargets"
+                @click:append-inner="getArticleSources"
                 v-model="search"
             ></v-text-field>
         </v-card>
@@ -17,11 +17,11 @@
         <v-card>
             <v-data-table-server
                 :headers="headers"
-                :items="scrapeTargets"
+                :items="articleSources"
                 :items-length="pagination.total"
                 :loading="loading"
                 class="text-no-wrap"
-                @update:options="getScrapeTargets"
+                @update:options="getArticleSources"
                 @click:row="handleRowClick"
                 v-model:page="pagination.page"
                 v-model:items-per-page="pagination.perPage"
@@ -40,17 +40,17 @@
             </v-data-table-server>
         </v-card>
 
-        <ScrapeForm
-            ref="scrapeFormRef"
-            @form-closed="getScrapeTargets"
-        ></ScrapeForm>
+        <ArticleSourceForm
+            ref="articleSourceFormRef"
+            @form-closed="getArticleSources"
+        ></ArticleSourceForm>
 
         <v-fab
             app
             icon="mdi-plus"
             size="large"
             color="primary"
-            @click="scrapeFormRef.open()"
+            @click="articleSourceFormRef.open()"
         ></v-fab>
     </Container>
 </template>
@@ -61,15 +61,15 @@
     import api from "@/api";
 
     import Container from "@/Components/Container.vue";
-    import ScrapeForm from "@/Components/Admin/Blog/ScrapeForm.vue";
+    import ArticleSourceForm from "@/Components/Admin/Blog/ArticleSourceForm.vue";
 
     import { alertError } from "@/Utils/Alert";
     import { formatDate } from "@/Utils/Common";
 
-    const scrapeFormRef = ref(null);
+    const articleSourceFormRef = ref(null);
 
     const search = ref("");
-    const scrapeTargets = ref([]);
+    const articleSources = ref([]);
     const loading = ref(false);
 
     const headers = ref([
@@ -133,11 +133,11 @@
         total: 0,
     });
 
-    async function getScrapeTargets() {
+    async function getArticleSources() {
         loading.value = true;
 
         try {
-            const url = route("api.scrape-targets.index");
+            const url = route("api.article-sources.index");
 
             const params = {
                 page: pagination.page,
@@ -146,7 +146,7 @@
 
             const { data } = await api.get(url, { params });
 
-            scrapeTargets.value = data.scrape_targets;
+            articleSources.value = data.article_sources;
 
             pagination.page = data.current_page;
             pagination.perPage = data.per_page;
@@ -161,10 +161,10 @@
 
     async function handleSearch() {
         pagination.page = 1;
-        await getScrapeTargets();
+        await getArticleSources();
     }
 
     function handleRowClick(e, { item }) {
-        scrapeFormRef.value.open(item);
+        articleSourceFormRef.value.open(item);
     }
 </script>

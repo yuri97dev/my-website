@@ -5,8 +5,8 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 use App\Actions\RemoveExpiredSpreadsheetFiles;
 use App\Actions\GeneratePostChunks;
-use App\Actions\ScrapeRssTargets;
-use App\Actions\ScrapeBrowserTargets;
+use App\Actions\ScrapeRssArticleSources;
+use App\Actions\ScrapeBrowserArticleSources;
 
 Artisan::command("inspire", function () {
     $this->comment(Inspiring::quote());
@@ -22,12 +22,12 @@ Schedule::call(new GeneratePostChunks)
     ->everyTenSeconds()
     ->withoutOverlapping();
 
-Schedule::call(new ScrapeRssTargets)
-    ->name("scrape-rss-targets")
+Schedule::call(new ScrapeRssArticleSources)
+    ->name("scrape-rss-article-sources")
     ->everyTwoHours()
     ->withoutOverlapping();
 
-Schedule::call(new ScrapeBrowserTargets)
-    ->name("scrape-browser-targets")
+Schedule::call(new ScrapeBrowserArticleSources)
+    ->name("scrape-browser-article-sources")
     ->everyTwoHours()
     ->withoutOverlapping();
