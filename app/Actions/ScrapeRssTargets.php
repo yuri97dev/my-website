@@ -50,7 +50,7 @@ class ScrapeRssTargets
 
         $data = json_decode(json_encode($xml), true);
 
-        $list = Arr::get($data, $target->list_selector);
+        $list = Arr::get($data, $target->list_item_selector);
 
         if( empty($list) || !is_array($list) ) {
             throw new Exception("List selector not found.");

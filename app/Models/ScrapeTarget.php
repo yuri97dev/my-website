@@ -17,7 +17,7 @@ class ScrapeTarget extends Model
         "locale",
         "http_method",
         "list_url",
-        "list_selector",
+        "list_item_selector",
         "item_title_selector",
         "item_link_selector",
         "content_selector",

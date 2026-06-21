@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string("locale", 10)->default("en");
             $table->string("http_method", 10)->default("GET");
             $table->string("list_url")->unique();
-            $table->string("list_selector");
+            $table->string("list_item_selector");
             $table->string("item_title_selector");
             $table->string("item_link_selector");
             $table->string("content_selector");

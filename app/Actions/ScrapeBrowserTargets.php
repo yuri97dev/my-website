@@ -53,9 +53,9 @@ class ScrapeBrowserTargets
     {
         $client->request($target->http_method, $target->list_url);
 
-        $client->waitFor($target->list_selector);
+        $client->waitFor($target->list_item_selector);
 
-        $list = $client->getCrawler()->filter($target->list_selector);
+        $list = $client->getCrawler()->filter($target->list_item_selector);
 
         $items = $list->each(function($node) use ($target) {
             $title = $node->filter($target->item_title_selector)->text();
