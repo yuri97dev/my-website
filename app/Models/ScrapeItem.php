@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -15,7 +16,20 @@ class ScrapeItem extends Model
         "content",
         "translated_title",
         "translated_content",
+        "is_enabled",
     ];
+
+    protected function casts(): array
+    {
+        return [
+            "is_enabled" => "boolean",
+        ];
+    }
+
+    public function scopeEnabled(Builder $query): Builder
+    {
+        return $query->where("is_enabled", true);
+    }
 
     public function target(): BelongsTo
     {
