@@ -2,7 +2,6 @@
 
 namespace App\Actions;
 
-use Illuminate\Support\Facades\Log;
 use League\HTMLToMarkdown\HtmlConverter;
 use League\HTMLToMarkdown\Converter\TableConverter;
 use Droath\TextChunker\Facades\TextChunker;
@@ -19,13 +18,7 @@ class GeneratePostChunks
             ->orderBy("id")
             ->first();
 
-        $is_production = app()->isProduction();
-
         if( !$post ) {
-            if( !$is_production ) {
-                Log::info("GeneratePostChunks: no posts to process");
-            }
-
             return;
         }
 
@@ -42,10 +35,6 @@ class GeneratePostChunks
             ->chunk($content);
 
         if( empty($chunks) ) {
-            if( !$is_production ) {
-                Log::info("GeneratePostChunks: post {$post->id} has no content to chunk");
-            }
-
             return;
         }
 

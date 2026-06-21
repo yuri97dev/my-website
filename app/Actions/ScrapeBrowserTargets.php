@@ -19,12 +19,6 @@ class ScrapeBrowserTargets
             ->get();
 
         if( $targets->isEmpty() ) {
-            $is_production = app()->isProduction();
-
-            if( !$is_production ) {
-                Log::info("ScrapeBrowserTargets: no targets to process");
-            }
-
             return;
         }
 
