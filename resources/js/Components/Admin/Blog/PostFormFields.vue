@@ -394,6 +394,7 @@
             id: data?.id || null,
             title: data?.title || null,
             slug: data?.slug || null,
+            content: data?.content || null,
         };
 
         post.value = postData;
