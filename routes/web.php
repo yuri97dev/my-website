@@ -5,6 +5,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\SpreadsheetFormatterController;
 use App\Http\Controllers\Blog\PostController;
 use App\Http\Controllers\Blog\PostImageController;
+use App\Http\Controllers\Blog\ScrapedArticleImageController;
 use App\Models\Role;
 
 Route::inertia("/", "Home")->name("home");
@@ -44,6 +45,10 @@ Route::prefix("blog")->group(function () {
     Route::get("/images/{postImage}", [
         PostImageController::class, "show",
     ])->name("blog.images.show");
+
+    Route::get("/scraped-images/{scrapedArticleImage}", [
+        ScrapedArticleImageController::class, "show",
+    ])->name("blog.scraped-images.show");
 
     Route::get("/{category?}", [
         PostController::class, "index"

@@ -46,6 +46,17 @@ return new class extends Migration
             $table->boolean("is_enabled")->default(true);
             $table->timestamps();
         });
+
+        Schema::create("scraped_article_images", function (Blueprint $table) {
+            $table->uuid("id")->primary();
+
+            $table->foreignId("scraped_article_id")
+                ->constrained("scraped_articles")
+                ->cascadeOnDelete();
+
+            $table->string("path", 500);
+            $table->timestamps();
+        });
     }
 
     /**
@@ -53,6 +64,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists("scraped_article_images");
         Schema::dropIfExists("scraped_articles");
         Schema::dropIfExists("article_sources");
     }

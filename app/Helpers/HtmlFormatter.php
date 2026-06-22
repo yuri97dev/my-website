@@ -151,4 +151,40 @@ class HtmlFormatter
 
         return $html5->saveHTML($fragment);
     }
+
+    public static function rewriteImageSources(string $html, callable $resolver): string
+    {
+        if( empty($html) ) return $html;
+
+        $html5 = new HTML5();
+        $fragment = $html5->loadHTMLFragment($html);
+
+        $walk = function($node) use (&$walk, $resolver) {
+            if(
+                $node instanceof \DOMElement &&
+                $node->tagName === "img" &&
+                $node->hasAttribute("src")
+            ) {
+                $src = trim($node->getAttribute("src"));
+
+                if( !empty($src) ) {
+                    $resolved = $resolver($src);
+
+                    if( is_string($resolved) && $resolved !== "" ) {
+                        $node->setAttribute("src", $resolved);
+                    }
+                }
+            }
+
+            foreach($node->childNodes as $child) {
+                $walk($child);
+            }
+        };
+
+        foreach($fragment->childNodes as $child) {
+            $walk($child);
+        }
+
+        return $html5->saveHTML($fragment);
+    }
 }

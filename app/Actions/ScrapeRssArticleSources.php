@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Symfony\Component\DomCrawler\Crawler;
 use App\Models\ArticleSource;
 use App\Models\ScrapedArticle;
+use App\Actions\DownloadScrapedArticleImages;
 use App\Helpers\HtmlFormatter;
 use Exception;
 
@@ -90,11 +91,13 @@ class ScrapeRssArticleSources
 
         $formatted_content = HtmlFormatter::all($main_content, $source_url);
 
-        ScrapedArticle::create([
+        $article = ScrapedArticle::create([
             "article_source_id" => $source->id,
             "url" => $item->link,
             "title" => $item->title,
             "content" => $formatted_content,
         ]);
+
+        (new DownloadScrapedArticleImages)($article);
     }
 }

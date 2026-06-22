@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ScrapedArticle extends Model
 {
@@ -26,6 +27,13 @@ class ScrapedArticle extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::deleting(function (ScrapedArticle $article) {
+            $article->images->each->delete();
+        });
+    }
+
     public function scopeEnabled(Builder $query): Builder
     {
         return $query->where("is_enabled", true);
@@ -39,5 +47,10 @@ class ScrapedArticle extends Model
     public function post(): BelongsTo
     {
         return $this->belongsTo(Post::class);
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(ScrapedArticleImage::class);
     }
 }

@@ -7,6 +7,7 @@ use Symfony\Component\Panther\Client;
 use Facebook\WebDriver\Remote\RemoteWebElement;
 use App\Models\ArticleSource;
 use App\Models\ScrapedArticle;
+use App\Actions\DownloadScrapedArticleImages;
 use App\Helpers\HtmlFormatter;
 use Exception;
 
@@ -102,11 +103,13 @@ class ScrapeBrowserArticleSources
 
         $formatted_content = HtmlFormatter::all($content, $source_url);
 
-        ScrapedArticle::create([
+        $article = ScrapedArticle::create([
             "article_source_id" => $source->id,
             "url" => $item->link,
             "title" => $item->title,
             "content" => $formatted_content,
         ]);
+
+        (new DownloadScrapedArticleImages)($article);
     }
 }
