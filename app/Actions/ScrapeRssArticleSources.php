@@ -85,7 +85,10 @@ class ScrapeRssArticleSources
             ->filter($source->content_selector)
             ->html("body");
 
-        $formatted_content = HtmlFormatter::all($main_content);
+        $source_url = parse_url($source->list_url);
+        $source_url = $source_url["scheme"] . "://" . $source_url["host"];
+
+        $formatted_content = HtmlFormatter::all($main_content, $source_url);
 
         ScrapedArticle::create([
             "article_source_id" => $source->id,

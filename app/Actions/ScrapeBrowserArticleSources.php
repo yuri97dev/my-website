@@ -97,7 +97,10 @@ class ScrapeBrowserArticleSources
 
         $content = $element->getDomProperty("innerHTML");
 
-        $formatted_content = HtmlFormatter::all($content);
+        $source_url = parse_url($source->list_url);
+        $source_url = $source_url["scheme"] . "://" . $source_url["host"];
+
+        $formatted_content = HtmlFormatter::all($content, $source_url);
 
         ScrapedArticle::create([
             "article_source_id" => $source->id,

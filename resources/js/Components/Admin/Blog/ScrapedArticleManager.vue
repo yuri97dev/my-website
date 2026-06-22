@@ -90,7 +90,10 @@
             height="70dvh"
         >
             <v-card-text>
-                <div v-html="selectedScrapedArticle.content"></div>
+                <div
+                    @click.prevent="handleContentClick"
+                    v-html="selectedScrapedArticle.content"
+                ></div>
             </v-card-text>
 
             <v-divider></v-divider>
@@ -105,6 +108,12 @@
                 >Desativar</v-btn>
 
                 <v-spacer></v-spacer>
+
+                <v-btn
+                    :href="selectedScrapedArticle?.url"
+                    target="_blank"
+                    prepend-icon="mdi-open-in-new"
+                >Abrir Original</v-btn>
 
                 <slot name="content-action-buttons"></slot>
             </v-card-actions>
@@ -232,6 +241,12 @@
     function handleDisableScrapedArticle() {
         if( !selectedScrapedArticle.value.is_enabled ) return;
         isDisableScrapedArticleDialogOpen.value = true;
+    }
+
+    function handleContentClick(e) {
+        if( e.target.tagName === "A" ) {
+            window.open(e.target.href, "_blank");
+        }
     }
 
     function open(data = {}) {
