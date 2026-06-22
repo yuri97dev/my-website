@@ -6,7 +6,7 @@ use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
 use League\HTMLToMarkdown\HtmlConverter;
 use League\HTMLToMarkdown\Converter\TableConverter;
-use League\CommonMark\CommonMarkConverter;
+use League\CommonMark\GithubFlavoredMarkdownConverter;
 use tidy;
 
 class HtmlFormatter
@@ -50,7 +50,7 @@ class HtmlFormatter
 
     public static function convertFromMarkdown(string $content): string
     {
-        $converter = new CommonMarkConverter([
+        $converter = new GithubFlavoredMarkdownConverter([
             "html_input" => "strip",
             "allow_unsafe_links" => false,
         ]);
