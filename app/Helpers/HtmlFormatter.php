@@ -15,6 +15,8 @@ class HtmlFormatter
 {
     public static function all(string $content, ?string $base_url = null): string
     {
+        $content = self::resolveLazyLoadedImages($content);
+
         $sanitized_content = self::sanitize($content);
         $markdown_content = self::convertToMarkdown($sanitized_content);
         $html_content = self::convertFromMarkdown($markdown_content);
@@ -81,6 +83,39 @@ class HtmlFormatter
         $tidy->cleanRepair();
 
         return (string) $tidy;
+    }
+
+    public static function resolveLazyLoadedImages(string $html): string
+    {
+        if( empty($html) ) return $html;
+
+        $html5 = new HTML5();
+        $fragment = $html5->loadHTMLFragment($html);
+
+        $walk = function($node) use (&$walk) {
+            if(
+                $node instanceof \DOMElement &&
+                $node->tagName === "img" &&
+                $node->hasAttribute("data-src")
+            ) {
+                $src = trim($node->getAttribute("data-src"));
+
+                if( !empty($src) ) {
+                    $node->setAttribute("src", $src);
+                    $node->removeAttribute("data-src");
+                }
+            }
+
+            foreach($node->childNodes as $child) {
+                $walk($child);
+            }
+        };
+
+        foreach($fragment->childNodes as $child) {
+            $walk($child);
+        }
+
+        return $html5->saveHTML($fragment);
     }
 
     public static function absolutizeUrls(string $html, string $base_url): string
