@@ -87,12 +87,7 @@ class HtmlFormatter
 
     public static function resolveLazyLoadedImages(string $html): string
     {
-        if( empty($html) ) return $html;
-
-        $html5 = new HTML5();
-        $fragment = $html5->loadHTMLFragment($html);
-
-        $walk = function($node) use (&$walk) {
+        return self::transformHtmlFragment($html, function($node) {
             if(
                 $node instanceof \DOMElement &&
                 $node->tagName === "img" &&
@@ -105,29 +100,14 @@ class HtmlFormatter
                     $node->removeAttribute("data-src");
                 }
             }
-
-            foreach($node->childNodes as $child) {
-                $walk($child);
-            }
-        };
-
-        foreach($fragment->childNodes as $child) {
-            $walk($child);
-        }
-
-        return $html5->saveHTML($fragment);
+        });
     }
 
     public static function absolutizeUrls(string $html, string $base_url): string
     {
-        if( empty($html) ) return $html;
-
-        $html5 = new HTML5();
-        $fragment = $html5->loadHTMLFragment($html);
-
         $url_attributes = [ "href", "src" ];
 
-        $walk = function($node) use (&$walk, $base_url, $url_attributes) {
+        return self::transformHtmlFragment($html, function($node) use ($base_url, $url_attributes) {
             if( $node instanceof \DOMElement ) {
                 foreach($url_attributes as $attribute) {
                     if( !$node->hasAttribute($attribute) ) continue;
@@ -139,27 +119,12 @@ class HtmlFormatter
                     $node->setAttribute($attribute, UriResolver::resolve($url, $base_url));
                 }
             }
-
-            foreach($node->childNodes as $child) {
-                $walk($child);
-            }
-        };
-
-        foreach($fragment->childNodes as $child) {
-            $walk($child);
-        }
-
-        return $html5->saveHTML($fragment);
+        });
     }
 
     public static function rewriteImageSources(string $html, callable $resolver): string
     {
-        if( empty($html) ) return $html;
-
-        $html5 = new HTML5();
-        $fragment = $html5->loadHTMLFragment($html);
-
-        $walk = function($node) use (&$walk, $resolver) {
+        return self::transformHtmlFragment($html, function($node) use ($resolver) {
             if(
                 $node instanceof \DOMElement &&
                 $node->tagName === "img" &&
@@ -175,6 +140,18 @@ class HtmlFormatter
                     }
                 }
             }
+        });
+    }
+
+    private static function transformHtmlFragment(string $html, callable $visitor): string
+    {
+        if( empty($html) ) return $html;
+
+        $html5 = new HTML5();
+        $fragment = $html5->loadHTMLFragment($html);
+
+        $walk = function($node) use (&$walk, $visitor) {
+            $visitor($node);
 
             foreach($node->childNodes as $child) {
                 $walk($child);
