@@ -186,10 +186,11 @@ class HtmlFormatter
                 $node instanceof \DOMElement &&
                 $node->tagName === "iframe"
             ) {
-                $iframe_domain = parse_url($node->getAttribute("src"), PHP_URL_HOST);
+                $src = $node->getAttribute("src");
+                $iframe_domain = parse_url($src, PHP_URL_HOST);
 
                 if( in_array($iframe_domain, $domains) ) {
-                    $src = $node->getAttribute("src");
+                    $src = strtok($src, "?") ?: $src;
                     $tag_content = "[[IFRAME||{$src}||IFRAME]]";
                     $text = $node->ownerDocument->createTextNode($tag_content);
                     $node->parentNode->insertBefore($text, $node->nextSibling);
