@@ -16,6 +16,7 @@ class HtmlFormatter
     public static function all(string $content, ?string $base_url = null): string
     {
         $content = self::resolveLazyLoadedImages($content);
+        $content = self::replaceIframesWithPlaceholders($content);
 
         $sanitized_content = self::sanitize($content);
         $markdown_content = self::convertToMarkdown($sanitized_content);
@@ -24,6 +25,8 @@ class HtmlFormatter
         if( !empty($base_url) ) {
             $html_content = self::absolutizeUrls($html_content, $base_url);
         }
+
+        $html_content = self::restoreIframesFromPlaceholders($html_content);
 
         $beautified_content = self::beautify($html_content);
 
@@ -163,5 +166,44 @@ class HtmlFormatter
         }
 
         return $html5->saveHTML($fragment);
+    }
+
+    private static function replaceIframesWithPlaceholders(string $html): string
+    {
+        $domains = [
+            "youtube.com",
+            "www.youtube.com",
+            "youtube-nocookie.com",
+            "www.youtube-nocookie.com",
+            "vimeo.com",
+            "www.vimeo.com",
+            "player.vimeo.com",
+            "www.player.vimeo.com",
+        ];
+
+        return self::transformHtmlFragment($html, function($node) use ($domains) {
+            if(
+                $node instanceof \DOMElement &&
+                $node->tagName === "iframe"
+            ) {
+                $iframe_domain = parse_url($node->getAttribute("src"), PHP_URL_HOST);
+
+                if( in_array($iframe_domain, $domains) ) {
+                    $src = $node->getAttribute("src");
+                    $tag_content = "[[IFRAME||{$src}||IFRAME]]";
+                    $text = $node->ownerDocument->createTextNode($tag_content);
+                    $node->parentNode->insertBefore($text, $node->nextSibling);
+                    $node->parentNode->removeChild($node);
+                }
+            }
+        });
+    }
+
+    private static function restoreIframesFromPlaceholders(string $html): string
+    {
+        $from = ["[[IFRAME||", "||IFRAME]]"];
+        $to = ['<iframe allowfullscreen frameborder="0" src="', '"></iframe>'];
+
+        return str_replace($from, $to, $html);
     }
 }
