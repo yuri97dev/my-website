@@ -35,6 +35,7 @@ class Ollama
             "keep_alive" => config("services.ollama.keep_alive"),
             "prompt" => $prompt,
             "stream" => false,
+            "think" => false,
         ], $params);
 
         $response = Http::timeout((int) config("services.ollama.timeout", 120))
