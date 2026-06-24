@@ -7,6 +7,7 @@ use League\HTMLToMarkdown\HtmlConverter;
 use League\HTMLToMarkdown\Converter\TableConverter;
 use Droath\TextChunker\Facades\TextChunker;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\Ollama;
 
 class TranslateScrapedArticles
 {
@@ -39,15 +40,32 @@ class TranslateScrapedArticles
         
         // Log::info($markdown_content . "\n\n\n\n");
 
-        // Log::info($markdown_with_placeholders);
+        Log::info($markdown_with_placeholders);
 
         $chunks = TextChunker::strategy("sentence")
-            ->size(3)
+            ->size(2)
             ->chunk($markdown_with_placeholders);
 
-        foreach($chunks as $chunk) {
-            Log::info("Chunk {$chunk->index}: " . $chunk->text . "\n\n\n\n");
+        $params = [];
+
+        $prompt_file = storage_path("app/private/prompts/translation.txt");
+
+        if( file_exists($prompt_file) ) {
+            $params["system"] = file_get_contents($prompt_file);
         }
+
+        $translated_text = "";
+
+        foreach($chunks as $index => $chunk) {
+            Log::info("CHUNK {$index}");
+
+            $ollama_response = Ollama::generate($chunk->text, $params);
+            $translated_chunk = $ollama_response["response"];
+
+            $translated_text .= $translated_chunk;
+        }
+
+        Log::info($translated_text);
     }
 
     private function replaceLinksWithPlaceholders(string $markdown_content): string
@@ -110,7 +128,7 @@ class TranslateScrapedArticles
 
             $rest = implode("", $sub_pieces);
 
-            $final_content[] = "[{$key}] {$rest}";
+            $final_content[] = "({$key}) {$rest}";
 
             $this->iframe_map[$key] = $link;
         }
