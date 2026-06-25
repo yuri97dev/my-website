@@ -2,12 +2,16 @@
 
 namespace App\Actions;
 
-use App\Models\ScrapedArticle;
+use Symfony\AI\Platform\Bridge\DeepSeek\Factory as DeepSeekFactory;
+use Symfony\AI\Platform\Bridge\Gemini\Factory as GeminiFactory;
+use Symfony\AI\Platform\Message\Message;
+use Symfony\AI\Platform\Message\MessageBag;
 use League\HTMLToMarkdown\HtmlConverter;
 use League\HTMLToMarkdown\Converter\TableConverter;
-use Droath\TextChunker\Facades\TextChunker;
 use Illuminate\Support\Facades\Log;
-use App\Helpers\Ollama;
+use App\Models\AiPrompt;
+use App\Models\ScrapedArticle;
+use Exception;
 
 class TranslateScrapedArticles
 {
@@ -16,6 +20,24 @@ class TranslateScrapedArticles
 
     public function __invoke(): void
     {
+        $ai_prompt = AiPrompt::query()
+            ->key("post-translation")
+            ->with("aiProvider")
+            ->first();
+
+        if( !$ai_prompt || !$ai_prompt->aiProvider->is_enabled ) {
+            return;
+        }
+
+        $api_key = $ai_prompt->aiProvider->api_key;
+        $provider = "deepseek";
+
+        $platform = match($provider) {
+            "gemini" => GeminiFactory::createPlatform($api_key),
+            "deepseek" => DeepSeekFactory::createPlatform($api_key),
+            default => throw new Exception("Provedor não suportado"),
+        };
+
         $article = ScrapedArticle::query()
             ->enabled()
             ->whereNull("translated_content")
@@ -37,35 +59,15 @@ class TranslateScrapedArticles
 
         $markdown_with_placeholders = $this->replaceLinksWithPlaceholders($markdown_content);
         $markdown_with_placeholders = $this->replaceIframesWithPlaceholders($markdown_with_placeholders);
-        
-        // Log::info($markdown_content . "\n\n\n\n");
 
-        Log::info($markdown_with_placeholders);
+        $messages = new MessageBag(
+            Message::forSystem($ai_prompt->content),
+            Message::ofUser($markdown_with_placeholders)
+        );
 
-        $chunks = TextChunker::strategy("sentence")
-            ->size(2)
-            ->chunk($markdown_with_placeholders);
+        $result = $platform->invoke("deepseek-v4-flash", $messages);
 
-        $params = [];
-
-        $prompt_file = storage_path("app/private/prompts/translation.txt");
-
-        if( file_exists($prompt_file) ) {
-            $params["system"] = file_get_contents($prompt_file);
-        }
-
-        $translated_text = "";
-
-        foreach($chunks as $index => $chunk) {
-            Log::info("CHUNK {$index}");
-
-            $ollama_response = Ollama::generate($chunk->text, $params);
-            $translated_chunk = $ollama_response["response"];
-
-            $translated_text .= $translated_chunk;
-        }
-
-        Log::info($translated_text);
+        Log::info($result->asText());
     }
 
     private function replaceLinksWithPlaceholders(string $markdown_content): string
