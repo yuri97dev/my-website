@@ -23,6 +23,7 @@
         "masterminds/html5": "*",
         "matomo/device-detector": "*",
         "mk-j/php_xlsxwriter": "*",
+        "symfony/ai-platform": "*",
         "symfony/dom-crawler": "*",
         "symfony/html-sanitizer": "*",
         "tightenco/ziggy": "*"

@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\JobController;
 use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\AiProviderController;
 use App\Http\Controllers\Admin\ArticleSourceController;
 use App\Http\Controllers\Admin\ScrapedArticleController;
 use App\Http\Controllers\Admin\SessionController;
@@ -109,6 +110,18 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
         Route::patch("/article-sources/{articleSource}/disable", [
             ArticleSourceController::class, "disable",
         ])->name("api.article-sources.disable");
+
+        Route::get("/ai-providers", [
+            AiProviderController::class, "index",
+        ])->name("api.ai-providers.index");
+
+        Route::post("/ai-providers", [
+            AiProviderController::class, "store",
+        ])->name("api.ai-providers.store");
+
+        Route::put("/ai-providers/{aiProvider}", [
+            AiProviderController::class, "update",
+        ])->name("api.ai-providers.update");
 
         Route::get("/scraped-articles", [
             ScrapedArticleController::class, "index",
