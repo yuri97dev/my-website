@@ -23,6 +23,8 @@
         "masterminds/html5": "*",
         "matomo/device-detector": "*",
         "mk-j/php_xlsxwriter": "*",
+        "symfony/ai-deep-seek-platform": "*",
+        "symfony/ai-gemini-platform": "*",
         "symfony/ai-platform": "*",
         "symfony/dom-crawler": "*",
         "symfony/html-sanitizer": "*",
