@@ -107,6 +107,13 @@
             href: route("admin.logs"),
             active: route().current("admin.logs"),
         },
+        {
+            key: "ai-providers",
+            icon: "mdi-robot",
+            text: "Provedores de IA",
+            href: route("admin.ai-providers"),
+            active: route().current("admin.ai-providers"),
+        },
     ]);
 
     const opened = computed(() => {
