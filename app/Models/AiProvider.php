@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Hidden(["api_key"])]
 
@@ -34,5 +35,10 @@ class AiProvider extends Model
     public function scopeProvider(Builder $query, string $provider): Builder
     {
         return $query->where("provider", $provider);
+    }
+
+    public function prompts(): HasMany
+    {
+        return $this->hasMany(AiPrompt::class);
     }
 }

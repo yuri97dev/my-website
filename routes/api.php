@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\JobController;
 use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\AiPromptController;
 use App\Http\Controllers\Admin\AiProviderController;
 use App\Http\Controllers\Admin\ArticleSourceController;
 use App\Http\Controllers\Admin\ScrapedArticleController;
@@ -122,6 +123,22 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
         Route::put("/ai-providers/{aiProvider}", [
             AiProviderController::class, "update",
         ])->name("api.ai-providers.update");
+
+        Route::get("/ai-providers/{aiProvider}/prompts", [
+            AiPromptController::class, "index",
+        ])->name("api.ai-providers.prompts.index");
+
+        Route::post("/ai-providers/{aiProvider}/prompts", [
+            AiPromptController::class, "store",
+        ])->name("api.ai-providers.prompts.store");
+
+        Route::put("/ai-prompts/{aiPrompt}", [
+            AiPromptController::class, "update",
+        ])->name("api.ai-prompts.update");
+
+        Route::delete("/ai-prompts/{aiPrompt}", [
+            AiPromptController::class, "destroy",
+        ])->name("api.ai-prompts.destroy");
 
         Route::get("/scraped-articles", [
             ScrapedArticleController::class, "index",

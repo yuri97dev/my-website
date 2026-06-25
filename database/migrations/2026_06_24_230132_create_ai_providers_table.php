@@ -20,6 +20,20 @@ return new class extends Migration
             $table->boolean("is_enabled")->default(true);
             $table->timestamps();
         });
+
+        Schema::create("ai_prompts", function (Blueprint $table) {
+            $table->id();
+
+            $table->foreignId("ai_provider_id")
+                ->constrained("ai_providers")
+                ->cascadeOnDelete();
+
+            $table->string("key", 100);
+            $table->longText("content");
+            $table->timestamps();
+
+            $table->unique(["ai_provider_id", "key"]);
+        });
     }
 
     /**
@@ -27,6 +41,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists("ai_prompts");
         Schema::dropIfExists("ai_providers");
     }
 };
