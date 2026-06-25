@@ -26,7 +26,7 @@
 
             <v-card-text>
                 <v-row>
-                    <v-col cols="12" lg="6" xl="6">
+                    <v-col cols="12" lg="6">
                         <v-text-field
                             label="Nome"
                             :error-messages="errors.name"
@@ -34,17 +34,16 @@
                         ></v-text-field>
                     </v-col>
 
-                    <v-col cols="12" lg="6" xl="6">
-                        <v-text-field
+                    <v-col cols="12" lg="6">
+                        <v-select
                             label="Provedor"
-                            hint="Identificador do provedor (ex: openai, anthropic)"
-                            persistent-hint
+                            :items="PROVIDERS"
                             :error-messages="errors.provider"
                             v-model="form.provider"
-                        ></v-text-field>
+                        ></v-select>
                     </v-col>
 
-                    <v-col cols="12">
+                    <v-col cols="12" lg="6">
                         <v-text-field
                             label="URL"
                             :error-messages="errors.url"
@@ -52,7 +51,7 @@
                         ></v-text-field>
                     </v-col>
 
-                    <v-col cols="12" lg="9" xl="10">
+                    <v-col cols="12" lg="6">
                         <v-text-field
                             label="Chave de API"
                             :type="showApiKey ? 'text' : 'password'"
@@ -65,7 +64,7 @@
                         ></v-text-field>
                     </v-col>
 
-                    <v-col cols="12" lg="3" xl="2">
+                    <v-col cols="12" sm="12">
                         <v-switch
                             label="Ativo"
                             color="primary"
@@ -102,6 +101,15 @@
     import api from "@/api";
 
     import { alertError, alertSuccess } from "@/Utils/Alert";
+
+    const PROVIDERS = [
+        { title: "OpenAI", value: "openai" },
+        { title: "Anthropic", value: "anthropic" },
+        { title: "Google Gemini", value: "gemini" },
+        { title: "Ollama", value: "ollama" },
+        { title: "Mistral", value: "mistral" },
+        { title: "DeepSeek", value: "deepseek" },
+    ];
 
     const emit = defineEmits([
         "close",
