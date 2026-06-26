@@ -8,7 +8,7 @@ use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
 use League\HTMLToMarkdown\HtmlConverter;
 use League\HTMLToMarkdown\Converter\TableConverter;
-use Illuminate\Support\Facades\Log;
+use League\CommonMark\GithubFlavoredMarkdownConverter;
 use App\Models\AiPrompt;
 use App\Models\ScrapedArticle;
 use Exception;
@@ -30,7 +30,7 @@ class TranslateScrapedArticles
         }
 
         $api_key = $ai_prompt->aiProvider->api_key;
-        $provider = "deepseek";
+        $provider = $ai_prompt->aiProvider->provider;
 
         $platform = match($provider) {
             "gemini" => GeminiFactory::createPlatform($api_key),
@@ -41,8 +41,6 @@ class TranslateScrapedArticles
         $article = ScrapedArticle::query()
             ->enabled()
             ->whereNull("translated_content")
-            ->where("content", "like", "%<iframe%") // for testing
-            ->skip(1) // for testing
             ->orderBy("id")
             ->first();
 
@@ -52,22 +50,42 @@ class TranslateScrapedArticles
 
         $content = $article->content;
 
-        $converter = new HtmlConverter();
-        $converter->getEnvironment()->addConverter(new TableConverter());
+        $html_converter = new HtmlConverter();
+        $html_converter->getEnvironment()->addConverter(new TableConverter());
 
-        $markdown_content = $converter->convert($content);
+        $markdown_content = $html_converter->convert($content);
 
         $markdown_with_placeholders = $this->replaceLinksWithPlaceholders($markdown_content);
         $markdown_with_placeholders = $this->replaceIframesWithPlaceholders($markdown_with_placeholders);
 
+        $content_to_translate = implode("\n\n", [
+            "# {$article->title}",
+            $markdown_with_placeholders,
+        ]);
+
         $messages = new MessageBag(
             Message::forSystem($ai_prompt->content),
-            Message::ofUser($markdown_with_placeholders)
+            Message::ofUser($content_to_translate)
         );
 
-        $result = $platform->invoke("deepseek-v4-flash", $messages);
+        $result = $platform->invoke($ai_prompt->model, $messages);
 
-        Log::info($result->asText());
+        $translated_content = $result->asText();
+
+        [$translated_title, $translated_content] = explode("\n\n", $translated_content, 2);
+
+        $translated_content = $this->restoreLinksFromPlaceholders($translated_content);
+        $translated_content = $this->restoreIframesFromPlaceholders($translated_content);
+
+        $markdown_converter = new GithubFlavoredMarkdownConverter([
+            "html_input" => "strip",
+            "allow_unsafe_links" => false,
+        ]);
+
+        $article->translated_title = $translated_title;
+        $article->translated_content = $markdown_converter->convert($translated_content);
+
+        $article->save();
     }
 
     private function replaceLinksWithPlaceholders(string $markdown_content): string
@@ -136,5 +154,27 @@ class TranslateScrapedArticles
         }
 
         return implode("", $final_content);
+    }
+
+    private function restoreLinksFromPlaceholders(string $content): string
+    {
+        foreach($this->link_map as $key => $link) {
+            $content = str_replace("({$key})", "($link)", $content);
+        }
+
+        return $content;
+    }
+
+    private function restoreIframesFromPlaceholders(string $content): string
+    {
+        foreach($this->iframe_map as $key => $link) {
+            $content = str_replace(
+                "({$key})",
+                "<iframe allowfullscreen frameborder=\"0\" src=\"{$link}\"></iframe>",
+                $content
+            );
+        }
+
+        return $content;
     }
 }

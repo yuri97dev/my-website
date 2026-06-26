@@ -93,10 +93,6 @@
             title: "Provedor",
         },
         {
-            key: "url",
-            title: "URL",
-        },
-        {
             key: "is_enabled",
             title: "Ativo",
         },

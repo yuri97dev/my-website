@@ -12,6 +12,7 @@ class AiPrompt extends Model
     protected $fillable = [
         "ai_provider_id",
         "key",
+        "model",
         "content",
     ];
 

@@ -22,7 +22,7 @@
                     v-for="prompt in prompts"
                     :key="prompt.id"
                     :title="prompt.key"
-                    :subtitle="truncateContent(prompt.content)"
+                    :subtitle="formatPromptSubtitle(prompt)"
                     prepend-icon="mdi-text-box-outline"
                     slim
                 >
@@ -92,6 +92,16 @@
                     required
                     :error-messages="errors.key"
                     v-model="form.key"
+                ></v-text-field>
+
+                <v-text-field
+                    label="Modelo"
+                    hint="Modelo de IA a ser usado (ex: deepseek-v4-flash, gpt-4o)"
+                    persistent-hint
+                    class="mb-4"
+                    required
+                    :error-messages="errors.model"
+                    v-model="form.model"
                 ></v-text-field>
 
                 <v-textarea
@@ -168,6 +178,7 @@
     const form = reactive({
         id: null,
         key: "",
+        model: "",
         content: "",
     });
 
@@ -190,6 +201,13 @@
     function truncateContent(content) {
         if( !content ) return "";
         return content.length > 120 ? `${content.slice(0, 120)}...` : content;
+    }
+
+    function formatPromptSubtitle(prompt) {
+        const model = prompt.model ? `Modelo: ${prompt.model}` : "";
+        const content = truncateContent(prompt.content);
+
+        return [model, content].filter(Boolean).join(" · ");
     }
 
     async function getPrompts() {
@@ -218,6 +236,7 @@
             const url = route("api.ai-providers.prompts.store", aiProvider.value.id);
             await api.post(url, {
                 key: form.key,
+                model: form.model,
                 content: form.content,
             });
 
@@ -245,6 +264,7 @@
             const url = route("api.ai-prompts.update", form.id);
             await api.put(url, {
                 key: form.key,
+                model: form.model,
                 content: form.content,
             });
 
@@ -318,6 +338,7 @@
         errors.value = {};
         form.id = prompt.id;
         form.key = prompt.key;
+        form.model = prompt.model;
         form.content = prompt.content;
 
         isDialogFormOpen.value = true;
@@ -327,6 +348,7 @@
         errors.value = {};
         form.id = null;
         form.key = "";
+        form.model = "";
         form.content = "";
     }
 

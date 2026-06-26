@@ -21,6 +21,12 @@ class StoreAiPromptRequest extends FormRequest
                 "key" => Str::slug($this->input("key")),
             ]);
         }
+
+        if( $this->has("model") ) {
+            $this->merge([
+                "model" => trim($this->input("model")),
+            ]);
+        }
     }
 
     /**
@@ -39,6 +45,7 @@ class StoreAiPromptRequest extends FormRequest
                     ->where("ai_provider_id", $aiProvider->id),
             ],
             "content" => ["required", "string"],
+            "model" => ["required", "string", "max:100"],
         ];
     }
 
@@ -50,6 +57,8 @@ class StoreAiPromptRequest extends FormRequest
             "key.unique" => "Esta chave já está em uso para este provedor.",
             "content.required" => "O conteúdo é obrigatório.",
             "content.string" => "O conteúdo deve ser um texto válido.",
+            "model.required" => "O modelo é obrigatório.",
+            "model.max" => "O modelo não pode ter mais de 100 caracteres.",
         ];
     }
 }

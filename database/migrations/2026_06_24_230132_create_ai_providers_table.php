@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string("name", 100)->unique();
             $table->string("provider", 50);
-            $table->string("url", 500);
             $table->text("api_key")->nullable();
             $table->boolean("is_enabled")->default(true);
             $table->timestamps();
@@ -29,6 +28,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string("key", 100);
+            $table->string("model", 100);
             $table->longText("content");
             $table->timestamps();
 

@@ -17,6 +17,7 @@ class AiPromptController extends Controller
                 "id",
                 "ai_provider_id",
                 "key",
+                "model",
                 "content",
                 "created_at",
                 "updated_at",

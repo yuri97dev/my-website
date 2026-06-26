@@ -19,7 +19,6 @@ class AiProviderController extends Controller
                 "id",
                 "name",
                 "provider",
-                "url",
                 "is_enabled",
                 "created_at",
                 "updated_at",

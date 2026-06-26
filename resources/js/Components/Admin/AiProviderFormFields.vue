@@ -45,14 +45,6 @@
 
                     <v-col cols="12" lg="6">
                         <v-text-field
-                            label="URL"
-                            :error-messages="errors.url"
-                            v-model="form.url"
-                        ></v-text-field>
-                    </v-col>
-
-                    <v-col cols="12" lg="6">
-                        <v-text-field
                             label="Chave de API"
                             :type="showApiKey ? 'text' : 'password'"
                             :hint="isEditing ? 'Deixe em branco para manter a chave atual' : ''"
@@ -130,7 +122,6 @@
         const payload = {
             name: form.value.name,
             provider: form.value.provider,
-            url: form.value.url,
             is_enabled: form.value.is_enabled,
         };
 
@@ -225,7 +216,6 @@
         form.value = {
             name: null,
             provider: null,
-            url: null,
             api_key: null,
             is_enabled: true,
         };
