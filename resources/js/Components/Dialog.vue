@@ -6,20 +6,28 @@
     >
         <v-card>
             <v-card-title class="d-flex justify-space-between align-center ga-2">
-                <span>{{ title }}</span>
+                <span class="text-primary">
+                    {{ title }}
+                </span>
 
                 <v-btn
+                    size="small"
                     icon="mdi-close"
                     variant="text"
+                    class="rounded"
                     @click="close"
                 ></v-btn>
             </v-card-title>
 
             <v-divider></v-divider>
 
-            <v-card-text v-if="!!content">
-                <div v-html="content"></div>
+            <v-card-text v-if="!!message">
+                <div v-html="message"></div>
             </v-card-text>
+
+            <template v-else-if="noBody">
+                <slot></slot>
+            </template>
 
             <v-card-item v-else>
                 <slot></slot>
@@ -47,7 +55,7 @@
             type: String,
             required: true,
         },
-        content: {
+        message: {
             type: String,
             default: "",
         },
@@ -56,6 +64,7 @@
             default: "var(--center-width)",
         },
         hideFooter: Boolean,
+        noBody: Boolean,
     });
 
     const emit = defineEmits([
@@ -70,6 +79,9 @@
 
     function close() {
         isOpen.value = false;
+    }
+
+    function handleClose() {
         emit("close");
     }
 
