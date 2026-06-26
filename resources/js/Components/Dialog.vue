@@ -2,9 +2,10 @@
     <v-dialog
         :max-width="maxWidth"
         @after-leave="handleClose"
+        v-bind="attrs"
         v-model="isOpen"
     >
-        <v-card>
+        <v-card :class="cardClasses">
             <v-card-title class="d-flex justify-space-between align-center ga-2">
                 <span class="text-primary">
                     {{ title }}
@@ -14,7 +15,6 @@
                     size="small"
                     icon="mdi-close"
                     variant="text"
-                    class="rounded"
                     @click="close"
                 ></v-btn>
             </v-card-title>
@@ -50,6 +50,10 @@
 </template>
 
 <script setup>
+    import { computed, useAttrs } from "vue";
+
+    const attrs = useAttrs();
+
     const props = defineProps({
         title: {
             type: String,
@@ -72,6 +76,11 @@
     ]);
 
     const isOpen = defineModel();
+
+    const cardClasses = computed(() => {
+        if( attrs.fullscreen !== "" ) return null;
+        return "rounded-t-0 rounded-b-0";
+    });
 
     function open() {
         isOpen.value = true;

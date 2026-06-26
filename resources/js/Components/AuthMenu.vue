@@ -31,52 +31,36 @@
         @click.prevent="goTo(route('login'))"
     ></v-btn>
 
-    <v-dialog
+    <Dialog
+        title="Logout"
+        message="Tem certeza que deseja sair?"
         max-width="500"
         v-model="logoutDialog"
     >
-        <v-card>
-            <v-card-title>
-                Logout
-            </v-card-title>
-
-            <v-card-text>
-                Tem certeza que deseja sair?
-            </v-card-text>
-
-            <v-divider></v-divider>
-
-            <v-card-actions>
-                <v-btn
-                    color="primary"
-                    text="Confirmar"
-                    :loading="loading"
-                    @click="logout"
-                ></v-btn>
-
-                <v-btn
-                    text="Cancelar"
-                    :disabled="loading"
-                    @click="logoutDialog = false"
-                ></v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+        <template #actions>
+            <v-btn
+                color="primary"
+                text="Confirmar"
+                :loading="loading"
+                @click="logout"
+            ></v-btn>
+        </template>
+    </Dialog>
 </template>
 
 <script setup>
     import { computed, ref } from "vue";
 
     import { usePage } from "@inertiajs/vue3";
-    import { useDisplay } from "vuetify";
 
     import api from "@/api";
+
+    import Dialog from "@/Components/Dialog.vue";
 
     import { alertError } from "@/Utils/Alert";
     import { goTo } from "@/Utils/Common";
 
     const page = usePage();
-    const { lgAndUp } = useDisplay();
 
     const logoutDialog = ref(false);
     const loading = ref(false);

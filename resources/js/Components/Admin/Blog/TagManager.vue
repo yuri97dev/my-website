@@ -1,150 +1,129 @@
 <template>
-    <v-dialog
+    <Dialog
+        title="Tags"
         max-width="600"
-        @after-leave="handleClose"
+        no-body
+        @close="handleClose"
         v-model="isDialogListOpen"
     >
-        <v-card>
-            <v-card-title>Tags</v-card-title>
+        <v-list
+            lines="two"
+            style="height: 400px; overflow-y: auto;"
+        >
+            <v-skeleton-loader
+                v-if="loading"
+                type="list-item-three-line@3"
+            ></v-skeleton-loader>
 
-            <v-list
-                lines="two"
-                style="height: 400px; overflow-y: auto;"
+            <v-list-item
+                v-for="tag in tags"
+                :key="tag.id"
+                :title="tag.name"
+                :subtitle="tag.slug"
+                prepend-icon="mdi-tag"
+                slim
             >
-                <v-skeleton-loader
-                    v-if="loading"
-                    type="list-item-three-line@3"
-                ></v-skeleton-loader>
+                <template #append>
+                    <v-menu offset="8" location="bottom end">
+                        <template v-slot:activator="{ props }">
+                            <v-btn
+                                size="small"
+                                icon="mdi-dots-vertical"
+                                variant="tonal"
+                                color="primary"
+                                class="rounded"
+                                v-bind="props"
+                            ></v-btn>
+                        </template>
 
-                <v-list-item
-                    v-for="tag in tags"
-                    :key="tag.id"
-                    :title="tag.name"
-                    :subtitle="tag.slug"
-                    prepend-icon="mdi-tag"
-                    slim
-                >
-                    <template #append>
-                        <v-menu offset="8" location="bottom end">
-                            <template v-slot:activator="{ props }">
-                                <v-btn
-                                    size="small"
-                                    icon="mdi-dots-vertical"
-                                    variant="tonal"
-                                    color="primary"
-                                    class="rounded"
-                                    v-bind="props"
-                                ></v-btn>
-                            </template>
+                        <v-list border slim>
+                            <v-list-item
+                                prepend-icon="mdi-pencil"
+                                title="Editar"
+                                @click="editTag(tag)"
+                            ></v-list-item>
 
-                            <v-list border slim>
-                                <v-list-item
-                                    prepend-icon="mdi-pencil"
-                                    title="Editar"
-                                    @click="editTag(tag)"
-                                ></v-list-item>
+                            <v-list-item
+                                prepend-icon="mdi-delete"
+                                title="Excluir"
+                                @click="confirmRemoveTag(tag)"
+                            ></v-list-item>
+                        </v-list>
+                    </v-menu>
+                </template>
+            </v-list-item>
+        </v-list>
 
-                                <v-list-item
-                                    prepend-icon="mdi-delete"
-                                    title="Excluir"
-                                    @click="confirmRemoveTag(tag)"
-                                ></v-list-item>
-                            </v-list>
-                        </v-menu>
-                    </template>
-                </v-list-item>
-            </v-list>
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="primary"
+                prepend-icon="mdi-plus"
+                @click="openCreate"
+            >
+                Criar Tag
+            </v-btn>
+        </template>
+    </Dialog>
 
-            <v-divider></v-divider>
-
-            <v-card-actions>
-                <v-btn
-                    variant="tonal"
-                    color="primary"
-                    prepend-icon="mdi-plus"
-                    @click="openCreate"
-                >
-                    Criar Tag
-                </v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
-
-    <v-dialog
+    <Dialog
+        title="Criar Tag"
         max-width="500"
-        @after-leave="resetForm"
+        @close="resetForm"
         v-model="isDialogFormOpen"
     >
-        <v-card>
-            <v-card-title>Criar Tag</v-card-title>
+        <v-text-field
+            label="Nome"
+            class="mb-4"
+            autofocus
+            required
+            v-model="form.name"
+        ></v-text-field>
 
-            <v-card-item>
-                <v-text-field
-                    label="Nome"
-                    class="mb-4"
-                    autofocus
-                    required
-                    v-model="form.name"
-                ></v-text-field>
+        <v-text-field
+            label="Slug"
+            v-model="form.slug"
+        ></v-text-field>
 
-                <v-text-field
-                    label="Slug"
-                    v-model="form.slug"
-                ></v-text-field>
-            </v-card-item>
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="primary"
+                prepend-icon="mdi-plus"
+                @click="handleSave"
+            >
+                {{ form.id ? "Salvar" : "Criar" }}
+            </v-btn>
+        </template>
+    </Dialog>
 
-            <v-divider></v-divider>
-
-            <v-card-actions>
-                <v-btn
-                    variant="tonal"
-                    color="primary"
-                    prepend-icon="mdi-plus"
-                    @click="handleSave"
-                >
-                    {{ form.id ? "Salvar" : "Criar" }}
-                </v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
-
-    <v-dialog
+    <Dialog
+        title="Excluir Tag"
         max-width="500"
         v-model="isConfirmRemoveDialogOpen"
     >
-        <v-card>
-            <v-card-title>Excluir Tag</v-card-title>
+        A tag <strong class="text-primary">{{ selectedTag?.name ?? "" }}</strong>
+        será removida permanentemente. Essa ação não pode ser desfeita.
 
-            <v-card-text>
-                A tag <strong class="text-primary">{{ selectedTag?.name ?? "" }}</strong>
-                será removida permanentemente. Essa ação não pode ser desfeita.
-            </v-card-text>
-
-            <v-card-actions>
-                <v-btn
-                    variant="tonal"
-                    color="error"
-                    prepend-icon="mdi-delete"
-                    @click="removeTag(selectedTag)"
-                >
-                    Excluir
-                </v-btn>
-
-                <v-btn
-                    prepend-icon="mdi-close"
-                    @click="isConfirmRemoveDialogOpen = false"
-                >
-                    Cancelar
-                </v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="error"
+                prepend-icon="mdi-delete"
+                @click="removeTag(selectedTag)"
+            >
+                Excluir
+            </v-btn>
+        </template>
+    </Dialog>
 </template>
 
 <script setup>
     import { ref, reactive, nextTick } from "vue";
 
     import api from "@/api";
+
+    import Dialog from "@/Components/Dialog.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
 

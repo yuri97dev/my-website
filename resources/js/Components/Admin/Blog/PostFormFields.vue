@@ -1,25 +1,15 @@
 <template>
-    <v-dialog
+    <Dialog
+        :title="isEditing ? 'Editar Post' : 'Novo Post'"
+        no-body
+        hide-footer
         scrollable
         fullscreen
         transition="dialog-bottom-transition"
-        @after-leave="handleClose"
+        @close="handleClose"
         v-model="isDialogOpen"
     >
-        <v-card rounded="none">
-            <v-toolbar>
-                <v-toolbar-title>
-                    {{ isEditing ? "Editar Post" : "Novo Post" }}
-                </v-toolbar-title>
-
-                <v-btn
-                    icon="mdi-close"
-                    variant="tonal"
-                    color="primary"
-                    @click="isDialogOpen = false"
-                ></v-btn>
-            </v-toolbar>
-
+        <v-card class="d-flex flex-column h-100 rounded-t-0 rounded-b-0">
             <Splitpanes
                 :horizontal="!lgAndUp"
                 class="default-theme overflow-hidden"
@@ -186,7 +176,7 @@
 
             <v-divider></v-divider>
 
-            <v-card-actions>
+            <v-card-actions class="d-flex justify-end">
                 <slot name="action-buttons"></slot>
 
                 <v-btn
@@ -199,7 +189,7 @@
                 </v-btn>
             </v-card-actions>
         </v-card>
-    </v-dialog>
+    </Dialog>
 
     <CategoryManager
         ref="categoryManagerRef"
@@ -223,6 +213,7 @@
 
     import api from "@/api";
 
+    import Dialog from "@/Components/Dialog.vue";
     import CategoryManager from "@/Components/Admin/Blog/CategoryManager.vue";
     import TagManager from "@/Components/Admin/Blog/TagManager.vue";
 

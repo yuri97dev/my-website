@@ -46,41 +46,28 @@
         </v-card>
     </div>
 
-    <v-dialog
+    <Dialog
+        title="Revogar Sessão"
+        message="Tem certeza que deseja revogar a sessão?"
         max-width="500"
         v-model="dialog"
     >
-        <v-card>
-            <v-card-title>
-                Revogar Sessão
-            </v-card-title>
-
-            <v-card-text>
-                Tem certeza que deseja revogar a sessão?
-            </v-card-text>
-
-            <v-divider></v-divider>
-
-            <v-card-actions>
-                <v-btn
-                    color="primary"
-                    text="Confirmar"
-                    @click="revokeSession"
-                ></v-btn>
-
-                <v-btn
-                    text="Cancelar"
-                    @click="dialog = false"
-                ></v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+        <template #actions>
+            <v-btn
+                color="primary"
+                text="Confirmar"
+                @click="revokeSession"
+            ></v-btn>
+        </template>
+    </Dialog>
 </template>
 
 <script setup>
     import { ref, onMounted } from "vue";
 
     import api from "@/api";
+
+    import Dialog from "@/Components/Dialog.vue";
 
     import { alertError, alertSuccess } from "@/Utils/Alert";
     import { formatDate } from "@/Utils/Common";

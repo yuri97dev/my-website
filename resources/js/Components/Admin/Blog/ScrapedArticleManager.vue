@@ -67,89 +67,64 @@
         </v-card>
     </v-bottom-sheet>
 
-    <v-dialog
+    <Dialog
+        :title="selectedScrapedArticle?.title ?? ''"
         scrollable
         max-width="900px"
+        no-body
         v-model="isScrapedArticleContentDialogOpen"
     >
-        <v-toolbar class="rounded-t-lg">
-            <v-toolbar-title>
-                {{ selectedScrapedArticle.title }}
-            </v-toolbar-title>
+        <v-card-text>
+            <div
+                @click.prevent="handleContentClick"
+                v-html="selectedScrapedArticle?.content ?? ''"
+            ></div>
+        </v-card-text>
+
+        <template #actions>
+            <v-btn
+                v-if="selectedScrapedArticle?.is_enabled"
+                variant="tonal"
+                color="error"
+                prepend-icon="mdi-block-helper"
+                @click="handleDisableScrapedArticle"
+            >Desativar</v-btn>
+
+            <v-spacer></v-spacer>
 
             <v-btn
-                icon="mdi-close"
-                variant="tonal"
-                color="primary"
-                @click="isScrapedArticleContentDialogOpen = false"
-            ></v-btn>
-        </v-toolbar>
+                :href="selectedScrapedArticle?.url"
+                target="_blank"
+                prepend-icon="mdi-open-in-new"
+            >Abrir Original</v-btn>
 
-        <v-card
-            class="rounded-t-0"
-            height="70dvh"
-        >
-            <v-card-text>
-                <div
-                    @click.prevent="handleContentClick"
-                    v-html="selectedScrapedArticle.content"
-                ></div>
-            </v-card-text>
+            <slot name="content-action-buttons"></slot>
+        </template>
+    </Dialog>
 
-            <v-divider></v-divider>
-
-            <v-card-actions class="justify-space-between flex-wrap">
-                <v-btn
-                    v-if="selectedScrapedArticle.is_enabled"
-                    variant="tonal"
-                    color="error"
-                    prepend-icon="mdi-block-helper"
-                    @click="handleDisableScrapedArticle"
-                >Desativar</v-btn>
-
-                <v-spacer></v-spacer>
-
-                <v-btn
-                    :href="selectedScrapedArticle?.url"
-                    target="_blank"
-                    prepend-icon="mdi-open-in-new"
-                >Abrir Original</v-btn>
-
-                <slot name="content-action-buttons"></slot>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
-
-    <v-dialog
+    <Dialog
+        title="Desativar Artigo"
+        message="Desativar o artigo?"
         max-width="400px"
         v-model="isDisableScrapedArticleDialogOpen"
     >
-        <v-card>
-            <v-card-text>
-                <p>Desativar o artigo?</p>
-            </v-card-text>
-
-            <v-card-actions>
-                <v-btn
-                    variant="tonal"
-                    color="error"
-                    prepend-icon="mdi-block-helper"
-                    @click="disableScrapedArticle"
-                >Desativar</v-btn>
-
-                <v-btn
-                    prepend-icon="mdi-close"
-                    @click="isDisableScrapedArticleDialogOpen = false"
-                >Cancelar</v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="error"
+                prepend-icon="mdi-block-helper"
+                @click="disableScrapedArticle"
+            >Desativar</v-btn>
+        </template>
+    </Dialog>
 </template>
 
 <script setup>
     import { ref, nextTick } from "vue";
 
     import api from "@/api";
+
+    import Dialog from "@/Components/Dialog.vue";
 
     import {
         alertError,

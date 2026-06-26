@@ -1,150 +1,129 @@
 <template>
-    <v-dialog
+    <Dialog
+        title="Categorias"
         max-width="600"
-        @after-leave="handleClose"
+        no-body
+        @close="handleClose"
         v-model="isDialogListOpen"
     >
-        <v-card>
-            <v-card-title>Categorias</v-card-title>
+        <v-list
+            lines="two"
+            style="height: 400px; overflow-y: auto;"
+        >
+            <v-skeleton-loader
+                v-if="loading"
+                type="list-item-three-line@3"
+            ></v-skeleton-loader>
 
-            <v-list
-                lines="two"
-                style="height: 400px; overflow-y: auto;"
+            <v-list-item
+                v-for="category in categories"
+                :key="category.id"
+                :title="category.name"
+                :subtitle="category.slug"
+                prepend-icon="mdi-folder-outline"
+                slim
             >
-                <v-skeleton-loader
-                    v-if="loading"
-                    type="list-item-three-line@3"
-                ></v-skeleton-loader>
+                <template #append>
+                    <v-menu offset="8" location="bottom end">
+                        <template v-slot:activator="{ props }">
+                            <v-btn
+                                size="small"
+                                icon="mdi-dots-vertical"
+                                variant="tonal"
+                                color="primary"
+                                class="rounded"
+                                v-bind="props"
+                            ></v-btn>
+                        </template>
 
-                <v-list-item
-                    v-for="category in categories"
-                    :key="category.id"
-                    :title="category.name"
-                    :subtitle="category.slug"
-                    prepend-icon="mdi-folder-outline"
-                    slim
-                >
-                    <template #append>
-                        <v-menu offset="8" location="bottom end">
-                            <template v-slot:activator="{ props }">
-                                <v-btn
-                                    size="small"
-                                    icon="mdi-dots-vertical"
-                                    variant="tonal"
-                                    color="primary"
-                                    class="rounded"
-                                    v-bind="props"
-                                ></v-btn>
-                            </template>
+                        <v-list border slim>
+                            <v-list-item
+                                prepend-icon="mdi-pencil"
+                                title="Editar"
+                                @click="editCategory(category)"
+                            ></v-list-item>
 
-                            <v-list border slim>
-                                <v-list-item
-                                    prepend-icon="mdi-pencil"
-                                    title="Editar"
-                                    @click="editCategory(category)"
-                                ></v-list-item>
+                            <v-list-item
+                                prepend-icon="mdi-delete"
+                                title="Excluir"
+                                @click="confirmRemoveCategory(category)"
+                            ></v-list-item>
+                        </v-list>
+                    </v-menu>
+                </template>
+            </v-list-item>
+        </v-list>
 
-                                <v-list-item
-                                    prepend-icon="mdi-delete"
-                                    title="Excluir"
-                                    @click="confirmRemoveCategory(category)"
-                                ></v-list-item>
-                            </v-list>
-                        </v-menu>
-                    </template>
-                </v-list-item>
-            </v-list>
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="primary"
+                prepend-icon="mdi-plus"
+                @click="openCreate"
+            >
+                Criar Categoria
+            </v-btn>
+        </template>
+    </Dialog>
 
-            <v-divider></v-divider>
-
-            <v-card-actions>
-                <v-btn
-                    variant="tonal"
-                    color="primary"
-                    prepend-icon="mdi-plus"
-                    @click="openCreate"
-                >
-                    Criar Categoria
-                </v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
-
-    <v-dialog
+    <Dialog
+        title="Criar Categoria"
         max-width="500"
-        @after-leave="resetForm"
+        @close="resetForm"
         v-model="isDialogFormOpen"
     >
-        <v-card>
-            <v-card-title>Criar Categoria</v-card-title>
+        <v-text-field
+            label="Nome"
+            class="mb-4"
+            autofocus
+            required
+            v-model="form.name"
+        ></v-text-field>
 
-            <v-card-item>
-                <v-text-field
-                    label="Nome"
-                    class="mb-4"
-                    autofocus
-                    required
-                    v-model="form.name"
-                ></v-text-field>
+        <v-text-field
+            label="Slug"
+            v-model="form.slug"
+        ></v-text-field>
 
-                <v-text-field
-                    label="Slug"
-                    v-model="form.slug"
-                ></v-text-field>
-            </v-card-item>
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="primary"
+                prepend-icon="mdi-plus"
+                @click="handleSave"
+            >
+                {{ form.id ? "Salvar" : "Criar" }}
+            </v-btn>
+        </template>
+    </Dialog>
 
-            <v-divider></v-divider>
-
-            <v-card-actions>
-                <v-btn
-                    variant="tonal"
-                    color="primary"
-                    prepend-icon="mdi-plus"
-                    @click="handleSave"
-                >
-                    {{ form.id ? "Salvar" : "Criar" }}
-                </v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
-
-    <v-dialog
+    <Dialog
+        title="Excluir Categoria"
         max-width="500"
         v-model="isConfirmRemoveDialogOpen"
     >
-        <v-card>
-            <v-card-title>Excluir Categoria</v-card-title>
+        A categoria <strong class="text-primary">{{ selectedCategory?.name ?? "" }}</strong>
+        será removida permanentemente. Essa ação não pode ser desfeita.
 
-            <v-card-text>
-                A categoria <strong class="text-primary">{{ selectedCategory?.name ?? "" }}</strong>
-                será removida permanentemente. Essa ação não pode ser desfeita.
-            </v-card-text>
-
-            <v-card-actions>
-                <v-btn
-                    variant="tonal"
-                    color="error"
-                    prepend-icon="mdi-delete"
-                    @click="removeCategory(selectedCategory)"
-                >
-                    Excluir
-                </v-btn>
-
-                <v-btn
-                    prepend-icon="mdi-close"
-                    @click="isConfirmRemoveDialogOpen = false"
-                >
-                    Cancelar
-                </v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="error"
+                prepend-icon="mdi-delete"
+                @click="removeCategory(selectedCategory)"
+            >
+                Excluir
+            </v-btn>
+        </template>
+    </Dialog>
 </template>
 
 <script setup>
     import { ref, reactive, nextTick } from "vue";
 
     import api from "@/api";
+
+    import Dialog from "@/Components/Dialog.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
 

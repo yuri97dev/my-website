@@ -1,173 +1,148 @@
 <template>
-    <v-dialog
+    <Dialog
+        :title="`Prompts — ${aiProvider?.name ?? ''}`"
         max-width="700"
-        @after-leave="handleClose"
+        no-body
+        @close="handleClose"
         v-model="isDialogListOpen"
     >
-        <v-card>
-            <v-card-title>
-                Prompts — {{ aiProvider?.name ?? "" }}
-            </v-card-title>
+        <v-list
+            lines="two"
+            style="height: 400px; overflow-y: auto;"
+        >
+            <v-skeleton-loader
+                v-if="loading"
+                type="list-item-three-line@3"
+            ></v-skeleton-loader>
 
-            <v-list
-                lines="two"
-                style="height: 400px; overflow-y: auto;"
+            <v-list-item
+                v-for="prompt in prompts"
+                :key="prompt.id"
+                :title="prompt.key"
+                :subtitle="formatPromptSubtitle(prompt)"
+                prepend-icon="mdi-text-box-outline"
+                slim
             >
-                <v-skeleton-loader
-                    v-if="loading"
-                    type="list-item-three-line@3"
-                ></v-skeleton-loader>
+                <template #append>
+                    <v-menu offset="8" location="bottom end">
+                        <template v-slot:activator="{ props }">
+                            <v-btn
+                                size="small"
+                                icon="mdi-dots-vertical"
+                                variant="tonal"
+                                color="primary"
+                                class="rounded"
+                                v-bind="props"
+                            ></v-btn>
+                        </template>
 
-                <v-list-item
-                    v-for="prompt in prompts"
-                    :key="prompt.id"
-                    :title="prompt.key"
-                    :subtitle="formatPromptSubtitle(prompt)"
-                    prepend-icon="mdi-text-box-outline"
-                    slim
-                >
-                    <template #append>
-                        <v-menu offset="8" location="bottom end">
-                            <template v-slot:activator="{ props }">
-                                <v-btn
-                                    size="small"
-                                    icon="mdi-dots-vertical"
-                                    variant="tonal"
-                                    color="primary"
-                                    class="rounded"
-                                    v-bind="props"
-                                ></v-btn>
-                            </template>
+                        <v-list border slim>
+                            <v-list-item
+                                prepend-icon="mdi-pencil"
+                                title="Editar"
+                                @click="editPrompt(prompt)"
+                            ></v-list-item>
 
-                            <v-list border slim>
-                                <v-list-item
-                                    prepend-icon="mdi-pencil"
-                                    title="Editar"
-                                    @click="editPrompt(prompt)"
-                                ></v-list-item>
+                            <v-list-item
+                                prepend-icon="mdi-delete"
+                                title="Excluir"
+                                @click="confirmRemovePrompt(prompt)"
+                            ></v-list-item>
+                        </v-list>
+                    </v-menu>
+                </template>
+            </v-list-item>
+        </v-list>
 
-                                <v-list-item
-                                    prepend-icon="mdi-delete"
-                                    title="Excluir"
-                                    @click="confirmRemovePrompt(prompt)"
-                                ></v-list-item>
-                            </v-list>
-                        </v-menu>
-                    </template>
-                </v-list-item>
-            </v-list>
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="primary"
+                prepend-icon="mdi-plus"
+                @click="openCreate"
+            >
+                Criar Prompt
+            </v-btn>
+        </template>
+    </Dialog>
 
-            <v-divider></v-divider>
-
-            <v-card-actions>
-                <v-btn
-                    variant="tonal"
-                    color="primary"
-                    prepend-icon="mdi-plus"
-                    @click="openCreate"
-                >
-                    Criar Prompt
-                </v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
-
-    <v-dialog
+    <Dialog
+        :title="form.id ? 'Editar Prompt' : 'Criar Prompt'"
         max-width="700"
-        @after-leave="resetForm"
+        @close="resetForm"
         v-model="isDialogFormOpen"
     >
-        <v-card>
-            <v-card-title>
-                {{ form.id ? "Editar Prompt" : "Criar Prompt" }}
-            </v-card-title>
+        <v-text-field
+            label="Chave"
+            hint="Identificador do prompt (ex: blog-post-summary)"
+            persistent-hint
+            class="mb-4"
+            autofocus
+            required
+            :error-messages="errors.key"
+            v-model="form.key"
+        ></v-text-field>
 
-            <v-card-item>
-                <v-text-field
-                    label="Chave"
-                    hint="Identificador do prompt (ex: blog-post-summary)"
-                    persistent-hint
-                    class="mb-4"
-                    autofocus
-                    required
-                    :error-messages="errors.key"
-                    v-model="form.key"
-                ></v-text-field>
+        <v-text-field
+            label="Modelo"
+            hint="Modelo de IA a ser usado (ex: deepseek-v4-flash, gpt-4o)"
+            persistent-hint
+            class="mb-4"
+            required
+            :error-messages="errors.model"
+            v-model="form.model"
+        ></v-text-field>
 
-                <v-text-field
-                    label="Modelo"
-                    hint="Modelo de IA a ser usado (ex: deepseek-v4-flash, gpt-4o)"
-                    persistent-hint
-                    class="mb-4"
-                    required
-                    :error-messages="errors.model"
-                    v-model="form.model"
-                ></v-text-field>
+        <v-textarea
+            label="Conteúdo"
+            rows="12"
+            auto-grow
+            required
+            :error-messages="errors.content"
+            v-model="form.content"
+        ></v-textarea>
 
-                <v-textarea
-                    label="Conteúdo"
-                    rows="12"
-                    auto-grow
-                    required
-                    :error-messages="errors.content"
-                    v-model="form.content"
-                ></v-textarea>
-            </v-card-item>
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="primary"
+                prepend-icon="mdi-content-save"
+                :loading="saving"
+                @click="handleSave"
+            >
+                {{ form.id ? "Salvar" : "Criar" }}
+            </v-btn>
+        </template>
+    </Dialog>
 
-            <v-divider></v-divider>
-
-            <v-card-actions>
-                <v-btn
-                    variant="tonal"
-                    color="primary"
-                    prepend-icon="mdi-content-save"
-                    :loading="saving"
-                    @click="handleSave"
-                >
-                    {{ form.id ? "Salvar" : "Criar" }}
-                </v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
-
-    <v-dialog
+    <Dialog
+        title="Excluir Prompt"
         max-width="500"
         v-model="isConfirmRemoveDialogOpen"
     >
-        <v-card>
-            <v-card-title>Excluir Prompt</v-card-title>
+        O prompt <strong class="text-primary">{{ selectedPrompt?.key ?? "" }}</strong>
+        será removido permanentemente. Essa ação não pode ser desfeita.
 
-            <v-card-text>
-                O prompt <strong class="text-primary">{{ selectedPrompt?.key ?? "" }}</strong>
-                será removido permanentemente. Essa ação não pode ser desfeita.
-            </v-card-text>
-
-            <v-card-actions>
-                <v-btn
-                    variant="tonal"
-                    color="error"
-                    prepend-icon="mdi-delete"
-                    :loading="saving"
-                    @click="removePrompt(selectedPrompt)"
-                >
-                    Excluir
-                </v-btn>
-
-                <v-btn
-                    prepend-icon="mdi-close"
-                    @click="isConfirmRemoveDialogOpen = false"
-                >
-                    Cancelar
-                </v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="error"
+                prepend-icon="mdi-delete"
+                :loading="saving"
+                @click="removePrompt(selectedPrompt)"
+            >
+                Excluir
+            </v-btn>
+        </template>
+    </Dialog>
 </template>
 
 <script setup>
     import { ref, reactive, nextTick } from "vue";
 
     import api from "@/api";
+
+    import Dialog from "@/Components/Dialog.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
 

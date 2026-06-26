@@ -1,40 +1,31 @@
 <template>
-    <v-dialog
+    <Dialog
+        title="Visualizar Imagem"
+        no-body
+        hide-footer
         max-width="900px"
         height="70vh"
-        @after-leave="handleClose"
+        @close="handleClose"
         v-model="isOpen"
     >
-        <v-toolbar class="rounded-t-lg">
-            <v-toolbar-title>
-                <v-icon icon="mdi-image"></v-icon>
-            </v-toolbar-title>
-
-            <v-spacer></v-spacer>
-
-            <v-btn
-                icon="mdi-close"
-                variant="tonal"
-                color="primary"
-                @click="isOpen = false"
-            ></v-btn>
-        </v-toolbar>
-
         <v-card :loading="loading" class="rounded-t-0">
             <div class="d-flex flex-column h-100 pa-4">
                 <v-img
                     v-if="!!src"
                     :src="src"
+                    class="rounded"
                     @load="loading = false"
                     @error="handleError"
                 ></v-img>
             </div>
         </v-card>
-    </v-dialog>
+    </Dialog>
 </template>
 
 <script setup>
     import { ref, nextTick } from "vue";
+
+    import Dialog from "@/Components/Dialog.vue";
 
     import { toastError } from "@/Utils/Alert";
 

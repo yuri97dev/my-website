@@ -115,40 +115,30 @@
         </v-card>
     </v-bottom-sheet>
 
-    <v-dialog
+    <Dialog
+        title="Remover Imagem"
+        message="Tem certeza que deseja remover a imagem?"
         max-width="400"
         v-model="isConfirmRemoveDialogOpen"
     >
-        <v-card>
-            <v-card-text>
-                Tem certeza que deseja remover a imagem?
-            </v-card-text>
-
-            <v-card-actions>
-                <v-btn
-                    variant="tonal"
-                    color="error"
-                    @click="removeImage"
-                >
-                    Remover
-                </v-btn>
-
-                <v-btn
-                    variant="tonal"
-                    color="primary"
-                    @click="isConfirmRemoveDialogOpen = false"
-                >
-                    Cancelar
-                </v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="error"
+                @click="removeImage"
+            >
+                Remover
+            </v-btn>
+        </template>
+    </Dialog>
 </template>
 
 <script setup>
     import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 
     import api from "@/api";
+
+    import Dialog from "@/Components/Dialog.vue";
 
     import {
         alertError,
