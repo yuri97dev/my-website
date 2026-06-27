@@ -68,38 +68,42 @@
     <Dialog
         :title="form.id ? 'Editar Prompt' : 'Criar Prompt'"
         max-width="700"
+        no-body
+        scrollable
         @close="resetForm"
         v-model="isDialogFormOpen"
     >
-        <v-text-field
-            label="Chave"
-            hint="Identificador do prompt (ex: blog-post-summary)"
-            persistent-hint
-            class="mb-4"
-            autofocus
-            required
-            :error-messages="errors.key"
-            v-model="form.key"
-        ></v-text-field>
+        <v-card-text>
+            <v-text-field
+                label="Chave"
+                hint="Identificador do prompt (ex: blog-post-summary)"
+                persistent-hint
+                class="mb-4"
+                autofocus
+                required
+                :error-messages="errors.key"
+                v-model="form.key"
+            ></v-text-field>
 
-        <v-text-field
-            label="Modelo"
-            hint="Modelo de IA a ser usado (ex: deepseek-v4-flash, gpt-4o)"
-            persistent-hint
-            class="mb-4"
-            required
-            :error-messages="errors.model"
-            v-model="form.model"
-        ></v-text-field>
+            <v-text-field
+                label="Modelo"
+                hint="Modelo de IA a ser usado (ex: deepseek-v4-flash, gpt-4o)"
+                persistent-hint
+                class="mb-4"
+                required
+                :error-messages="errors.model"
+                v-model="form.model"
+            ></v-text-field>
 
-        <v-textarea
-            label="Conteúdo"
-            rows="12"
-            auto-grow
-            required
-            :error-messages="errors.content"
-            v-model="form.content"
-        ></v-textarea>
+            <v-textarea
+                label="Conteúdo"
+                rows="12"
+                auto-grow
+                required
+                :error-messages="errors.content"
+                v-model="form.content"
+            ></v-textarea>
+        </v-card-text>
 
         <template #actions>
             <v-btn
