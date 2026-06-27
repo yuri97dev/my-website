@@ -1,7 +1,7 @@
 <template>
     <BottomSheet
         title="Posts Baixados"
-        hide-footer
+        height="90dvh"
         :loading="loading"
         v-model="isOpen"
     >
@@ -13,9 +13,12 @@
                     cols="12"
                     xl="4" lg="6"
                 >
-                    <v-skeleton-loader
-                        type="card"
-                    ></v-skeleton-loader>
+                    <v-card variant="tonal" class="bg-surface-light h-100">
+                        <v-skeleton-loader
+                            type="paragraph"
+                            class="h-100"
+                        ></v-skeleton-loader>
+                    </v-card>
                 </v-col>
             </template>
 
@@ -29,11 +32,12 @@
                     border
                     hover
                     variant="tonal"
+                    class="h-100"
                     @click="handleItemClick(scrapedArticle)"
                 >
                     <v-card-title class="text-wrap">
                         <div class="lines-2">
-                            {{ scrapedArticle.title }}
+                            {{ scrapedArticle.finalTitle }}
                         </div>
                     </v-card-title>
 
@@ -43,10 +47,21 @@
                 </v-card>
             </v-col>
         </v-row>
+
+        <template #actions>
+            <div class="text-center w-100">
+                <v-pagination
+                    :total-visible="5"
+                    :length="pagination.lastPage"
+                    :disabled="loading"
+                    @update:model-value="handlePaginationUpdate"
+                ></v-pagination>
+            </div>
+        </template>
     </BottomSheet>
 
     <Dialog
-        :title="selectedScrapedArticle?.title ?? ''"
+        :title="selectedScrapedArticle?.finalTitle ?? ''"
         scrollable
         max-width="900px"
         no-body
@@ -55,7 +70,7 @@
         <v-card-text>
             <div
                 @click.prevent="handleContentClick"
-                v-html="selectedScrapedArticle?.content ?? ''"
+                v-html="selectedScrapedArticle?.finalContent ?? ''"
             ></div>
         </v-card-text>
 
@@ -101,7 +116,7 @@
 </template>
 
 <script setup>
-    import { ref, nextTick } from "vue";
+    import { ref, reactive, nextTick } from "vue";
 
     import api from "@/api";
 
@@ -124,14 +139,36 @@
 
     const loading = ref(false);
 
+    const pagination = reactive({
+        page: 1,
+        perPage: 10,
+        lastPage: 1,
+        total: 0,
+    });
+
     async function getScrapedArticles() {
         loading.value = true;
 
         try {
             const url = route("api.scraped-articles.index");
-            const { data } = await api.get(url);
 
-            scrapedArticles.value = data.scraped_articles;
+            const params = {
+                page: pagination.page,
+                per_page: pagination.perPage,
+            };
+
+            const { data } = await api.get(url, { params });
+
+            scrapedArticles.value = data.scraped_articles.map(sa => ({
+                ...sa,
+                finalTitle: sa.translated_title || sa.title || "",
+                finalContent: sa.translated_content || sa.content || "",
+            }));
+
+            pagination.page = data.current_page;
+            pagination.perPage = data.per_page;
+            pagination.total = data.total;
+            pagination.lastPage = data.last_page;
         } catch (e) {
             console.error(e);
             const { message } = e?.response?.data || {};
@@ -148,7 +185,19 @@
             const url = route("api.scraped-articles.show", id);
             const { data } = await api.get(url);
 
-            selectedScrapedArticle.value = data.scraped_article;
+            selectedScrapedArticle.value = {
+                ...data.scraped_article,
+                finalTitle: (
+                    data.scraped_article.translated_title ||
+                    data.scraped_article.title ||
+                    ""
+                ),
+                finalContent: (
+                    data.scraped_article.translated_content ||
+                    data.scraped_article.content ||
+                    ""
+                ),
+            };
         } catch (e) {
             console.error(e);
             const { message } = e?.response?.data || {};
@@ -183,9 +232,15 @@
         }
     }
 
+    async function handlePaginationUpdate(page) {
+        pagination.page = page;
+        await getScrapedArticles();
+    }
+
     function handleItemClick(scrapedArticle) {
         selectedScrapedArticle.value = {
-            content: "",
+            finalTitle: scrapedArticle.finalTitle,
+            finalContent: scrapedArticle.finalContent,
         };
 
         isScrapedArticleContentDialogOpen.value = true;
