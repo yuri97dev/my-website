@@ -6,8 +6,9 @@
         <template #action-buttons>
             <v-btn
                 prepend-icon="mdi-text-box-multiple-outline"
+                text="Prompts"
                 @click="openPrompts"
-            >Prompts</v-btn>
+            ></v-btn>
         </template>
     </AiProviderFormFields>
 

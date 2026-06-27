@@ -7,13 +7,15 @@
             <v-btn
                 v-if="!post?.id"
                 prepend-icon="mdi-import"
+                text="Importar"
                 @click="openScrapedArticleManager"
-            >Importar</v-btn>
+            ></v-btn>
 
             <v-btn
                 prepend-icon="mdi-image-multiple"
+                text="Imagens"
                 @click="openImageManager"
-            >Imagens</v-btn>
+            ></v-btn>
         </template>
     </PostFormFields>
 
@@ -25,8 +27,9 @@
                 variant="tonal"
                 color="primary"
                 prepend-icon="mdi-import"
+                text="Importar"
                 @click="handleImportScrapedArticle"
-            >Importar</v-btn>
+            ></v-btn>
         </template>
     </ScrapedArticleManager>
 </template>

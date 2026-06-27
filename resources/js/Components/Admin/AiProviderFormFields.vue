@@ -56,8 +56,9 @@
                 color="primary"
                 prepend-icon="mdi-content-save"
                 :loading="loading"
+                text="Salvar"
                 @click="handleSave"
-            >Salvar</v-btn>
+            ></v-btn>
         </template>
     </BottomSheet>
 </template>

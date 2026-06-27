@@ -6,8 +6,9 @@
         <template #action-buttons>
             <v-btn
                 prepend-icon="mdi-file-document-multiple"
+                text="Posts Baixados"
                 @click="openPostsDownloaded"
-            >Posts Baixados</v-btn>
+            ></v-btn>
         </template>
     </ArticleSourceFormFields>
 

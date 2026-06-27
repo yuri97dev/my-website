@@ -65,8 +65,9 @@
                 variant="tonal"
                 color="error"
                 prepend-icon="mdi-block-helper"
+                text="Desativar"
                 @click="handleDisableScrapedArticle"
-            >Desativar</v-btn>
+            ></v-btn>
 
             <v-spacer></v-spacer>
 
@@ -76,7 +77,8 @@
                 :href="selectedScrapedArticle?.url"
                 target="_blank"
                 prepend-icon="mdi-open-in-new"
-            >Abrir Original</v-btn>
+                text="Abrir Original"
+            ></v-btn>
         </template>
     </Dialog>
 
@@ -91,8 +93,9 @@
                 variant="tonal"
                 color="error"
                 prepend-icon="mdi-block-helper"
+                text="Desativar"
                 @click="disableScrapedArticle"
-            >Desativar</v-btn>
+            ></v-btn>
         </template>
     </Dialog>
 </template>

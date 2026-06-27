@@ -38,10 +38,9 @@
                                 variant="tonal"
                                 color="primary"
                                 prepend-icon="mdi-content-copy"
+                                text="Copiar"
                                 @click="copyImage(image)"
-                            >
-                                Copiar
-                            </v-btn>
+                            ></v-btn>
                         </div>
 
                         <div class="flex-grow-1">
@@ -50,10 +49,9 @@
                                 variant="tonal"
                                 color="error"
                                 prepend-icon="mdi-delete"
+                                text="Remover"
                                 @click="confirmRemoveImage(image)"
-                            >
-                                Remover
-                            </v-btn>
+                            ></v-btn>
                         </div>
                     </v-card-actions>
                 </v-card>
@@ -74,19 +72,17 @@
         <template #actions>
             <v-btn
                 prepend-icon="mdi-refresh"
+                text="Atualizar"
                 @click="getImages"
-            >
-                Atualizar
-            </v-btn>
+            ></v-btn>
 
             <v-btn
                 variant="tonal"
                 color="primary"
                 prepend-icon="mdi-image-plus"
+                text="Adicionar"
                 @click="fileInput.click()"
-            >
-                Adicionar
-            </v-btn>
+            ></v-btn>
         </template>
     </BottomSheet>
 
@@ -100,10 +96,10 @@
             <v-btn
                 variant="tonal"
                 color="error"
+                prepend-icon="mdi-delete"
+                text="Remover"
                 @click="removeImage"
-            >
-                Remover
-            </v-btn>
+            ></v-btn>
         </template>
     </Dialog>
 </template>

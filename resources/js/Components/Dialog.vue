@@ -44,8 +44,9 @@
 
                     <v-btn
                         prepend-icon="mdi-close"
+                        text="Fechar"
                         @click="close"
-                    >Fechar</v-btn>
+                    ></v-btn>
                 </v-card-actions>
             </template>
         </v-card>

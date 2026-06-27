@@ -40,6 +40,7 @@
         <template #actions>
             <v-btn
                 color="primary"
+                prepend-icon="mdi-logout"
                 text="Confirmar"
                 :loading="loading"
                 @click="logout"

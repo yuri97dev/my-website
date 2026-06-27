@@ -183,10 +183,9 @@
                     variant="tonal"
                     color="primary"
                     prepend-icon="mdi-content-save"
+                    text="Salvar"
                     @click="handleSave"
-                >
-                    Salvar
-                </v-btn>
+                ></v-btn>
             </v-card-actions>
         </v-card>
     </Dialog>

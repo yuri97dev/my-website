@@ -55,6 +55,7 @@
         <template #actions>
             <v-btn
                 color="primary"
+                prepend-icon="mdi-check"
                 text="Confirmar"
                 @click="revokeSession"
             ></v-btn>

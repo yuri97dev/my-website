@@ -59,10 +59,9 @@
                 variant="tonal"
                 color="primary"
                 prepend-icon="mdi-plus"
+                text="Criar Tag"
                 @click="openCreate"
-            >
-                Criar Tag
-            </v-btn>
+            ></v-btn>
         </template>
     </Dialog>
 
@@ -90,10 +89,9 @@
                 variant="tonal"
                 color="primary"
                 prepend-icon="mdi-plus"
+                :text="form.id ? 'Salvar' : 'Criar'"
                 @click="handleSave"
-            >
-                {{ form.id ? "Salvar" : "Criar" }}
-            </v-btn>
+            ></v-btn>
         </template>
     </Dialog>
 
@@ -110,10 +108,9 @@
                 variant="tonal"
                 color="error"
                 prepend-icon="mdi-delete"
+                text="Excluir"
                 @click="removeTag(selectedTag)"
-            >
-                Excluir
-            </v-btn>
+            ></v-btn>
         </template>
     </Dialog>
 </template>

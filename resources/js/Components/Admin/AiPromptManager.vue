@@ -59,10 +59,9 @@
                 variant="tonal"
                 color="primary"
                 prepend-icon="mdi-plus"
+                text="Criar Prompt"
                 @click="openCreate"
-            >
-                Criar Prompt
-            </v-btn>
+            ></v-btn>
         </template>
     </Dialog>
 
@@ -108,10 +107,9 @@
                 color="primary"
                 prepend-icon="mdi-content-save"
                 :loading="saving"
+                :text="form.id ? 'Salvar' : 'Criar'"
                 @click="handleSave"
-            >
-                {{ form.id ? "Salvar" : "Criar" }}
-            </v-btn>
+            ></v-btn>
         </template>
     </Dialog>
 
@@ -129,10 +127,9 @@
                 color="error"
                 prepend-icon="mdi-delete"
                 :loading="saving"
+                text="Excluir"
                 @click="removePrompt(selectedPrompt)"
-            >
-                Excluir
-            </v-btn>
+            ></v-btn>
         </template>
     </Dialog>
 </template>
