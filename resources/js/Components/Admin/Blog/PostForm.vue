@@ -75,8 +75,16 @@
         closeScrapedArticleManager();
 
         open({
-            title: selectedScrapedArticle.title,
-            content: selectedScrapedArticle.content,
+            title: (
+                selectedScrapedArticle.translated_title ||
+                selectedScrapedArticle.title ||
+                ""
+            ),
+            content: (
+                selectedScrapedArticle.translated_content ||
+                selectedScrapedArticle.content ||
+                ""
+            ),
         });
     }
 
