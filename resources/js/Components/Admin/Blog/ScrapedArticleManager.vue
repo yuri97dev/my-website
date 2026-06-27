@@ -126,7 +126,7 @@
 
     import {
         alertError,
-        alertSuccess,
+        toastSuccess,
     } from "@/Utils/Alert";
 
     const isOpen = ref(false);
@@ -216,7 +216,7 @@
             const url = route("api.scraped-articles.disable", selectedScrapedArticle.value.id);
             await api.patch(url);
 
-            alertSuccess("Ok", "Artigo desativado com sucesso");
+            toastSuccess("Ok", "Artigo desativado com sucesso");
 
             isDisableScrapedArticleDialogOpen.value = false;
             isScrapedArticleContentDialogOpen.value = false;

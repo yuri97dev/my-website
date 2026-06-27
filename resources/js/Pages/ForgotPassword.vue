@@ -4,17 +4,6 @@
             style="width: 100%; max-width: var(--center-width);"
             @submit.prevent="handleSubmit"
         >
-            <v-alert
-                v-if="sent"
-                type="success"
-                variant="tonal"
-                icon="mdi-check"
-                class="mb-4"
-            >
-                Um link para redefinir sua senha foi
-                enviado para o seu e-mail.
-            </v-alert>
-
             <v-card title="Recuperar Conta" :loading="loading">
                 <v-card-item>
                     <v-text-field
@@ -54,7 +43,7 @@
     import Container from "../Components/Container.vue";
 
     import { validEmail } from "../Utils/Common";
-    import { alertError } from "../Utils/Alert";
+    import { alertError, toastSuccess } from "../Utils/Alert";
 
     const email = ref("");
     const loading = ref(false);
@@ -74,6 +63,7 @@
             });
 
             sent.value = true;
+            toastSuccess("Ok", "Um link para redefinir sua senha foi enviado para o seu e-mail.");
         } catch (err) {
             const { message } = err?.response?.data || {};
             alertError("Ooops", message || "Falha ao enviar e-mail de recuperação");

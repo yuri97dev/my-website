@@ -219,7 +219,7 @@
     import CategoryManager from "@/Components/Admin/Blog/CategoryManager.vue";
     import TagManager from "@/Components/Admin/Blog/TagManager.vue";
 
-    import { alertError, alertSuccess } from "@/Utils/Alert";
+    import { alertError, toastSuccess } from "@/Utils/Alert";
 
     const emit = defineEmits([
         "close",
@@ -316,7 +316,7 @@
             const url = route("api.blog.posts.update", post.value.id);
             await api.put(url, form.value);
 
-            alertSuccess("Ok", "Post salvo com sucesso");
+            toastSuccess("Ok", "Post salvo com sucesso");
         } catch (e) {
             console.error(e);
             const { message } = e?.response?.data || {};
@@ -335,7 +335,7 @@
 
             post.value.id = data.post.id;
 
-            alertSuccess("Ok", "Post criado com sucesso");
+            toastSuccess("Ok", "Post criado com sucesso");
 
             nextTick(async () => {
                 await getPost();

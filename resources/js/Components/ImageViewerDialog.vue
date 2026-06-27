@@ -27,7 +27,7 @@
 
     import Dialog from "@/Components/Dialog.vue";
 
-    import { toastError } from "@/Utils/Alert";
+    import { alertError } from "@/Utils/Alert";
 
     const isOpen = ref(false);
     const src = ref(null);
@@ -45,7 +45,7 @@
 
     function handleError() {
         loading.value = false;
-        toastError("Ooops", "Erro ao carregar imagem");
+        alertError("Ooops", "Erro ao carregar imagem");
     }
 
     function handleClose() {

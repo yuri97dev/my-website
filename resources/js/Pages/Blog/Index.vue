@@ -79,7 +79,7 @@
 
     import api from "@/api";
 
-    import { toastError } from "@/Utils/Alert";
+    import { alertError } from "@/Utils/Alert";
     import { goTo } from "@/Utils/Common";
 
     const props = defineProps({
@@ -130,7 +130,7 @@
         } catch (e) {
             console.log(e);
             const { message } = e?.response?.data || {};
-            toastError("Ooops", message || "Erro ao buscar posts");
+            alertError("Ooops", message || "Erro ao buscar posts");
         } finally {
             loading.value = false;
         }

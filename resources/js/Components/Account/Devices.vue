@@ -70,7 +70,7 @@
 
     import Dialog from "@/Components/Dialog.vue";
 
-    import { alertError, alertSuccess } from "@/Utils/Alert";
+    import { alertError, toastSuccess } from "@/Utils/Alert";
     import { formatDate } from "@/Utils/Common";
 
     const ICONS = {
@@ -119,7 +119,7 @@
             const url = route("api.account.sessions.destroy", session_id);
             await api.delete(url);
 
-            alertSuccess("Ok", "Sessão revogada com sucesso");
+            toastSuccess("Ok", "Sessão revogada com sucesso");
         } catch (e) {
             alertError("Ooops", "Erro ao revogar sessão");
         }

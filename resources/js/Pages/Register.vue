@@ -4,14 +4,6 @@
             style="width: 100%; max-width: var(--center-width);"
             @submit.prevent="register"
         >
-            <v-alert
-                v-if="mainError"
-                type="error"
-                variant="tonal"
-                icon="mdi-alert"
-                class="mb-4"
-            >{{ mainError }}</v-alert>
-
             <v-card
                 title="Cadastro"
                 prepend-icon="mdi-account-plus"
@@ -118,6 +110,7 @@
     import PasswordField from "@/Components/PasswordField.vue";
 
     import { goTo } from "@/Utils/Common";
+    import { alertError } from "@/Utils/Alert";
 
     const form = reactive({
         name: "",
@@ -130,11 +123,9 @@
     });
 
     const errors = ref({});
-    const mainError = ref("");
     const loading = ref(false);
 
     async function register() {
-        mainError.value = "";
         errors.value = {};
 
         loading.value = true;
@@ -145,7 +136,7 @@
         } catch (e) {
             const { message, errors: responseErrors } = e.response.data;
             errors.value = responseErrors || {};
-            mainError.value = message;
+            alertError("Ooops", message || "Erro ao cadastrar");
         } finally {
             loading.value = false;
         }

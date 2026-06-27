@@ -4,14 +4,6 @@
             style="width: 100%; max-width: var(--center-width);"
             @submit.prevent="login"
         >
-            <v-alert
-                v-if="mainError"
-                type="error"
-                variant="tonal"
-                icon="mdi-alert"
-                class="mb-4"
-            >{{ mainError }}</v-alert>
-
             <v-card
                 title="Login"
                 prepend-icon="mdi-login"
@@ -91,6 +83,7 @@
 
     import { goTo } from "@/Utils/Common";
     import { refreshCsrfCookie } from "@/Utils/Session";
+    import { alertError } from "@/Utils/Alert";
 
     const page = usePage();
 
@@ -101,11 +94,9 @@
     });
 
     const errors = ref({});
-    const mainError = ref("");
     const loading = ref(false);
 
     async function login() {
-        mainError.value = "";
         errors.value = {};
 
         loading.value = true;
@@ -116,7 +107,7 @@
         } catch (e) {
             const { message, errors: responseErrors } = e.response.data;
             errors.value = responseErrors || {};
-            mainError.value = message;
+            alertError("Ooops", message || "Erro ao fazer login");
         } finally {
             loading.value = false;
         }
@@ -126,7 +117,7 @@
         const { error } = page.props?.flash || {};
 
         if( error ) {
-            mainError.value = error;
+            alertError("Ooops", error);
         }
 
         await refreshCsrfCookie();

@@ -14,24 +14,6 @@
                 Link de redefinição inválido ou incompleto.
             </v-alert>
 
-            <v-alert
-                v-if="mainError"
-                type="error"
-                variant="tonal"
-                icon="mdi-alert"
-                class="mb-4"
-            >{{ mainError }}</v-alert>
-
-            <v-alert
-                v-if="reset"
-                type="success"
-                variant="tonal"
-                icon="mdi-check"
-                class="mb-4"
-            >
-                Sua senha foi redefinida com sucesso.
-            </v-alert>
-
             <v-card
                 title="Redefinir Senha"
                 prepend-icon="mdi-lock-reset"
@@ -110,6 +92,7 @@
     import PasswordField from "@/Components/PasswordField.vue";
 
     import { goTo, validEmail } from "@/Utils/Common";
+    import { alertError, toastSuccess } from "@/Utils/Alert";
 
     const params = new URLSearchParams(window.location.search);
 
@@ -121,7 +104,6 @@
     });
 
     const errors = ref({});
-    const mainError = ref("");
     const loading = ref(false);
     const reset = ref(false);
 
@@ -138,7 +120,6 @@
     });
 
     async function handleSubmit() {
-        mainError.value = "";
         errors.value = {};
 
         loading.value = true;
@@ -146,10 +127,11 @@
         try {
             await api.post("/api/account/reset-password", form);
             reset.value = true;
+            toastSuccess("Ok", "Sua senha foi redefinida com sucesso");
         } catch (e) {
             const { message, errors: responseErrors } = e.response?.data || {};
             errors.value = responseErrors || {};
-            mainError.value = message || "Falha ao redefinir senha";
+            alertError("Ooops", message || "Falha ao redefinir senha");
         } finally {
             loading.value = false;
         }

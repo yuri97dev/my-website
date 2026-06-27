@@ -70,7 +70,7 @@
 
     import BottomSheet from "@/Components/BottomSheet.vue";
 
-    import { alertError, alertSuccess } from "@/Utils/Alert";
+    import { alertError, toastSuccess } from "@/Utils/Alert";
 
     const PROVIDERS = [
         { title: "OpenAI", value: "openai" },
@@ -118,7 +118,7 @@
             const url = route("api.ai-providers.update", aiProvider.value.id);
             const { data } = await api.put(url, buildPayload());
 
-            alertSuccess("Ok", "Provedor de IA atualizado com sucesso");
+            toastSuccess("Ok", "Provedor de IA atualizado com sucesso");
 
             aiProvider.value = data.ai_provider;
 
@@ -144,7 +144,7 @@
             const url = route("api.ai-providers.store");
             const { data } = await api.post(url, buildPayload());
 
-            alertSuccess("Ok", "Provedor de IA criado com sucesso");
+            toastSuccess("Ok", "Provedor de IA criado com sucesso");
 
             aiProvider.value = data.ai_provider;
 

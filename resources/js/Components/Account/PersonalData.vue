@@ -1,12 +1,4 @@
 <template>
-    <v-alert
-        v-if="!!mainError"
-        type="error"
-        variant="tonal"
-        icon="mdi-alert"
-        class="mb-4"
-    >{{ mainError }}</v-alert>
-
     <v-form
         @submit.prevent="updatePersonalData"
     >
@@ -115,7 +107,7 @@
 
     import PasswordField from "../PasswordField.vue";
 
-    import { alertSuccess } from "@/Utils/Alert";
+    import { alertError, toastSuccess } from "@/Utils/Alert";
 
     const page = usePage();
 
@@ -131,7 +123,6 @@
     });
 
     const errors = ref({});
-    const mainError = ref("");
 
     const loading = ref({
         personalData: false,
@@ -139,7 +130,6 @@
     });
 
     async function updatePersonalData() {
-        mainError.value = "";
         errors.value = {};
 
         loading.value.personalData = true;
@@ -147,18 +137,17 @@
         try {
             await api.put("/api/account/personal-data", form);
             router.reload({ preserveScroll: true });
-            alertSuccess("Ok", "Dados pessoais atualizados com sucesso");
+            toastSuccess("Ok", "Dados pessoais atualizados com sucesso");
         } catch (e) {
             const { message, errors: responseErrors } = e.response.data;
             errors.value = responseErrors || {};
-            mainError.value = message;
+            alertError("Ooops", message || "Erro ao atualizar dados pessoais");
         } finally {
             loading.value.personalData = false;
         }
     }
 
     async function updatePassword() {
-        mainError.value = "";
         errors.value = {};
 
         loading.value.password = true;
@@ -170,11 +159,11 @@
             form.password = "";
             form.password_confirmation = "";
 
-            alertSuccess("Ok", "Senha alterada com sucesso");
+            toastSuccess("Ok", "Senha alterada com sucesso");
         } catch (e) {
             const { message, errors: responseErrors } = e.response.data;
             errors.value = responseErrors || {};
-            mainError.value = message;
+            alertError("Ooops", message || "Erro ao alterar senha");
         } finally {
             loading.value.password = false;
         }

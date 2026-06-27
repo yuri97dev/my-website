@@ -113,7 +113,7 @@
 
     import BottomSheet from "@/Components/BottomSheet.vue";
 
-    import { alertError, alertSuccess } from "@/Utils/Alert";
+    import { alertError, toastSuccess } from "@/Utils/Alert";
 
     const DRIVERS = [
         { title: "RSS", value: "rss" },
@@ -144,7 +144,7 @@
             const url = route("api.article-sources.update", articleSource.value.id);
             const { data } = await api.put(url, form.value);
 
-            alertSuccess("Ok", "Site atualizado com sucesso");
+            toastSuccess("Ok", "Site atualizado com sucesso");
 
             articleSource.value = data.article_source;
 
@@ -169,7 +169,7 @@
             const url = route("api.article-sources.store");
             const { data } = await api.post(url, form.value);
 
-            alertSuccess("Ok", "Site criado com sucesso");
+            toastSuccess("Ok", "Site criado com sucesso");
 
             articleSource.value = data.article_source;
 

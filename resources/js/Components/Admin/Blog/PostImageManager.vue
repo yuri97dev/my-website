@@ -112,12 +112,7 @@
     import BottomSheet from "@/Components/BottomSheet.vue";
     import Dialog from "@/Components/Dialog.vue";
 
-    import {
-        alertError,
-        alertSuccess,
-        toastError,
-        toastSuccess,
-    } from "@/Utils/Alert";
+    import { alertError, toastSuccess } from "@/Utils/Alert";
 
     import { copyText } from "@/Utils/Common";
 
@@ -244,7 +239,7 @@
         const { success, error } = await copyText(content);
 
         if( !success ) {
-            toastError("Ooops", error || "Erro ao copiar imagem");
+            alertError("Ooops", error || "Erro ao copiar imagem");
         } else {
             toastSuccess("Ok", "Imagem copiada com sucesso");
         }

@@ -60,7 +60,7 @@
     import Devices from "@/Components/Account/Devices.vue";
     import DeleteAccount from "@/Components/Account/DeleteAccount.vue";
 
-    import { alertSuccess, alertError } from "@/Utils/Alert";
+    import { alertError, toastSuccess } from "@/Utils/Alert";
 
     const page = usePage();
     const { lgAndUp } = useDisplay();
@@ -78,7 +78,7 @@
     async function resendEmailVerification() {
         try {
             await api.post("/api/account/email/verification-notification");
-            alertSuccess("Ok", "Link de verificação enviado para o seu e-mail.");
+            toastSuccess("Ok", "Link de verificação enviado para o seu e-mail.");
         } catch (err) {
             const { message } = err?.response?.data || {};
             alertError("Ooops", message || "Falha ao enviar e-mail de verificação");
@@ -89,7 +89,7 @@
         const { success, error } = page.props?.flash || {};
 
         if( success ) {
-            alertSuccess("Ok", success);
+            toastSuccess("Ok", success);
         } else if( error ) {
             alertError("Ooops", error);
         }
