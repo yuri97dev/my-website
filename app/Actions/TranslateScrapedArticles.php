@@ -74,6 +74,9 @@ class TranslateScrapedArticles
 
         [$translated_title, $translated_content] = explode("\n\n", $translated_content, 2);
 
+        $translated_title = ltrim($translated_title, "#");
+        $translated_title = trim($translated_title);
+
         $translated_content = $this->restoreLinksFromPlaceholders($translated_content);
         $translated_content = $this->restoreIframesFromPlaceholders($translated_content);
 
