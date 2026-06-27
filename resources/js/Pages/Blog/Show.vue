@@ -8,6 +8,7 @@
             <h1 class="text-primary">{{ post.title }}</h1>
 
             <div
+                class="post-container"
                 @click="handleContentClick"
                 v-html="post.content"
             ></div>

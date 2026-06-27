@@ -163,7 +163,10 @@
                         :loading="loading.post"
                     >
                         <v-card-text style="max-height: 100%; overflow-y: auto">
-                            <div v-html="htmlContent"></div>
+                            <div
+                                class="post-container"
+                                v-html="htmlContent"
+                            ></div>
 
                             <v-skeleton-loader
                                 v-if="loading.post"

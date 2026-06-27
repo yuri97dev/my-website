@@ -69,6 +69,7 @@
     >
         <v-card-text>
             <div
+                class="post-container"
                 @click.prevent="handleContentClick"
                 v-html="selectedScrapedArticle?.finalContent ?? ''"
             ></div>
