@@ -1,119 +1,94 @@
 <template>
-    <v-bottom-sheet
-        inset
-        scrollable
-        transition="dialog-bottom-transition"
+    <BottomSheet
+        title="Imagens Disponíveis"
+        :loading="loading"
         v-model="isOpen"
     >
-        <v-card
-            height="70dvh"
-            min-height="400px"
-            class="rounded-b-0"
-            :loading="loading"
-        >
-            <v-toolbar>
-                <v-toolbar-title>
-                    Imagens Disponíveis
-                </v-toolbar-title>
-
-                <v-btn
-                    icon="mdi-close"
-                    variant="tonal"
-                    color="primary"
-                    @click="isOpen = false"
-                ></v-btn>
-            </v-toolbar>
-
-            <v-card-text>
-                <v-row>
-                    <template v-if="loading">
-                        <v-col
-                            v-for="n in 4"
-                            :key="n"
-                            cols="12"
-                            xl="4" lg="6"
-                        >
-                            <v-skeleton-loader
-                                type="card"
-                            ></v-skeleton-loader>
-                        </v-col>
-                    </template>
-
-                    <v-col
-                        v-for="(image, index) in images"
-                        :key="index"
-                        cols="12"
-                        xl="4" lg="6"
-                    >
-                        <v-card>
-                            <v-img
-                                :src="image.path"
-                                height="200px"
-                                cover
-                            ></v-img>
-
-                            <v-card-actions>
-                                <div class="flex-grow-1">
-                                    <v-btn
-                                        block
-                                        variant="tonal"
-                                        color="primary"
-                                        prepend-icon="mdi-content-copy"
-                                        @click="copyImage(image)"
-                                    >
-                                        Copiar
-                                    </v-btn>
-                                </div>
-
-                                <div class="flex-grow-1">
-                                    <v-btn
-                                        block
-                                        variant="tonal"
-                                        color="error"
-                                        prepend-icon="mdi-delete"
-                                        @click="confirmRemoveImage(image)"
-                                    >
-                                        Remover
-                                    </v-btn>
-                                </div>
-                            </v-card-actions>
-                        </v-card>
-                    </v-col>
-                </v-row>
-            </v-card-text>
-
-            <v-card-item class="d-none">
-                <v-file-input
-                    ref="fileInput"
-                    label="Adicionar Imagens"
-                    multiple
-                    prepend-icon="mdi-image-plus"
-                    accept="image/*"
-                    @change="handleFileChange"
-                ></v-file-input>
-            </v-card-item>
-
-            <v-divider></v-divider>
-
-            <v-card-actions>
-                <v-btn
-                    prepend-icon="mdi-refresh"
-                    @click="getImages"
+        <v-row>
+            <template v-if="loading">
+                <v-col
+                    v-for="n in 4"
+                    :key="n"
+                    cols="12"
+                    xl="4" lg="6"
                 >
-                    Atualizar
-                </v-btn>
+                    <v-skeleton-loader
+                        type="card"
+                    ></v-skeleton-loader>
+                </v-col>
+            </template>
 
-                <v-btn
-                    variant="tonal"
-                    color="primary"
-                    prepend-icon="mdi-image-plus"
-                    @click="fileInput.click()"
-                >
-                    Adicionar
-                </v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-bottom-sheet>
+            <v-col
+                v-for="(image, index) in images"
+                :key="index"
+                cols="12"
+                xl="4" lg="6"
+            >
+                <v-card>
+                    <v-img
+                        :src="image.path"
+                        height="200px"
+                        cover
+                    ></v-img>
+
+                    <v-card-actions>
+                        <div class="flex-grow-1">
+                            <v-btn
+                                block
+                                variant="tonal"
+                                color="primary"
+                                prepend-icon="mdi-content-copy"
+                                @click="copyImage(image)"
+                            >
+                                Copiar
+                            </v-btn>
+                        </div>
+
+                        <div class="flex-grow-1">
+                            <v-btn
+                                block
+                                variant="tonal"
+                                color="error"
+                                prepend-icon="mdi-delete"
+                                @click="confirmRemoveImage(image)"
+                            >
+                                Remover
+                            </v-btn>
+                        </div>
+                    </v-card-actions>
+                </v-card>
+            </v-col>
+        </v-row>
+
+        <v-card-item class="d-none">
+            <v-file-input
+                ref="fileInput"
+                label="Adicionar Imagens"
+                multiple
+                prepend-icon="mdi-image-plus"
+                accept="image/*"
+                @change="handleFileChange"
+            ></v-file-input>
+        </v-card-item>
+
+        <template #actions>
+            <v-btn
+                prepend-icon="mdi-refresh"
+                @click="getImages"
+            >
+                Atualizar
+            </v-btn>
+
+            <v-btn
+                variant="tonal"
+                color="primary"
+                prepend-icon="mdi-image-plus"
+                @click="fileInput.click()"
+            >
+                Adicionar
+            </v-btn>
+        </template>
+    </BottomSheet>
 
     <Dialog
         title="Remover Imagem"
@@ -138,6 +113,7 @@
 
     import api from "@/api";
 
+    import BottomSheet from "@/Components/BottomSheet.vue";
     import Dialog from "@/Components/Dialog.vue";
 
     import {

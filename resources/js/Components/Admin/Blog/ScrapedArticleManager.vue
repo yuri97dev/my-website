@@ -1,71 +1,49 @@
 <template>
-    <v-bottom-sheet
-        inset
-        scrollable
-        transition="dialog-bottom-transition"
+    <BottomSheet
+        title="Posts Baixados"
+        hide-footer
+        :loading="loading"
         v-model="isOpen"
     >
-        <v-card
-            height="70dvh"
-            min-height="400px"
-            class="rounded-b-0"
-            :loading="loading"
-        >
-            <v-toolbar>
-                <v-toolbar-title>
-                    Posts Baixados
-                </v-toolbar-title>
+        <v-row>
+            <template v-if="loading">
+                <v-col
+                    v-for="n in 4"
+                    :key="n"
+                    cols="12"
+                    xl="4" lg="6"
+                >
+                    <v-skeleton-loader
+                        type="card"
+                    ></v-skeleton-loader>
+                </v-col>
+            </template>
 
-                <v-btn
-                    icon="mdi-close"
+            <v-col
+                v-for="(scrapedArticle, index) in scrapedArticles"
+                :key="index"
+                cols="12"
+                xl="4" lg="6"
+            >
+                <v-card
+                    border
+                    hover
                     variant="tonal"
-                    color="primary"
-                    @click="isOpen = false"
-                ></v-btn>
-            </v-toolbar>
+                    @click="handleItemClick(scrapedArticle)"
+                >
+                    <v-card-title class="text-wrap">
+                        <div class="lines-2">
+                            {{ scrapedArticle.title }}
+                        </div>
+                    </v-card-title>
 
-            <v-card-text>
-                <v-row>
-                    <template v-if="loading">
-                        <v-col
-                            v-for="n in 4"
-                            :key="n"
-                            cols="12"
-                            xl="4" lg="6"
-                        >
-                            <v-skeleton-loader
-                                type="card"
-                            ></v-skeleton-loader>
-                        </v-col>
-                    </template>
-
-                    <v-col
-                        v-for="(scrapedArticle, index) in scrapedArticles"
-                        :key="index"
-                        cols="12"
-                        xl="4" lg="6"
-                    >
-                        <v-card
-                            border
-                            hover
-                            variant="tonal"
-                            @click="handleItemClick(scrapedArticle)"
-                        >
-                            <v-card-title class="text-wrap">
-                                <div class="lines-2">
-                                    {{ scrapedArticle.title }}
-                                </div>
-                            </v-card-title>
-
-                            <v-card-text class="text-primary">
-                                {{ scrapedArticle.source.name }}
-                            </v-card-text>
-                        </v-card>
-                    </v-col>
-                </v-row>
-            </v-card-text>
-        </v-card>
-    </v-bottom-sheet>
+                    <v-card-text class="text-primary">
+                        {{ scrapedArticle.source.name }}
+                    </v-card-text>
+                </v-card>
+            </v-col>
+        </v-row>
+    </BottomSheet>
 
     <Dialog
         :title="selectedScrapedArticle?.title ?? ''"
@@ -92,13 +70,13 @@
 
             <v-spacer></v-spacer>
 
+            <slot name="content-action-buttons"></slot>
+
             <v-btn
                 :href="selectedScrapedArticle?.url"
                 target="_blank"
                 prepend-icon="mdi-open-in-new"
             >Abrir Original</v-btn>
-
-            <slot name="content-action-buttons"></slot>
         </template>
     </Dialog>
 
@@ -124,6 +102,7 @@
 
     import api from "@/api";
 
+    import BottomSheet from "@/Components/BottomSheet.vue";
     import Dialog from "@/Components/Dialog.vue";
 
     import {

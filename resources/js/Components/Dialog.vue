@@ -7,7 +7,10 @@
     >
         <v-card :class="cardClasses">
             <v-card-title class="d-flex justify-space-between align-center ga-2">
-                <span class="text-primary">
+                <span
+                    class="text-primary text-truncate"
+                    :title="title"
+                >
                     {{ title }}
                 </span>
 

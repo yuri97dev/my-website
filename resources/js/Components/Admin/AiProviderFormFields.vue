@@ -1,96 +1,73 @@
 <template>
-    <v-bottom-sheet
-        inset
-        scrollable
-        transition="dialog-bottom-transition"
-        @after-leave="handleClose"
+    <BottomSheet
+        :title="isEditing ? 'Editar Provedor de IA' : 'Novo Provedor de IA'"
+        @close="handleClose"
         v-model="isDialogOpen"
     >
-        <v-card
-            height="70dvh"
-            min-height="400px"
-            class="rounded-b-0"
-        >
-            <v-toolbar>
-                <v-toolbar-title>
-                    {{ isEditing ? "Editar Provedor de IA" : "Novo Provedor de IA" }}
-                </v-toolbar-title>
+        <v-row>
+            <v-col cols="12" lg="6">
+                <v-text-field
+                    label="Nome"
+                    :error-messages="errors.name"
+                    v-model="form.name"
+                ></v-text-field>
+            </v-col>
 
-                <v-btn
-                    icon="mdi-close"
-                    variant="tonal"
+            <v-col cols="12" lg="6">
+                <v-select
+                    label="Provedor"
+                    :items="PROVIDERS"
+                    :error-messages="errors.provider"
+                    v-model="form.provider"
+                ></v-select>
+            </v-col>
+
+            <v-col cols="12" lg="6">
+                <v-text-field
+                    label="Chave de API"
+                    :type="showApiKey ? 'text' : 'password'"
+                    :hint="isEditing ? 'Deixe em branco para manter a chave atual' : ''"
+                    :persistent-hint="isEditing"
+                    :error-messages="errors.api_key"
+                    :append-inner-icon="showApiKey ? 'mdi-eye-off' : 'mdi-eye'"
+                    @click:append-inner="showApiKey = !showApiKey"
+                    v-model="form.api_key"
+                ></v-text-field>
+            </v-col>
+
+            <v-col cols="12" sm="12">
+                <v-switch
+                    label="Ativo"
                     color="primary"
-                    @click="isDialogOpen = false"
-                ></v-btn>
-            </v-toolbar>
+                    :error-messages="errors.is_enabled"
+                    v-model="form.is_enabled"
+                ></v-switch>
+            </v-col>
+        </v-row>
 
-            <v-card-text>
-                <v-row>
-                    <v-col cols="12" lg="6">
-                        <v-text-field
-                            label="Nome"
-                            :error-messages="errors.name"
-                            v-model="form.name"
-                        ></v-text-field>
-                    </v-col>
+        <template #actions>
+            <slot
+                v-if="isEditing"
+                name="action-buttons"
+            ></slot>
 
-                    <v-col cols="12" lg="6">
-                        <v-select
-                            label="Provedor"
-                            :items="PROVIDERS"
-                            :error-messages="errors.provider"
-                            v-model="form.provider"
-                        ></v-select>
-                    </v-col>
-
-                    <v-col cols="12" lg="6">
-                        <v-text-field
-                            label="Chave de API"
-                            :type="showApiKey ? 'text' : 'password'"
-                            :hint="isEditing ? 'Deixe em branco para manter a chave atual' : ''"
-                            :persistent-hint="isEditing"
-                            :error-messages="errors.api_key"
-                            :append-inner-icon="showApiKey ? 'mdi-eye-off' : 'mdi-eye'"
-                            @click:append-inner="showApiKey = !showApiKey"
-                            v-model="form.api_key"
-                        ></v-text-field>
-                    </v-col>
-
-                    <v-col cols="12" sm="12">
-                        <v-switch
-                            label="Ativo"
-                            color="primary"
-                            :error-messages="errors.is_enabled"
-                            v-model="form.is_enabled"
-                        ></v-switch>
-                    </v-col>
-                </v-row>
-            </v-card-text>
-
-            <v-divider></v-divider>
-
-            <v-card-actions>
-                <slot
-                    v-if="isEditing"
-                    name="action-buttons"
-                ></slot>
-
-                <v-btn
-                    variant="tonal"
-                    color="primary"
-                    prepend-icon="mdi-content-save"
-                    :loading="loading"
-                    @click="handleSave"
-                >Salvar</v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-bottom-sheet>
+            <v-btn
+                variant="tonal"
+                color="primary"
+                prepend-icon="mdi-content-save"
+                :loading="loading"
+                @click="handleSave"
+            >Salvar</v-btn>
+        </template>
+    </BottomSheet>
 </template>
 
 <script setup>
     import { ref, computed, nextTick } from "vue";
 
     import api from "@/api";
+
+    import BottomSheet from "@/Components/BottomSheet.vue";
 
     import { alertError, alertSuccess } from "@/Utils/Alert";
 
