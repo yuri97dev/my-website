@@ -80,6 +80,13 @@
             active: route().current("admin.blog.article-sources"),
         },
         {
+            key: "ai-providers",
+            icon: "mdi-robot",
+            text: "Provedores de IA",
+            href: route("admin.ai-providers"),
+            active: route().current("admin.ai-providers"),
+        },
+        {
             key: "sessions",
             icon: "mdi-monitor-account",
             text: "Sessões",
@@ -106,13 +113,6 @@
             text: "Logs",
             href: route("admin.logs"),
             active: route().current("admin.logs"),
-        },
-        {
-            key: "ai-providers",
-            icon: "mdi-robot",
-            text: "Provedores de IA",
-            href: route("admin.ai-providers"),
-            active: route().current("admin.ai-providers"),
         },
     ]);
 
