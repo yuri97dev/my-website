@@ -61,18 +61,39 @@
     </BottomSheet>
 
     <Dialog
-        :title="selectedScrapedArticle?.finalTitle ?? ''"
+        :title="selectedScrapedArticleTitle"
+        no-body
         scrollable
         max-width="900px"
-        no-body
         v-model="isScrapedArticleContentDialogOpen"
     >
+        <div>
+            <v-tabs grow align-tabs="center" v-model="contentTab">
+                <v-tab prepend-icon="mdi-web" text="Original" value="original"></v-tab>
+                <v-tab prepend-icon="mdi-translate" text="Traduzido" value="translated" :disabled="!hasTranslation"></v-tab>
+            </v-tabs>
+
+            <v-divider></v-divider>
+        </div>
+
         <v-card-text>
-            <div
-                class="post-container"
-                @click.prevent="handleContentClick"
-                v-html="selectedScrapedArticle?.finalContent ?? ''"
-            ></div>
+            <v-tabs-window v-model="contentTab">
+                <v-tabs-window-item value="original">
+                    <div
+                        class="post-container"
+                        @click.prevent="handleContentClick"
+                        v-html="selectedScrapedArticle?.content ?? ''"
+                    ></div>
+                </v-tabs-window-item>
+
+                <v-tabs-window-item value="translated">
+                    <div
+                        class="post-container"
+                        @click.prevent="handleContentClick"
+                        v-html="selectedScrapedArticle?.translated_content ?? ''"
+                    ></div>
+                </v-tabs-window-item>
+            </v-tabs-window>
         </v-card-text>
 
         <template #actions>
@@ -164,6 +185,7 @@
     const articleSource = ref(null);
 
     const selectedScrapedArticle = ref(null);
+    const contentTab = ref("original");
 
     const loading = ref(false);
 
@@ -178,6 +200,18 @@
         !!selectedScrapedArticle.value?.translated_title ||
         !!selectedScrapedArticle.value?.translated_content
     ));
+
+    const selectedScrapedArticleTitle = computed(() => {
+        const article = selectedScrapedArticle.value;
+
+        if( !article ) return "";
+
+        if( contentTab.value === "translated" ) {
+            return article.translated_title || "";
+        }
+
+        return article.title || "";
+    });
 
     async function getScrapedArticles() {
         loading.value = true;
@@ -195,7 +229,6 @@
             scrapedArticles.value = data.scraped_articles.map(sa => ({
                 ...sa,
                 finalTitle: sa.translated_title || sa.title || "",
-                finalContent: sa.translated_content || sa.content || "",
             }));
 
             pagination.page = data.current_page;
@@ -218,19 +251,7 @@
             const url = route("api.scraped-articles.show", id);
             const { data } = await api.get(url);
 
-            selectedScrapedArticle.value = {
-                ...data.scraped_article,
-                finalTitle: (
-                    data.scraped_article.translated_title ||
-                    data.scraped_article.title ||
-                    ""
-                ),
-                finalContent: (
-                    data.scraped_article.translated_content ||
-                    data.scraped_article.content ||
-                    ""
-                ),
-            };
+            selectedScrapedArticle.value = data.scraped_article;
         } catch (e) {
             console.error(e);
             const { message } = e?.response?.data || {};
@@ -275,19 +296,9 @@
             );
             const { data } = await api.patch(url);
 
-            selectedScrapedArticle.value = {
-                ...data.scraped_article,
-                finalTitle: (
-                    data.scraped_article.translated_title ||
-                    data.scraped_article.title ||
-                    ""
-                ),
-                finalContent: (
-                    data.scraped_article.translated_content ||
-                    data.scraped_article.content ||
-                    ""
-                ),
-            };
+            selectedScrapedArticle.value = data.scraped_article;
+
+            contentTab.value = "original";
 
             toastSuccess("Ok", "Tradução rejeitada com sucesso");
 
@@ -311,10 +322,9 @@
     }
 
     function handleItemClick(scrapedArticle) {
-        selectedScrapedArticle.value = {
-            finalTitle: scrapedArticle.finalTitle,
-            finalContent: scrapedArticle.finalContent,
-        };
+        contentTab.value = scrapedArticle.translated_content ? "translated" : "original";
+
+        selectedScrapedArticle.value = scrapedArticle;
 
         isScrapedArticleContentDialogOpen.value = true;
 
