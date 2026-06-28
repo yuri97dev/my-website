@@ -43,9 +43,11 @@ a {
     line-clamp: 2;
 }
 
+.post-container figure {
+    text-align: center;
+}
+
 .post-container img {
-    display: block;
-    margin-inline: auto;
     max-width: 100%;
     max-height: 50dvh;
 }
