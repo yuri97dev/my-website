@@ -8,7 +8,10 @@ use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
 use League\HTMLToMarkdown\HtmlConverter;
 use League\HTMLToMarkdown\Converter\TableConverter;
+use League\HTMLToMarkdown\Converter\ConverterInterface;
+use League\HTMLToMarkdown\ElementInterface;
 use League\CommonMark\GithubFlavoredMarkdownConverter;
+use App\Helpers\HtmlFormatter;
 use App\Models\AiPrompt;
 use App\Models\ScrapedArticle;
 use Exception;
@@ -51,7 +54,23 @@ class TranslateScrapedArticles
         $content = $article->content;
 
         $html_converter = new HtmlConverter();
+
         $html_converter->getEnvironment()->addConverter(new TableConverter());
+
+        $html_converter->getEnvironment()->addConverter(new class implements ConverterInterface {
+            public function convert(ElementInterface $element): string
+            {
+                $tag = $element->getTagName();
+                $inner = trim($element->getValue());
+
+                return "\n\n<{$tag}>\n\n{$inner}\n\n</{$tag}>\n\n";
+            }
+
+            public function getSupportedTags(): array
+            {
+                return ["figure", "figcaption"];
+            }
+        });
 
         $markdown_content = $html_converter->convert($content);
 
@@ -78,15 +97,27 @@ class TranslateScrapedArticles
         $translated_title = trim($translated_title);
 
         $translated_content = $this->restoreLinksFromPlaceholders($translated_content);
-        $translated_content = $this->restoreIframesFromPlaceholders($translated_content);
+
+        $translated_content = preg_replace(
+            '#\s*(</?(?:figure|figcaption)\b[^>]*>)\s*#i',
+            "\n\n$1\n\n",
+            $translated_content,
+        ) ?? $translated_content;
 
         $markdown_converter = new GithubFlavoredMarkdownConverter([
-            "html_input" => "strip",
+            "html_input" => "allow",
             "allow_unsafe_links" => false,
         ]);
 
+        $translated_html = $markdown_converter->convert($translated_content);
+
+        $translated_html = $this->restoreIframesFromPlaceholders($translated_html);
+
+        $translated_html = HtmlFormatter::sanitize($translated_html);
+        $translated_html = HtmlFormatter::beautify($translated_html);
+
         $article->translated_title = $translated_title;
-        $article->translated_content = $markdown_converter->convert($translated_content);
+        $article->translated_content = $translated_html;
 
         $article->save();
     }
@@ -124,39 +155,22 @@ class TranslateScrapedArticles
         return implode("](", $final_content);
     }
 
-    private function replaceIframesWithPlaceholders(string $markdown_content): string
+    private function replaceIframesWithPlaceholders(string $content): string
     {
-        $pieces = explode("<iframe", $markdown_content);
+        $index = 0;
 
-        $final_content = [
-            array_shift($pieces),
-        ];
+        return preg_replace_callback(
+            '/<iframe\b[^>]*>.*?<\/iframe>/is',
+            function(array $matches) use (&$index) {
+                $key = "IFRAME_{$index}";
+                $index++;
 
-        foreach($pieces as $index => $piece) {
-            $key = "IFRAME_{$index}";
+                $this->iframe_map[$key] = $matches[0];
 
-            $sub_pieces = explode("</iframe>", $piece);
-
-            $iframe_props = array_shift($sub_pieces);
-            $iframe_props = str_replace("'", '"', $iframe_props);
-
-            $src_pieces = explode("src=", $iframe_props);
-
-            $link = explode('"', $src_pieces[1])[1];
-
-            if( filter_var($link, FILTER_VALIDATE_URL) === false ) {
-                $final_content[] = $piece;
-                continue;
-            }
-
-            $rest = implode("", $sub_pieces);
-
-            $final_content[] = "({$key}) {$rest}";
-
-            $this->iframe_map[$key] = $link;
-        }
-
-        return implode("", $final_content);
+                return "({$key})";
+            },
+            $content,
+        ) ?? $content;
     }
 
     private function restoreLinksFromPlaceholders(string $content): string
@@ -170,12 +184,8 @@ class TranslateScrapedArticles
 
     private function restoreIframesFromPlaceholders(string $content): string
     {
-        foreach($this->iframe_map as $key => $link) {
-            $content = str_replace(
-                "({$key})",
-                "<iframe allowfullscreen frameborder=\"0\" src=\"{$link}\"></iframe>",
-                $content
-            );
+        foreach($this->iframe_map as $key => $tag) {
+            $content = str_replace("({$key})", $tag, $content);
         }
 
         return $content;

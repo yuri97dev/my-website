@@ -4,70 +4,100 @@ namespace App\Helpers;
 
 use Masterminds\HTML5;
 use Symfony\Component\DomCrawler\UriResolver;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerAction;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
-use League\HTMLToMarkdown\HtmlConverter;
-use League\HTMLToMarkdown\Converter\TableConverter;
-use League\CommonMark\GithubFlavoredMarkdownConverter;
 use tidy;
 
 class HtmlFormatter
 {
+    private const ALLOWED_IFRAME_DOMAINS = [
+        "youtube.com",
+        "www.youtube.com",
+        "youtube-nocookie.com",
+        "www.youtube-nocookie.com",
+        "vimeo.com",
+        "www.vimeo.com",
+        "player.vimeo.com",
+        "www.player.vimeo.com",
+    ];
+
     public static function all(string $content, ?string $base_url = null): string
     {
         $content = self::resolveLazyLoadedImages($content);
-        $content = self::replaceIframesWithPlaceholders($content);
-
-        $sanitized_content = self::sanitize($content);
-        $markdown_content = self::convertToMarkdown($sanitized_content);
-        $html_content = self::convertFromMarkdown($markdown_content);
+        $content = self::sanitize($content);
 
         if( !empty($base_url) ) {
-            $html_content = self::absolutizeUrls($html_content, $base_url);
+            $content = self::absolutizeUrls($content, $base_url);
         }
 
-        $html_content = self::restoreIframesFromPlaceholders($html_content);
-
-        $beautified_content = self::beautify($html_content);
-
-        return $beautified_content;
+        return self::beautify($content);
     }
 
     public static function sanitize(string $content): string
     {
+        $content = self::filterIframes($content);
+
         $config = (new HtmlSanitizerConfig())
             ->withMaxInputLength(-1)
-            ->allowStaticElements()
+            ->defaultAction(HtmlSanitizerAction::Block)
             ->allowRelativeLinks()
             ->allowRelativeMedias()
+            ->allowElement("h1")
+            ->allowElement("h2")
+            ->allowElement("h3")
+            ->allowElement("h4")
+            ->allowElement("h5")
+            ->allowElement("h6")
+            ->allowElement("p")
+            ->allowElement("br")
+            ->allowElement("hr")
+            ->allowElement("blockquote")
+            ->allowElement("pre")
+            ->allowElement("ul")
+            ->allowElement("ol")
+            ->allowElement("li")
+            ->allowElement("strong")
+            ->allowElement("em")
+            ->allowElement("b")
+            ->allowElement("i")
+            ->allowElement("u")
+            ->allowElement("s")
+            ->allowElement("del")
+            ->allowElement("ins")
+            ->allowElement("mark")
+            ->allowElement("sub")
+            ->allowElement("sup")
+            ->allowElement("small")
+            ->allowElement("abbr", ["title"])
+            ->allowElement("code")
+            ->allowElement("a", ["href", "title"])
+            ->allowElement("img", ["src", "alt", "title", "width", "height"])
+            ->allowElement("figure")
+            ->allowElement("figcaption")
+            ->allowElement("table")
+            ->allowElement("thead")
+            ->allowElement("tbody")
+            ->allowElement("tfoot")
+            ->allowElement("tr")
+            ->allowElement("th", ["colspan", "rowspan"])
+            ->allowElement("td", ["colspan", "rowspan"])
+            ->allowElement("caption")
+            ->allowElement("iframe", ["src", "allowfullscreen", "frameborder", "title"])
             ->dropElement("script")
             ->dropElement("noscript")
-            ->dropElement("iframe")
+            ->dropElement("style")
             ->dropElement("object")
             ->dropElement("embed")
-            ->dropElement("form");
+            ->dropElement("form")
+            ->dropElement("input")
+            ->dropElement("textarea")
+            ->dropElement("select")
+            ->dropElement("button");
 
         $sanitizer = new HtmlSanitizer($config);
 
         return $sanitizer->sanitize($content);
-    }
-
-    public static function convertToMarkdown(string $content): string
-    {
-        $converter = new HtmlConverter([ "strip_tags" => true ]);
-        $converter->getEnvironment()->addConverter(new TableConverter());
-
-        return $converter->convert($content);
-    }
-
-    public static function convertFromMarkdown(string $content): string
-    {
-        $converter = new GithubFlavoredMarkdownConverter([
-            "html_input" => "strip",
-            "allow_unsafe_links" => false,
-        ]);
-
-        return $converter->convert($content);
     }
 
     public static function beautify(string $content): string
@@ -78,6 +108,7 @@ class HtmlFormatter
             "wrap" => 200,
             "output-xhtml" => false,
             "show-body-only" => true,
+            "new-blocklevel-tags" => "figure,figcaption",
         ];
 
         $tidy = new tidy();
@@ -146,6 +177,31 @@ class HtmlFormatter
         });
     }
 
+    private static function filterIframes(string $html): string
+    {
+        return self::transformHtmlFragment($html, function($node) {
+            if(
+                $node instanceof \DOMElement &&
+                $node->tagName === "iframe"
+            ) {
+                $src = $node->getAttribute("src");
+                $iframe_domain = parse_url($src, PHP_URL_HOST);
+
+                if( !in_array($iframe_domain, self::ALLOWED_IFRAME_DOMAINS, true) ) {
+                    $node->parentNode?->removeChild($node);
+                    return;
+                }
+
+                while($node->firstChild) {
+                    $node->removeChild($node->firstChild);
+                }
+
+                $src = strtok($src, "?") ?: $src;
+                $node->setAttribute("src", $src);
+            }
+        });
+    }
+
     private static function transformHtmlFragment(string $html, callable $visitor): string
     {
         if( empty($html) ) return $html;
@@ -156,7 +212,13 @@ class HtmlFormatter
         $walk = function($node) use (&$walk, $visitor) {
             $visitor($node);
 
+            $children = [];
+
             foreach($node->childNodes as $child) {
+                $children[] = $child;
+            }
+
+            foreach($children as $child) {
                 $walk($child);
             }
         };
@@ -166,45 +228,5 @@ class HtmlFormatter
         }
 
         return $html5->saveHTML($fragment);
-    }
-
-    private static function replaceIframesWithPlaceholders(string $html): string
-    {
-        $domains = [
-            "youtube.com",
-            "www.youtube.com",
-            "youtube-nocookie.com",
-            "www.youtube-nocookie.com",
-            "vimeo.com",
-            "www.vimeo.com",
-            "player.vimeo.com",
-            "www.player.vimeo.com",
-        ];
-
-        return self::transformHtmlFragment($html, function($node) use ($domains) {
-            if(
-                $node instanceof \DOMElement &&
-                $node->tagName === "iframe"
-            ) {
-                $src = $node->getAttribute("src");
-                $iframe_domain = parse_url($src, PHP_URL_HOST);
-
-                if( in_array($iframe_domain, $domains) ) {
-                    $src = strtok($src, "?") ?: $src;
-                    $tag_content = "[[IFRAME||{$src}||IFRAME]]";
-                    $text = $node->ownerDocument->createTextNode($tag_content);
-                    $node->parentNode->insertBefore($text, $node->nextSibling);
-                    $node->parentNode->removeChild($node);
-                }
-            }
-        });
-    }
-
-    private static function restoreIframesFromPlaceholders(string $html): string
-    {
-        $from = ["[[IFRAME||", "||IFRAME]]"];
-        $to = ['<iframe allowfullscreen frameborder="0" src="', '"></iframe>'];
-
-        return str_replace($from, $to, $html);
     }
 }
