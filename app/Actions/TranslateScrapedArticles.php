@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use Illuminate\Support\Str;
 use Symfony\AI\Platform\Bridge\DeepSeek\Factory as DeepSeekFactory;
 use Symfony\AI\Platform\Bridge\Gemini\Factory as GeminiFactory;
 use Symfony\AI\Platform\Message\Message;
@@ -130,6 +131,11 @@ class TranslateScrapedArticles
             array_shift($pieces),
         ];
 
+        $scraped_image_route_prefix = Str::beforeLast(
+            route("blog.scraped-images.show", 0, false),
+            "0",
+        );
+
         foreach($pieces as $index => $piece) {
             $key = "LINK_{$index}";
 
@@ -138,7 +144,7 @@ class TranslateScrapedArticles
             $link = array_shift($sub_pieces);
 
             $valid_url = filter_var($link, FILTER_VALIDATE_URL) !== false;
-            $is_internal_link = str_starts_with($link, "/blog/scraped-images");
+            $is_internal_link = str_starts_with($link, $scraped_image_route_prefix);
 
             if( !$valid_url && !$is_internal_link ) {
                 $final_content[] = $piece;
