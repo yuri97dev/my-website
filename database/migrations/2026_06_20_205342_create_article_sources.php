@@ -43,6 +43,7 @@ return new class extends Migration
             $table->longText("content");
             $table->string("translated_title", 500)->nullable();
             $table->longText("translated_content")->nullable();
+            $table->timestamp("translation_rejected_at")->nullable();
             $table->boolean("is_enabled")->default(true);
             $table->timestamps();
         });

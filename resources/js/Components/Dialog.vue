@@ -39,7 +39,7 @@
             <template v-if="!hideFooter">
                 <v-divider></v-divider>
 
-                <v-card-actions>
+                <v-card-actions class="flex-wrap">
                     <slot name="actions"></slot>
 
                     <v-btn

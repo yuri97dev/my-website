@@ -34,6 +34,7 @@ class TranslateScrapedArticles
 
         $article = ScrapedArticle::query()
             ->enabled()
+            ->whereNull("translation_rejected_at")
             ->whereNull("translated_content")
             ->orderBy("id")
             ->first();

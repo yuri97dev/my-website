@@ -55,4 +55,18 @@ class ScrapedArticleController extends Controller
             "message" => "Artigo inativado com sucesso.",
         ], 200);
     }
+
+    public function rejectTranslation(ScrapedArticle $scrapedArticle)
+    {
+        $scrapedArticle->update([
+            "translated_title" => null,
+            "translated_content" => null,
+            "translation_rejected_at" => now(),
+        ]);
+
+        return response()->json([
+            "scraped_article" => $scrapedArticle->fresh(),
+            "message" => "Tradução rejeitada com sucesso.",
+        ], 200);
+    }
 }

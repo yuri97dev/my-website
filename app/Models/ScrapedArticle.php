@@ -17,6 +17,7 @@ class ScrapedArticle extends Model
         "content",
         "translated_title",
         "translated_content",
+        "translation_rejected_at",
         "is_enabled",
     ];
 
@@ -24,6 +25,7 @@ class ScrapedArticle extends Model
     {
         return [
             "is_enabled" => "boolean",
+            "translation_rejected_at" => "datetime",
         ];
     }
 

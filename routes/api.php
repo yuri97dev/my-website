@@ -151,6 +151,10 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
         Route::patch("/scraped-articles/{scrapedArticle}/disable", [
             ScrapedArticleController::class, "disable",
         ])->name("api.scraped-articles.disable");
+
+        Route::patch("/scraped-articles/{scrapedArticle}/reject-translation", [
+            ScrapedArticleController::class, "rejectTranslation",
+        ])->name("api.scraped-articles.reject-translation");
     });
 
 Route::prefix("tools")->group(function() {

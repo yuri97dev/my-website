@@ -85,6 +85,15 @@
                 @click="handleDisableScrapedArticle"
             ></v-btn>
 
+            <v-btn
+                v-if="hasTranslation"
+                variant="tonal"
+                color="warning"
+                prepend-icon="mdi-translate-off"
+                text="Rejeitar Tradução"
+                @click="handleRejectTranslation"
+            ></v-btn>
+
             <v-spacer></v-spacer>
 
             <slot name="content-action-buttons"></slot>
@@ -114,10 +123,27 @@
             ></v-btn>
         </template>
     </Dialog>
+
+    <Dialog
+        title="Rejeitar Tradução"
+        message="Rejeitar a tradução e exibir o conteúdo original?"
+        max-width="400px"
+        v-model="isRejectTranslationDialogOpen"
+    >
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="warning"
+                prepend-icon="mdi-translate-off"
+                text="Rejeitar Tradução"
+                @click="rejectTranslation"
+            ></v-btn>
+        </template>
+    </Dialog>
 </template>
 
 <script setup>
-    import { ref, reactive, nextTick } from "vue";
+    import { ref, reactive, computed, nextTick } from "vue";
 
     import api from "@/api";
 
@@ -132,6 +158,7 @@
     const isOpen = ref(false);
     const isScrapedArticleContentDialogOpen = ref(false);
     const isDisableScrapedArticleDialogOpen = ref(false);
+    const isRejectTranslationDialogOpen = ref(false);
 
     const scrapedArticles = ref([]);
     const articleSource = ref(null);
@@ -146,6 +173,11 @@
         lastPage: 1,
         total: 0,
     });
+
+    const hasTranslation = computed(() => (
+        !!selectedScrapedArticle.value?.translated_title ||
+        !!selectedScrapedArticle.value?.translated_content
+    ));
 
     async function getScrapedArticles() {
         loading.value = true;
@@ -233,6 +265,46 @@
         }
     }
 
+    async function rejectTranslation() {
+        loading.value = true;
+
+        try {
+            const url = route(
+                "api.scraped-articles.reject-translation",
+                selectedScrapedArticle.value.id,
+            );
+            const { data } = await api.patch(url);
+
+            selectedScrapedArticle.value = {
+                ...data.scraped_article,
+                finalTitle: (
+                    data.scraped_article.translated_title ||
+                    data.scraped_article.title ||
+                    ""
+                ),
+                finalContent: (
+                    data.scraped_article.translated_content ||
+                    data.scraped_article.content ||
+                    ""
+                ),
+            };
+
+            toastSuccess("Ok", "Tradução rejeitada com sucesso");
+
+            isRejectTranslationDialogOpen.value = false;
+
+            nextTick(async () => {
+                await getScrapedArticles();
+            });
+        } catch (e) {
+            console.error(e);
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao rejeitar tradução");
+        } finally {
+            loading.value = false;
+        }
+    }
+
     async function handlePaginationUpdate(page) {
         pagination.page = page;
         await getScrapedArticles();
@@ -254,6 +326,11 @@
     function handleDisableScrapedArticle() {
         if( !selectedScrapedArticle.value.is_enabled ) return;
         isDisableScrapedArticleDialogOpen.value = true;
+    }
+
+    function handleRejectTranslation() {
+        if( !hasTranslation.value ) return;
+        isRejectTranslationDialogOpen.value = true;
     }
 
     function handleContentClick(e) {
