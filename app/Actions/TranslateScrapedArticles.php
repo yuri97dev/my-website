@@ -112,10 +112,10 @@ class TranslateScrapedArticles
 
         $translated_html = $markdown_converter->convert($translated_content);
 
-        $translated_html = $this->restoreIframesFromPlaceholders($translated_html);
-
         $translated_html = HtmlFormatter::sanitize($translated_html);
         $translated_html = HtmlFormatter::beautify($translated_html);
+
+        $translated_html = $this->restoreIframesFromPlaceholders($translated_html);
 
         $article->translated_title = $translated_title;
         $article->translated_content = $translated_html;
@@ -136,8 +136,11 @@ class TranslateScrapedArticles
             "0",
         );
 
+        $salt = Str::random(3);
+        $salt = Str::upper($salt);
+
         foreach($pieces as $index => $piece) {
-            $key = "LINK_{$index}";
+            $key = "LINK_{$index}_{$salt}";
 
             $sub_pieces = explode(")", $piece);
 
@@ -165,15 +168,19 @@ class TranslateScrapedArticles
     {
         $index = 0;
 
+        $salt = Str::random(3);
+        $salt = Str::upper($salt);
+
         return preg_replace_callback(
-            '/<iframe\b[^>]*>.*?<\/iframe>/is',
-            function(array $matches) use (&$index) {
-                $key = "IFRAME_{$index}";
+            "/<iframe\b[^>]*>.*?<\/iframe>/is",
+            function(array $matches) use (&$index, $salt) {
+                $key = "IFRAME_{$index}_{$salt}";
+
                 $index++;
 
                 $this->iframe_map[$key] = $matches[0];
 
-                return "({$key})";
+                return $key;
             },
             $content,
         ) ?? $content;
@@ -182,7 +189,7 @@ class TranslateScrapedArticles
     private function restoreLinksFromPlaceholders(string $content): string
     {
         foreach($this->link_map as $key => $link) {
-            $content = str_replace("({$key})", "($link)", $content);
+            $content = str_replace($key, $link, $content);
         }
 
         return $content;
@@ -191,7 +198,7 @@ class TranslateScrapedArticles
     private function restoreIframesFromPlaceholders(string $content): string
     {
         foreach($this->iframe_map as $key => $tag) {
-            $content = str_replace("({$key})", $tag, $content);
+            $content = str_replace($key, $tag, $content);
         }
 
         return $content;
