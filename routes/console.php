@@ -7,6 +7,7 @@ use App\Actions\RemoveExpiredSpreadsheetFiles;
 use App\Actions\GeneratePostChunks;
 use App\Actions\ScrapeRssArticleSources;
 use App\Actions\ScrapeBrowserArticleSources;
+use App\Actions\TranslateScrapedArticles;
 
 Artisan::command("inspire", function () {
     $this->comment(Inspiring::quote());
@@ -30,4 +31,9 @@ Schedule::call(new ScrapeRssArticleSources)
 Schedule::call(new ScrapeBrowserArticleSources)
     ->name("scrape-browser-article-sources")
     ->everyTwoHours()
+    ->withoutOverlapping();
+
+Schedule::call(new TranslateScrapedArticles)
+    ->name("translate-scraped-articles")
+    ->everyMinute()
     ->withoutOverlapping();

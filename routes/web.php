@@ -46,7 +46,7 @@ Route::prefix("blog")->group(function () {
         PostImageController::class, "show",
     ])->name("blog.images.show");
 
-    Route::get("/scraped-images/{scrapedArticleImage}", [
+    Route::get("/sc-images/{scrapedArticleImage}", [
         ScrapedArticleImageController::class, "show",
     ])->name("blog.scraped-images.show");
 
