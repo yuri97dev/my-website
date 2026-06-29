@@ -1,18 +1,10 @@
 <template>
     <Container title="Fontes de Artigos" gapped>
-        <v-card hover border>
-            <v-text-field
-                type="search"
-                placeholder="Pesquisar"
-                prepend-inner-icon="mdi-magnify"
-                append-inner-icon="mdi-refresh"
-                variant="solo"
-                clearable
-                @keyup.enter="handleSearch"
-                @click:append-inner="getArticleSources"
-                v-model="search"
-            ></v-text-field>
-        </v-card>
+        <SearchField
+            @refresh="getArticleSources"
+            @update:model-value="handleSearch"
+            v-model="search"
+        ></SearchField>
 
         <v-card>
             <v-data-table-server
@@ -56,19 +48,20 @@
 </template>
 
 <script setup>
-    import { ref, reactive } from "vue";
+    import { ref, reactive, nextTick } from "vue";
 
     import api from "@/api";
 
     import Container from "@/Components/Container.vue";
     import ArticleSourceForm from "@/Components/Admin/Blog/ArticleSourceForm.vue";
+    import SearchField from "@/Components/SearchField.vue";
 
     import { alertError } from "@/Utils/Alert";
     import { formatDate } from "@/Utils/Common";
 
     const articleSourceFormRef = ref(null);
 
-    const search = ref("");
+    const search = ref(null);
     const articleSources = ref([]);
     const loading = ref(false);
 
@@ -144,6 +137,11 @@
                 per_page: pagination.perPage,
             };
 
+            if( search.value ) {
+                const { key, search: searchValue } = search.value || {};
+                params[key] = searchValue;
+            }
+
             const { data } = await api.get(url, { params });
 
             articleSources.value = data.article_sources;
@@ -159,9 +157,12 @@
         loading.value = false;
     }
 
-    async function handleSearch() {
+    function handleSearch() {
         pagination.page = 1;
-        await getArticleSources();
+
+        nextTick(async () => {
+            await getArticleSources();
+        });
     }
 
     function handleRowClick(e, { item }) {

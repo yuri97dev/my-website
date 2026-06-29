@@ -2,22 +2,38 @@
     <Container title="Logs" gapped>
         <v-row>
             <v-col cols="12" lg="8">
-                <v-card hover border>
+                <v-card hover>
                     <v-text-field
                         type="search"
                         placeholder="Pesquisar"
                         prepend-inner-icon="mdi-magnify"
-                        append-inner-icon="mdi-refresh"
                         variant="solo"
-                        clearable
-                        @click:append-inner="getLogs"
                         v-model="search"
-                    ></v-text-field>
+                    >
+                        <template #append-inner>
+                            <div class="d-flex align-center ga-2">
+                                <v-btn
+                                    size="small"
+                                    icon="mdi-refresh"
+                                    variant="tonal"
+                                    color="primary"
+                                    @click="getLogs"
+                                ></v-btn>
+
+                                <v-btn
+                                    size="small"
+                                    icon="mdi-close"
+                                    variant="tonal"
+                                    @click="search = ''"
+                                ></v-btn>
+                            </div>
+                        </template>
+                    </v-text-field>
                 </v-card>
             </v-col>
 
             <v-col cols="12" lg="4">
-                <v-card hover border>
+                <v-card hover>
                     <v-date-input
                         variant="solo"
                         prepend-icon=""

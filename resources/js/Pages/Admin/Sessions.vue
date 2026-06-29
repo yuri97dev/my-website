@@ -1,18 +1,11 @@
 <template>
-    <Container title="Sessões">
-        <v-card hover border class="mb-4">
-            <v-text-field
-                type="search"
-                placeholder="Pesquisar"
-                prepend-inner-icon="mdi-magnify"
-                append-inner-icon="mdi-refresh"
-                variant="solo"
-                clearable
-                @keyup.enter="handleSearch"
-                @click:append-inner="getSessions"
-                v-model="search"
-            ></v-text-field>
-        </v-card>
+    <Container title="Sessões" gapped>
+        <SearchField
+            :fields="searchFields"
+            @refresh="getSessions"
+            @update:model-value="handleSearch"
+            v-model="search"
+        ></SearchField>
 
         <v-card>
             <v-data-table-server
@@ -36,18 +29,26 @@
 </template>
 
 <script setup>
-    import { ref, reactive, onMounted } from "vue";
+    import { ref, reactive, nextTick } from "vue";
 
     import Container from "@/Components/Container.vue";
+    import SearchField from "@/Components/SearchField.vue";
 
     import api from "@/api";
 
     import { alertError } from "@/Utils/Alert";
     import { formatDate } from "@/Utils/Common";
 
-    const search = ref("");
+    const search = ref(null);
     const sessions = ref([]);
     const loading = ref(false);
+
+    const searchFields = ref([
+        {
+            key: "ip_address",
+            title: "IP",
+        },
+    ]);
 
     const headers = ref([
         {
@@ -93,10 +94,14 @@
             const url = route("api.sessions.index");
 
             const params = {
-                search: search.value,
                 page: pagination.page,
                 per_page: pagination.perPage,
             };
+
+            if( search.value ) {
+                const { key, search: searchValue } = search.value || {};
+                params[key] = searchValue;
+            }
 
             const { data } = await api.get(url, { params });
 
@@ -112,8 +117,11 @@
         loading.value = false;
     }
 
-    async function handleSearch() {
+    function handleSearch() {
         pagination.page = 1;
-        await getSessions();
+
+        nextTick(async () => {
+            await getSessions();
+        });
     }
 </script>

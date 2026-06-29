@@ -1,18 +1,10 @@
 <template>
-    <Container title="Jobs">
-        <v-card hover border class="mb-4">
-            <v-text-field
-                type="search"
-                placeholder="Pesquisar"
-                prepend-inner-icon="mdi-magnify"
-                append-inner-icon="mdi-refresh"
-                variant="solo"
-                clearable
-                @keyup.enter="handleSearch"
-                @click:append-inner="getJobs"
-                v-model="search"
-            ></v-text-field>
-        </v-card>
+    <Container title="Jobs" gapped>
+        <SearchField
+            @refresh="getJobs"
+            @update:model-value="handleSearch"
+            v-model="search"
+        ></SearchField>
 
         <v-card>
             <v-data-table-server
@@ -64,16 +56,17 @@
 </template>
 
 <script setup>
-    import { ref, reactive, onMounted } from "vue";
+    import { ref, reactive, nextTick } from "vue";
 
     import Container from "@/Components/Container.vue";
+    import SearchField from "@/Components/SearchField.vue";
 
     import api from "@/api";
 
     import { alertError } from "@/Utils/Alert";
     import { formatBytes, formatDate } from "@/Utils/Common";
 
-    const search = ref("");
+    const search = ref(null);
     const jobs = ref([]);
     const loading = ref(false);
 
@@ -129,10 +122,14 @@
             const url = route("api.jobs.spreadsheet-formatter");
 
             const params = {
-                search: search.value,
                 page: pagination.page,
                 per_page: pagination.perPage,
             };
+
+            if( search.value ) {
+                const { key, search: searchValue } = search.value || {};
+                params[key] = searchValue;
+            }
 
             const { data } = await api.get(url, { params });
 
@@ -148,8 +145,11 @@
         loading.value = false;
     }
 
-    async function handleSearch() {
+    function handleSearch() {
         pagination.page = 1;
-        await getJobs();
+
+        nextTick(async () => {
+            await getJobs();
+        });
     }
 </script>

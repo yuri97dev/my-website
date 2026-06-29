@@ -80,10 +80,6 @@
 
     const searchFields = ref([
         {
-            key: "search",
-            title: "Buscar Geral",
-        },
-        {
             key: "id",
             title: "ID",
         },

@@ -1,17 +1,12 @@
 <template>
-    <Container title="Blog">
-        <v-card hover border class="mb-4">
-            <v-text-field
-                type="search"
-                placeholder="Pesquisar"
-                prepend-inner-icon="mdi-magnify"
-                variant="solo"
-                clearable
-                @keyup.enter="handleSearch"
-                @click:clear="handleSearch"
-                v-model="search"
-            ></v-text-field>
-        </v-card>
+    <Container title="Blog" gapped>
+        <SearchField
+            :fields="searchFields"
+            multiple
+            @refresh="getPosts"
+            @update:model-value="handleSearch"
+            v-model="search"
+        ></SearchField>
 
         <v-row>
             <template v-if="loading">
@@ -73,9 +68,10 @@
 </template>
 
 <script setup>
-    import { ref, reactive, onMounted } from "vue";
+    import { ref, reactive, onMounted, nextTick } from "vue";
 
     import Container from "@/Components/Container.vue";
+    import SearchField from "@/Components/SearchField.vue";
 
     import api from "@/api";
 
@@ -92,7 +88,18 @@
     const posts = ref([]);
     const loading = ref(false);
 
-    const search = ref("");
+    const search = ref([]);
+
+    const searchFields = ref([
+        {
+            key: "title",
+            title: "Título",
+        },
+        {
+            key: "category",
+            title: "Categoria",
+        },
+    ]);
 
     const pagination = reactive({
         page: 1,
@@ -107,11 +114,17 @@
             const url = route("api.blog.posts.index");
 
             const params = {
-                search: search.value,
                 page: pagination.page,
                 per_page: pagination.perPage,
                 category: props.category,
             };
+
+            if( search.value?.length > 0 ) {
+                search.value.forEach(item => {
+                    const { key, search: searchValue } = item || {};
+                    params[key] = searchValue;
+                });
+            }
 
             const { data } = await api.get(url, { params });
 
@@ -136,7 +149,7 @@
         }
     }
 
-    async function handleSearch() {
+    function handleSearch() {
         pagination.page = 1;
 
         window.scrollTo({
@@ -144,7 +157,9 @@
             behavior: "smooth",
         });
 
-        await getPosts();
+        nextTick(async () => {
+            await getPosts();
+        });
     }
 
     function goToPostDetail(post) {

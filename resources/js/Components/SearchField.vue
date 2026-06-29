@@ -1,7 +1,8 @@
 <template>
-    <v-card hover border>
+    <v-card hover>
         <v-autocomplete
             chips
+            closable-chips
             no-filter
             hide-no-data
             return-object
@@ -10,10 +11,28 @@
             prepend-inner-icon="mdi-magnify"
             placeholder="Pesquisar"
             variant="solo"
+            item-title="rawTitle"
+            :multiple="multiple"
+            :menu-props="{
+                offset: 8,
+            }"
+            :list-props="{
+                border: true,
+                rounded: 'lg',
+            }"
             :items="items"
             v-model="modelValue"
             v-model:search="search"
         >
+            <template v-slot:chip="{ props, item, index }">
+                <v-chip
+                    v-bind="props"
+                    :text="item.title"
+                    color="primary"
+                    @click="handleChipClick(item, index)"
+                ></v-chip>
+            </template>
+
             <template v-slot:item="{ props, item }">
                 <v-list-item
                     v-bind="{ ...props, ...item }"
@@ -56,6 +75,7 @@
     import { ref, computed } from "vue";
 
     const props = defineProps({
+        multiple: Boolean,
         fields: {
             type: Array,
             default: () => [],
@@ -71,10 +91,14 @@
 
     const items = computed(() => {
         const { key } = modelValue.value || {};
-        const firstField = props.fields[0] || {};
-        const activeField = !!key ? key : firstField.key;
+        const activeField = key || "search";
 
-        return props.fields.map(field => ({
+        const mergedFields = [{
+            key: "search",
+            title: "Busca Geral",
+        }, ...props.fields];
+
+        return mergedFields.map(field => ({
             ...field,
             rawTitle: field.title,
             title: `${field.title}: "${search.value.trim()}"`,
@@ -90,5 +114,17 @@
     function handleClear() {
         search.value = "";
         modelValue.value = null;
+    }
+
+    function handleChipClick(item, index) {
+        const { search: searchValue } = item || {};
+
+        if( props.multiple ) {
+            modelValue.value.splice(index, 1);
+        } else {
+            modelValue.value = null;
+        }
+
+        search.value = searchValue;
     }
 </script>

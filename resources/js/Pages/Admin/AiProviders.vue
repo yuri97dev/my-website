@@ -1,18 +1,11 @@
 <template>
     <Container title="Provedores de IA" gapped>
-        <v-card hover border>
-            <v-text-field
-                type="search"
-                placeholder="Pesquisar"
-                prepend-inner-icon="mdi-magnify"
-                append-inner-icon="mdi-refresh"
-                variant="solo"
-                clearable
-                @keyup.enter="handleSearch"
-                @click:append-inner="getAiProviders"
-                v-model="search"
-            ></v-text-field>
-        </v-card>
+        <SearchField
+            :fields="searchFields"
+            @refresh="getAiProviders"
+            @update:model-value="handleSearch"
+            v-model="search"
+        ></SearchField>
 
         <v-card>
             <v-data-table-server
@@ -63,21 +56,33 @@
 </template>
 
 <script setup>
-    import { ref, reactive } from "vue";
+    import { ref, reactive, nextTick } from "vue";
 
     import api from "@/api";
 
     import Container from "@/Components/Container.vue";
     import AiProviderForm from "@/Components/Admin/AiProviderForm.vue";
+    import SearchField from "@/Components/SearchField.vue";
 
     import { alertError } from "@/Utils/Alert";
     import { formatDate } from "@/Utils/Common";
 
     const aiProviderFormRef = ref(null);
 
-    const search = ref("");
+    const search = ref(null);
     const aiProviders = ref([]);
     const loading = ref(false);
+
+    const searchFields = ref([
+        {
+            key: "id",
+            title: "ID",
+        },
+        {
+            key: "name",
+            title: "Nome",
+        },
+    ]);
 
     const headers = ref([
         {
@@ -123,6 +128,11 @@
                 per_page: pagination.perPage,
             };
 
+            if( search.value ) {
+                const { key, search: searchValue } = search.value || {};
+                params[key] = searchValue;
+            }
+
             const { data } = await api.get(url, { params });
 
             aiProviders.value = data.ai_providers;
@@ -138,9 +148,12 @@
         loading.value = false;
     }
 
-    async function handleSearch() {
+    function handleSearch() {
         pagination.page = 1;
-        await getAiProviders();
+
+        nextTick(async () => {
+            await getAiProviders();
+        });
     }
 
     function handleRowClick(e, { item }) {
