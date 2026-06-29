@@ -90,6 +90,15 @@ class PostController extends Controller
             $query->where("slug", $request->string("slug"));
         }
 
+        if( $request->has("title") ) {
+            $query->whereRaw("ts_rank(
+                to_tsvector('portuguese', title),
+                websearch_to_tsquery('portuguese', ?)
+            ) >= 0.01", [
+                $request->string("title"),
+            ]);
+        }
+
         if( $request->has("category_id") ) {
             $query->where("category_id", $request->integer("category_id"));
         }
@@ -99,9 +108,24 @@ class PostController extends Controller
                 ->where("slug", $request->string("category"))
                 ->first();
 
-            $category_id = $category->id ?? -1;
+            if( !!$category ) {
+                $query->where("category_id", $category->id);
+            } else {
+                $matching_categories = DB::table("post_categories")
+                    ->whereRaw("ts_rank(
+                        to_tsvector('portuguese', name),
+                        websearch_to_tsquery('portuguese', ?)
+                    ) >= 0.01", [
+                        $request->string("category"),
+                    ])
+                    ->get();
 
-            $query->where("category_id", $category_id);
+                if( $matching_categories->isNotEmpty() ) {
+                    $query->whereIn("category_id", $matching_categories->pluck("id")->all());
+                } else {
+                    $query->whereNull("category_id");
+                }
+            }
         }
 
         $search = $request->string("search", "");
