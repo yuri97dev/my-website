@@ -1,18 +1,11 @@
 <template>
     <Container title="Posts" gapped>
-        <v-card hover border>
-            <v-text-field
-                type="search"
-                placeholder="Pesquisar"
-                prepend-inner-icon="mdi-magnify"
-                append-inner-icon="mdi-refresh"
-                variant="solo"
-                clearable
-                @keyup.enter="handleSearch"
-                @click:append-inner="getPosts"
-                v-model="search"
-            ></v-text-field>
-        </v-card>
+        <SearchField
+            :fields="searchFields"
+            @refresh="getPosts"
+            @update:model-value="handleSearch"
+            v-model="search"
+        ></SearchField>
 
         <v-card>
             <v-data-table-server
@@ -68,21 +61,41 @@
 </template>
 
 <script setup>
-    import { ref, reactive } from "vue";
+    import { ref, reactive, nextTick } from "vue";
 
     import api from "@/api";
 
     import Container from "@/Components/Container.vue";
     import PostForm from "@/Components/Admin/Blog/PostForm.vue";
+    import SearchField from "@/Components/SearchField.vue";
 
     import { alertError } from "@/Utils/Alert";
     import { formatDate } from "@/Utils/Common";
 
     const postFormRef = ref(null);
 
-    const search = ref("");
+    const search = ref(null);
     const posts = ref([]);
     const loading = ref(false);
+
+    const searchFields = ref([
+        {
+            key: "search",
+            title: "Buscar Geral",
+        },
+        {
+            key: "id",
+            title: "ID",
+        },
+        {
+            key: "title",
+            title: "Título",
+        },
+        {
+            key: "slug",
+            title: "Slug",
+        },
+    ]);
 
     const headers = ref([
         {
@@ -136,6 +149,11 @@
                 per_page: pagination.perPage,
             };
 
+            if( search.value ) {
+                const { key, search: searchValue } = search.value || {};
+                params[key] = searchValue;
+            }
+
             const { data } = await api.get(url, { params });
 
             posts.value = data.posts;
@@ -151,9 +169,12 @@
         loading.value = false;
     }
 
-    async function handleSearch() {
+    function handleSearch() {
         pagination.page = 1;
-        await getPosts();
+
+        nextTick(async () => {
+            await getPosts();
+        });
     }
 
     function handleRowClick(e, { item }) {
