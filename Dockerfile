@@ -32,6 +32,7 @@ COPY --from=node:24.16.0-bookworm-slim /usr/local/bin/npx /usr/local/bin/npx
 COPY --from=node:24.16.0-bookworm-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
 
 COPY docker/php/app.ini /usr/local/etc/php/conf.d/app.ini
+COPY docker/php/fpm-env.conf /usr/local/etc/php-fpm.d/fpm-env.conf
 COPY docker/supervisor/supervisord.conf /etc/supervisor/supervisord.conf
 
 RUN usermod -u "${USER_ID}" www-data \
