@@ -10,6 +10,32 @@ use App\Models\AiProvider;
 
 class AiPromptController extends Controller
 {
+    private const TEMPLATES = [
+        "post-translation" => [
+            "key" => "post-translation",
+            "path" => "prompts/post-translation.txt",
+        ],
+    ];
+
+    public function template(string $name)
+    {
+        if( !isset(self::TEMPLATES[$name]) ) return response()->json([
+            "message" => "Template não encontrado.",
+        ], 404);
+
+        $template = self::TEMPLATES[$name];
+        $path = resource_path($template["path"]);
+
+        if( !is_file($path) ) return response()->json([
+            "message" => "Arquivo do template não encontrado.",
+        ], 404);
+
+        return response()->json([
+            "key" => $template["key"],
+            "content" => file_get_contents($path),
+        ]);
+    }
+
     public function index(AiProvider $aiProvider)
     {
         $prompts = $aiProvider->prompts()

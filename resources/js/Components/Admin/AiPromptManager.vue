@@ -170,6 +170,7 @@
 
     const prompts = ref([]);
     const selectedPrompt = ref(null);
+    const suggestedPrompt = ref(null);
 
     const loading = ref(false);
     const saving = ref(false);
@@ -290,6 +291,19 @@
         await getPrompts();
     }
 
+    async function loadSuggestedPrompt() {
+        if( suggestedPrompt.value ) return;
+
+        try {
+            const url = route("api.ai-prompt-templates.show", "post-translation");
+            const { data } = await api.get(url);
+
+            suggestedPrompt.value = data;
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     function confirmRemovePrompt(prompt) {
         selectedPrompt.value = prompt;
         isConfirmRemoveDialogOpen.value = true;
@@ -307,7 +321,19 @@
 
     function openCreate() {
         errors.value = {};
+
+        resetForm();
+
         isDialogFormOpen.value = true;
+
+        if( prompts.value.length > 0 ) return;
+
+        nextTick(async () => {
+            await loadSuggestedPrompt();
+
+            form.key = suggestedPrompt.value?.key ?? "";
+            form.content = suggestedPrompt.value?.content ?? "";
+        });
     }
 
     function editPrompt(prompt) {

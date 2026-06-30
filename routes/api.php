@@ -124,6 +124,10 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             AiProviderController::class, "update",
         ])->name("api.ai-providers.update");
 
+        Route::get("/ai-prompt-templates/{name}", [
+            AiPromptController::class, "template",
+        ])->name("api.ai-prompt-templates.show");
+
         Route::get("/ai-providers/{aiProvider}/prompts", [
             AiPromptController::class, "index",
         ])->name("api.ai-providers.prompts.index");
