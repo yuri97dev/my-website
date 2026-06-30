@@ -104,6 +104,10 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             ArticleSourceController::class, "store",
         ])->name("api.article-sources.store");
 
+        Route::post("/article-sources/test", [
+            ArticleSourceController::class, "test",
+        ])->name("api.article-sources.test");
+
         Route::put("/article-sources/{articleSource}", [
             ArticleSourceController::class, "update",
         ])->name("api.article-sources.update");

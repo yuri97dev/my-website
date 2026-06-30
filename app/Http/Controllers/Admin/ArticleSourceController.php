@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\ArticleSource\StoreArticleSourceRequest;
 use App\Http\Requests\ArticleSource\UpdateArticleSourceRequest;
+use App\Http\Requests\ArticleSource\TestArticleSourceRequest;
 use App\Models\ArticleSource;
+use App\Actions\TestScrapeArticleSource;
+use Exception;
 
 class ArticleSourceController extends Controller
 {
@@ -68,5 +71,17 @@ class ArticleSourceController extends Controller
             "article_source" => $articleSource->fresh(),
             "message" => "Fonte desabilitada com sucesso.",
         ], 200);
+    }
+
+    public function test(TestArticleSourceRequest $request, TestScrapeArticleSource $action)
+    {
+        try {
+            $result = $action($request->validated());
+            return response()->json($result, 200);
+        } catch (Exception $e) {
+            return response()->json([
+                "message" => $e->getMessage(),
+            ], 422);
+        }
     }
 }

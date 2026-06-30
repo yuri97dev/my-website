@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\DomCrawler\Crawler;
@@ -33,7 +34,26 @@ class ScrapeRssArticleSources
         }
     }
 
+    public function scrapeOne(ArticleSource $source): array
+    {
+        $item = $this->fetchItems($source)->first();
+
+        if( !$item ) {
+            throw new Exception("List selector not found.");
+        }
+
+        return $this->buildArticle($source, $item);
+    }
+
     private function scrape(ArticleSource $source): void
+    {
+        foreach($this->fetchItems($source)->take(10) as $item) {
+            $this->persistArticle($source, $item);
+            sleep(rand(1, 5));
+        }
+    }
+
+    private function fetchItems(ArticleSource $source): Collection
     {
         $response = Http::{$source->http_method}($source->list_url)->throw();
 
@@ -51,21 +71,35 @@ class ScrapeRssArticleSources
             throw new Exception("List selector not found.");
         }
 
-        $items = collect($list)
+        return collect($list)
             ->map(fn(array $item) => (object) [
                 "title" => Arr::get($item, $source->item_title_selector),
                 "link" => Arr::get($item, $source->item_link_selector),
             ])
-            ->filter(fn($item) => !!$item->title && !!$item->link)
-            ->take(10);
-
-        foreach($items as $item) {
-            $this->scrapeArticle($source, $item);
-            sleep(rand(1, 5));
-        }
+            ->filter(fn($item) => !!$item->title && !!$item->link);
     }
 
-    private function scrapeArticle(ArticleSource $source, object $item): void
+    private function buildArticle(ArticleSource $source, object $item): array
+    {
+        $response = Http::{$source->http_method}($item->link)->throw();
+
+        $crawler = new Crawler($response->body());
+
+        $main_content = $crawler
+            ->filter($source->content_selector)
+            ->html("body");
+
+        $source_url = parse_url($source->list_url);
+        $source_url = $source_url["scheme"] . "://" . $source_url["host"];
+
+        return [
+            "title" => $item->title,
+            "url" => $item->link,
+            "content" => HtmlFormatter::all($main_content, $source_url),
+        ];
+    }
+
+    private function persistArticle(ArticleSource $source, object $item): void
     {
         $already_scraped = ScrapedArticle::query()
             ->where("article_source_id", $source->id)
@@ -76,26 +110,9 @@ class ScrapeRssArticleSources
             return;
         }
 
-        $response = Http::{$source->http_method}($item->link)->throw();
-
-        $content = $response->body();
-
-        $crawler = new Crawler($content);
-
-        $main_content = $crawler
-            ->filter($source->content_selector)
-            ->html("body");
-
-        $source_url = parse_url($source->list_url);
-        $source_url = $source_url["scheme"] . "://" . $source_url["host"];
-
-        $formatted_content = HtmlFormatter::all($main_content, $source_url);
-
         $article = ScrapedArticle::create([
             "article_source_id" => $source->id,
-            "url" => $item->link,
-            "title" => $item->title,
-            "content" => $formatted_content,
+            ...$this->buildArticle($source, $item),
         ]);
 
         (new DownloadScrapedArticleImages)($article);

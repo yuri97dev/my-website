@@ -97,13 +97,50 @@
 
             <v-btn
                 variant="tonal"
+                color="secondary"
+                prepend-icon="mdi-play-circle-outline"
+                text="Testar"
+                :loading="testing"
+                :disabled="loading"
+                @click="handleTest"
+            ></v-btn>
+
+            <v-btn
+                variant="tonal"
                 color="primary"
                 prepend-icon="mdi-content-save"
                 text="Salvar"
+                :disabled="testing"
                 @click="handleSave"
             ></v-btn>
         </template>
     </BottomSheet>
+
+    <Dialog
+        :title="testResult?.title ?? 'Resultado do Teste'"
+        no-body
+        scrollable
+        max-width="900px"
+        v-model="isTestDialogOpen"
+    >
+        <v-card-text>
+            <div class="mb-4">
+                <a
+                    :href="testResult?.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-primary"
+                >
+                    {{ testResult?.url }}
+                </a>
+            </div>
+
+            <div
+                class="post-container"
+                v-html="testResult?.content ?? ''"
+            ></div>
+        </v-card-text>
+    </Dialog>
 </template>
 
 <script setup>
@@ -112,6 +149,7 @@
     import api from "@/api";
 
     import BottomSheet from "@/Components/BottomSheet.vue";
+    import Dialog from "@/Components/Dialog.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
 
@@ -129,7 +167,11 @@
     const isDialogOpen = ref(false);
 
     const loading = ref(false);
+    const testing = ref(false);
     const errors = ref({});
+
+    const testResult = ref(null);
+    const isTestDialogOpen = ref(false);
 
     const articleSource = ref({});
     const form = ref({});
@@ -194,6 +236,37 @@
         }
     }
 
+    async function handleTest() {
+        errors.value = {};
+        testing.value = true;
+        testResult.value = null;
+
+        try {
+            const url = route("api.article-sources.test");
+
+            const payload = {
+                driver: form.value.driver,
+                http_method: form.value.http_method,
+                list_url: form.value.list_url,
+                list_item_selector: form.value.list_item_selector,
+                item_title_selector: form.value.item_title_selector,
+                item_link_selector: form.value.item_link_selector,
+                content_selector: form.value.content_selector,
+            };
+
+            const { data } = await api.post(url, payload);
+
+            testResult.value = data;
+            isTestDialogOpen.value = true;
+        } catch (e) {
+            const { message, errors: responseErrors } = e?.response?.data || {};
+            errors.value = responseErrors || {};
+            alertError("Ooops", message || "Erro ao testar fonte");
+        } finally {
+            testing.value = false;
+        }
+    }
+
     function open(data = {}) {
         document.documentElement.style.overflowY = "hidden";
 
@@ -209,6 +282,9 @@
 
     function reset() {
         errors.value = {};
+
+        testResult.value = null;
+        isTestDialogOpen.value = false;
 
         articleSource.value = {};
 
