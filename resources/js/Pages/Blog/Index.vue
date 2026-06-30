@@ -8,67 +8,80 @@
             v-model="search"
         ></SearchField>
 
-        <v-row>
-            <template v-if="loading">
+        <div
+            v-if="!loading && posts.length === 0"
+            class="d-flex align-center justify-center flex-grow-1"
+        >
+            <v-empty-state
+                icon="mdi-magnify"
+                title="Nenhum resultado encontrado"
+                :text="emptyStateText"
+            ></v-empty-state>
+        </div>
+
+        <div v-else>
+            <v-row>
+                <template v-if="loading">
+                    <v-col
+                        v-for="n in 3"
+                        :key="n"
+                        cols="12"
+                        lg="6" xl="4"
+                    >
+                        <v-card border class="h-100">
+                            <v-img
+                                height="200px"
+                                class="bg-surface-light rounded-lg"
+                                cover
+                            ></v-img>
+
+                            <v-skeleton-loader
+                                type="paragraph"
+                            ></v-skeleton-loader>
+                        </v-card>
+                    </v-col>
+                </template>
+
                 <v-col
-                    v-for="n in 3"
-                    :key="n"
+                    v-for="post in posts"
+                    :key="post.id"
                     cols="12"
                     lg="6" xl="4"
                 >
-                    <v-card border class="h-100">
+                    <v-card
+                        hover
+                        border
+                        class="h-100"
+                        :href="post.href"
+                        @click.prevent="goToPostDetail(post)"
+                    >
                         <v-img
+                            :src="post.thumbnail_path"
                             height="200px"
                             class="bg-surface-light rounded-lg"
                             cover
                         ></v-img>
 
-                        <v-skeleton-loader
-                            type="paragraph"
-                        ></v-skeleton-loader>
+                        <v-card-title class="text-primary">
+                            <div class="lines-2">
+                                {{ post.title }}
+                            </div>
+                        </v-card-title>
+
+                        <v-card-text :title="post.excerpt">
+                            <div class="lines-2">
+                                {{ post.excerpt || "Sem resumo disponível" }}
+                            </div>
+                        </v-card-text>
                     </v-card>
                 </v-col>
-            </template>
-
-            <v-col
-                v-for="post in posts"
-                :key="post.id"
-                cols="12"
-                lg="6" xl="4"
-            >
-                <v-card
-                    hover
-                    border
-                    class="h-100"
-                    :href="post.href"
-                    @click.prevent="goToPostDetail(post)"
-                >
-                    <v-img
-                        :src="post.thumbnail_path"
-                        height="200px"
-                        class="bg-surface-light rounded-lg"
-                        cover
-                    ></v-img>
-
-                    <v-card-title class="text-primary">
-                        <div class="lines-2">
-                            {{ post.title }}
-                        </div>
-                    </v-card-title>
-
-                    <v-card-text :title="post.excerpt">
-                        <div class="lines-2">
-                            {{ post.excerpt || "Sem resumo disponível" }}
-                        </div>
-                    </v-card-text>
-                </v-card>
-            </v-col>
-        </v-row>
+            </v-row>
+        </div>
     </Container>
 </template>
 
 <script setup>
-    import { ref, reactive, onMounted, nextTick } from "vue";
+    import { ref, reactive, computed, onMounted, nextTick } from "vue";
 
     import Container from "@/Components/Container.vue";
     import SearchField from "@/Components/SearchField.vue";
@@ -105,6 +118,18 @@
         page: 1,
         perPage: 50,
         total: 0,
+    });
+
+    const emptyStateText = computed(() => {
+        if( search.value?.length == 0 ) {
+            return "Ainda não há itens para exibir.";
+        }
+
+        if( props.category ) {
+            return "Ainda não há itens para exibir nesta categoria.";
+        }
+
+        return "Tente ajustar a pesquisa ou os filtros para ampliar os resultados.";
     });
 
     async function getPosts() {
