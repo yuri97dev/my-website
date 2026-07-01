@@ -30,8 +30,8 @@
                     >
                         <v-card border class="h-100">
                             <v-img
-                                height="200px"
-                                class="bg-surface-light rounded-lg"
+                                height="240px"
+                                class="bg-surface-light"
                                 cover
                             ></v-img>
 
@@ -57,8 +57,8 @@
                     >
                         <v-img
                             :src="post.thumbnail_path"
-                            height="200px"
-                            class="bg-surface-light rounded-lg"
+                            height="240px"
+                            class="bg-surface-light"
                             cover
                         ></v-img>
 
@@ -71,6 +71,17 @@
                         <v-card-text :title="post.excerpt">
                             <div class="lines-2">
                                 {{ post.excerpt || "Sem resumo disponível" }}
+                            </div>
+
+                            <div class="d-flex align-center justify-space-between text-grey mt-2">
+                                <v-chip color="primary" variant="outlined">
+                                    {{ post.category.name }}
+                                </v-chip>
+
+                                <div class="d-flex align-center ga-2 text-grey">
+                                    <v-icon size="small" icon="mdi-clock"></v-icon>
+                                    {{ formatDate(post.updated_at, "dd/MM/yyyy HH:mm") }}
+                                </div>
                             </div>
                         </v-card-text>
                     </v-card>
@@ -89,7 +100,7 @@
     import api from "@/api";
 
     import { alertError } from "@/Utils/Alert";
-    import { goTo } from "@/Utils/Common";
+    import { goTo, formatDate } from "@/Utils/Common";
 
     const props = defineProps({
         category: {

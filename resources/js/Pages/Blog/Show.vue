@@ -7,6 +7,13 @@
 
             <h1 class="text-primary">{{ post.title }}</h1>
 
+            <div class="d-flex align-center ga-2 text-grey">
+                <v-icon icon="mdi-clock"></v-icon>
+                Última atualização: {{ formatDate(post.updated_at, "dd/MM/yyyy HH:mm") }}
+            </div>
+
+            <v-divider class="my-4"></v-divider>
+
             <div
                 class="post-container"
                 @click="handleContentClick"
@@ -26,6 +33,8 @@
     import Container from "@/Components/Container.vue";
     import Breadcrumb from "@/Components/Breadcrumb.vue";
     import ImageViewerDialog from "@/Components/ImageViewerDialog.vue";
+
+    import { formatDate } from "@/Utils/Common";
 
     const props = defineProps({
         post: {
