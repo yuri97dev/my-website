@@ -386,8 +386,13 @@
         const postData = {
             id: data?.id || null,
             title: data?.title || null,
-            slug: data?.slug || null,
             content: data?.content || null,
+            thumbnail_path: data?.thumbnail_path || null,
+            category_id: null,
+            slug: null,
+            excerpt: null,
+            status: "draft",
+            tags: [],
         };
 
         post.value = postData;

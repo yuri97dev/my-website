@@ -74,17 +74,30 @@
 
         closeScrapedArticleManager();
 
+        const title = (
+            selectedScrapedArticle.translated_title ||
+            selectedScrapedArticle.title ||
+            ""
+        );
+
+        const content = (
+            selectedScrapedArticle.translated_content ||
+            selectedScrapedArticle.content ||
+            ""
+        );
+
+        const div = document.createElement("div");
+
+        div.innerHTML = content;
+
+        const firstImage = div.querySelector("img");
+
         open({
-            title: (
-                selectedScrapedArticle.translated_title ||
-                selectedScrapedArticle.title ||
-                ""
-            ),
-            content: (
-                selectedScrapedArticle.translated_content ||
-                selectedScrapedArticle.content ||
-                ""
-            ),
+            title,
+            content,
+            thumbnail_path: firstImage?.src ?
+                new URL(firstImage.src).pathname :
+                null,
         });
     }
 
