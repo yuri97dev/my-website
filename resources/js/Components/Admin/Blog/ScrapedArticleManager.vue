@@ -31,8 +31,9 @@
                 <v-card
                     border
                     hover
+                    class="d-flex flex-column h-100"
                     variant="tonal"
-                    class="h-100"
+                    :color="scrapedArticle.is_enabled ? null : 'error'"
                     @click="handleItemClick(scrapedArticle)"
                 >
                     <v-card-title class="text-wrap">
@@ -41,8 +42,30 @@
                         </div>
                     </v-card-title>
 
-                    <v-card-text class="text-primary">
-                        {{ scrapedArticle.source.name }}
+                    <v-card-text class="d-flex flex-column justify-end flex-grow-1 text-primary">
+                        <div class="d-flex align-center justify-space-between ga-2">
+                            {{ scrapedArticle.source.name }}
+
+                            <div class="d-flex align-center ga-2">
+                                <v-icon
+                                    v-if="!!scrapedArticle.translated_title"
+                                    icon="mdi-translate"
+                                    color="orange"
+                                    title="Tradução disponível"
+                                ></v-icon>
+
+                                <v-icon
+                                    v-if="!!scrapedArticle.post_id"
+                                    icon="mdi-newspaper"
+                                    color="success"
+                                    title="Post criado"
+                                ></v-icon>
+                            </div>
+                        </div>
+
+                        <div class="text-end mt-2">
+                            {{ formatDate(scrapedArticle.created_at, "dd/MM/yyyy HH:mm") }}
+                        </div>
                     </v-card-text>
                 </v-card>
             </v-col>
@@ -119,7 +142,7 @@
 
         <template #actions>
             <v-btn
-                v-if="selectedScrapedArticle?.is_enabled"
+                v-if="!readOnly"
                 variant="tonal"
                 color="error"
                 prepend-icon="mdi-block-helper"
@@ -128,7 +151,7 @@
             ></v-btn>
 
             <v-btn
-                v-if="hasTranslation"
+                v-if="!readOnly && hasTranslation"
                 variant="tonal"
                 color="warning"
                 prepend-icon="mdi-translate-off"
@@ -138,7 +161,10 @@
 
             <v-spacer></v-spacer>
 
-            <slot name="content-action-buttons"></slot>
+            <slot
+                v-if="!readOnly"
+                name="content-action-buttons"
+            ></slot>
 
             <v-btn
                 :href="selectedScrapedArticle?.url"
@@ -192,6 +218,8 @@
     import BottomSheet from "@/Components/BottomSheet.vue";
     import Dialog from "@/Components/Dialog.vue";
 
+    import { formatDate } from "@/Utils/Common";
+
     import {
         alertError,
         toastSuccess,
@@ -217,6 +245,11 @@
         lastPage: 1,
         total: 0,
     });
+
+    const readOnly = computed(() => (
+        !!selectedScrapedArticle.value?.post_id ||
+        selectedScrapedArticle.value?.is_enabled === false
+    ));
 
     const hasTranslation = computed(() => (
         !!selectedScrapedArticle.value?.translated_title ||
@@ -284,6 +317,11 @@
             const { data } = await api.get(url);
 
             selectedScrapedArticle.value = data.scraped_article;
+
+            nextTick(() => {
+                const { translated_content } = selectedScrapedArticle.value;
+                contentTab.value = !!translated_content ? "translated" : "original";
+            });
         } catch (e) {
             console.error(e);
             const { message } = e?.response?.data || {};
@@ -377,8 +415,6 @@
     }
 
     function handleItemClick(scrapedArticle) {
-        contentTab.value = scrapedArticle.translated_content ? "translated" : "original";
-
         selectedScrapedArticle.value = scrapedArticle;
 
         isScrapedArticleContentDialogOpen.value = true;
