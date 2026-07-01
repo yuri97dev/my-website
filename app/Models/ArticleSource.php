@@ -21,6 +21,9 @@ class ArticleSource extends Model
         "item_title_selector",
         "item_link_selector",
         "content_selector",
+        "user_agent",
+        "proxy_server",
+        "accept_language",
         "is_enabled",
     ];
 

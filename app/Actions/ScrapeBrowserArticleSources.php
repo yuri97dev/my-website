@@ -24,22 +24,22 @@ class ScrapeBrowserArticleSources
             return;
         }
 
-        $client = $this->createClient();
-
         foreach($sources as $source) {
+            $client = $this->createClient($source);
+
             try {
                 $this->scrape($client, $source);
             } catch (Exception $e) {
                 Log::error("ScrapeBrowserArticleSources: failed to scrape source {$source->name}: {$e->getMessage()}");
+            } finally {
+                $client->quit();
             }
         }
-
-        $client->quit();
     }
 
     public function scrapeOne(ArticleSource $source): array
     {
-        $client = $this->createClient();
+        $client = $this->createClient($source);
 
         try {
             $item = $this->fetchItems($client, $source)->first();
@@ -68,17 +68,32 @@ class ScrapeBrowserArticleSources
         }
     }
 
-    private function createClient(): Client
+    private function createClient(ArticleSource $source): Client
     {
-        return Client::createChromeClient(null, [
+        $arguments = [
             "--headless=new",
             "--no-sandbox",
             "--disable-dev-shm-usage",
             "--disable-gpu",
-            "--user-data-dir=/tmp/chrome-profile",
+            "--user-data-dir=/tmp/chrome-profile-{$source->id}",
             "--crash-dumps-dir=/tmp/chrome-crashes",
             "--window-size=1200,1100",
-        ]);
+        ];
+
+        if( $source->user_agent ) {
+            $arguments[] = "--user-agent={$source->user_agent}";
+        }
+
+        if( $source->proxy_server ) {
+            $arguments[] = "--proxy-server={$source->proxy_server}";
+        }
+
+        if( $source->accept_language ) {
+            $lang = trim(explode(",", $source->accept_language)[0]);
+            $arguments[] = "--lang={$lang}";
+        }
+
+        return Client::createChromeClient(null, $arguments);
     }
 
     private function fetchItems(Client $client, ArticleSource $source): Collection

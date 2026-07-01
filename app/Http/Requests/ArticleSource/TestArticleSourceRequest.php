@@ -43,6 +43,9 @@ class TestArticleSourceRequest extends FormRequest
             "item_title_selector" => ["required", "string", "max:255"],
             "item_link_selector" => ["required", "string", "max:255"],
             "content_selector" => ["required", "string", "max:255"],
+            "user_agent" => ["nullable", "string", "max:500"],
+            "proxy_server" => ["nullable", "string", "max:255"],
+            "accept_language" => ["nullable", "string", "max:100"],
         ];
     }
 

@@ -22,6 +22,9 @@ return new class extends Migration
             $table->string("item_title_selector");
             $table->string("item_link_selector");
             $table->string("content_selector");
+            $table->string("user_agent", 500)->nullable();
+            $table->string("proxy_server", 255)->nullable();
+            $table->string("accept_language", 100)->nullable();
             $table->boolean("is_enabled")->default(true);
             $table->timestamps();
         });

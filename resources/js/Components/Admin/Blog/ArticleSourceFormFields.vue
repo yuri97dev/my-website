@@ -79,6 +79,38 @@
                 ></v-text-field>
             </v-col>
 
+            <template v-if="isBrowserDriver">
+                <v-col cols="12">
+                    <v-text-field
+                        label="User-Agent"
+                        hint="Opcional. Substitui o user-agent padrão do Chrome headless."
+                        persistent-hint
+                        :error-messages="errors.user_agent"
+                        v-model="form.user_agent"
+                    ></v-text-field>
+                </v-col>
+
+                <v-col cols="12" lg="6" xl="6">
+                    <v-text-field
+                        label="Proxy"
+                        hint="Opcional. Ex.: http://proxy:8080"
+                        persistent-hint
+                        :error-messages="errors.proxy_server"
+                        v-model="form.proxy_server"
+                    ></v-text-field>
+                </v-col>
+
+                <v-col cols="12" lg="6" xl="6">
+                    <v-text-field
+                        label="Accept-Language"
+                        hint="Opcional. Ex.: pt-BR,pt;q=0.9,en;q=0.8"
+                        persistent-hint
+                        :error-messages="errors.accept_language"
+                        v-model="form.accept_language"
+                    ></v-text-field>
+                </v-col>
+            </template>
+
             <v-col cols="12" lg="3" xl="2">
                 <v-switch
                     label="Ativo"
@@ -177,6 +209,7 @@
     const form = ref({});
 
     const isEditing = computed(() => !!articleSource.value.id);
+    const isBrowserDriver = computed(() => form.value.driver === "browser");
 
     async function updateArticleSource() {
         errors.value = {};
@@ -252,6 +285,9 @@
                 item_title_selector: form.value.item_title_selector,
                 item_link_selector: form.value.item_link_selector,
                 content_selector: form.value.content_selector,
+                user_agent: form.value.user_agent,
+                proxy_server: form.value.proxy_server,
+                accept_language: form.value.accept_language,
             };
 
             const { data } = await api.post(url, payload);
@@ -298,6 +334,9 @@
             item_title_selector: null,
             item_link_selector: null,
             content_selector: null,
+            user_agent: null,
+            proxy_server: null,
+            accept_language: null,
             is_enabled: true,
         };
     }
