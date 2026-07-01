@@ -171,8 +171,6 @@
     }
 
     function open(data = {}) {
-        document.documentElement.style.overflowY = "hidden";
-
         aiProvider.value = data;
 
         form.value = {
@@ -201,8 +199,6 @@
 
     function handleClose() {
         reset();
-
-        document.documentElement.style.overflowY = "scroll";
 
         nextTick(() => {
             emit("close");

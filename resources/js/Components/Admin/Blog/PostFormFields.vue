@@ -381,8 +381,6 @@
     }
 
     function open(data = {}) {
-        document.documentElement.style.overflowY = "hidden";
-
         const postData = {
             id: data?.id || null,
             title: data?.title || null,
@@ -427,8 +425,6 @@
 
     function handleClose() {
         reset();
-
-        document.documentElement.style.overflowY = "scroll";
 
         nextTick(() => {
             emit("close");

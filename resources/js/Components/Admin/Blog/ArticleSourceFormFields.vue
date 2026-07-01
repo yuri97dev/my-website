@@ -304,8 +304,6 @@
     }
 
     function open(data = {}) {
-        document.documentElement.style.overflowY = "hidden";
-
         articleSource.value = data;
 
         form.value = {
@@ -343,8 +341,6 @@
 
     function handleClose() {
         reset();
-
-        document.documentElement.style.overflowY = "scroll";
 
         nextTick(() => {
             emit("close");

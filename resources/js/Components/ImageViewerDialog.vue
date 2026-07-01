@@ -2,23 +2,23 @@
     <Dialog
         title="Visualizar Imagem"
         no-body
+        scrollable
         hide-footer
         max-width="900px"
-        height="70vh"
         @close="handleClose"
         v-model="isOpen"
     >
-        <v-card :loading="loading" class="rounded-t-0">
-            <div class="d-flex flex-column h-100 pa-4">
-                <v-img
-                    v-if="!!src"
-                    :src="src"
-                    class="rounded"
-                    @load="loading = false"
-                    @error="handleError"
-                ></v-img>
-            </div>
-        </v-card>
+        <v-card-text>
+            <v-img
+                v-if="!!src"
+                :src="src"
+                class="rounded"
+                max-height="70dvh"
+                min-height="400px"
+                @load="loading = false"
+                @error="handleError"
+            ></v-img>
+        </v-card-text>
     </Dialog>
 </template>
 
