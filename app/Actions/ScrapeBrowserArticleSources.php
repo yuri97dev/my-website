@@ -37,6 +37,17 @@ class ScrapeBrowserArticleSources
         }
     }
 
+    public function scrapeSource(ArticleSource $source): void
+    {
+        $client = $this->createClient($source);
+
+        try {
+            $this->scrape($client, $source);
+        } finally {
+            $client->quit();
+        }
+    }
+
     public function scrapeOne(ArticleSource $source): array
     {
         $client = $this->createClient($source);

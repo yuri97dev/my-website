@@ -34,6 +34,11 @@ class ScrapeRssArticleSources
         }
     }
 
+    public function scrapeSource(ArticleSource $source): void
+    {
+        $this->scrape($source);
+    }
+
     public function scrapeOne(ArticleSource $source): array
     {
         $item = $this->fetchItems($source)->first();

@@ -152,6 +152,10 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             ScrapedArticleController::class, "index",
         ])->name("api.scraped-articles.index");
 
+        Route::post("/scraped-articles/scrape", [
+            ScrapedArticleController::class, "scrape",
+        ])->name("api.scraped-articles.scrape");
+
         Route::get("/scraped-articles/{scrapedArticle}", [
             ScrapedArticleController::class, "show",
         ])->name("api.scraped-articles.show");

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use App\Jobs\ScrapeArticleSourcesJob;
 use App\Models\ScrapedArticle;
 
 class ScrapedArticleController extends Controller
@@ -54,6 +56,27 @@ class ScrapedArticleController extends Controller
             "scraped_article" => $scrapedArticle->fresh(),
             "message" => "Artigo inativado com sucesso.",
         ], 200);
+    }
+
+    public function scrape(Request $request)
+    {
+        $lockAcquired = Cache::add(
+            ScrapeArticleSourcesJob::CACHE_LOCK_KEY,
+            true,
+            ScrapeArticleSourcesJob::CACHE_LOCK_TTL,
+        );
+
+        if( !$lockAcquired ) return response()->json([
+            "message" => "Scraping já está em andamento.",
+        ], 409);
+
+        $articleSourceId = $request->integer("article_source_id") ?: null;
+
+        ScrapeArticleSourcesJob::dispatch($articleSourceId)->afterResponse();
+
+        return response()->json([
+            "message" => "Scraping iniciado com sucesso.",
+        ], 202);
     }
 
     public function rejectTranslation(ScrapedArticle $scrapedArticle)
