@@ -12,6 +12,7 @@ use League\HTMLToMarkdown\HtmlConverter;
 use League\HTMLToMarkdown\Converter\TableConverter;
 use App\Models\Post;
 use App\Models\PostChunk;
+use App\Models\ScrapedArticle;
 use App\Helpers\Meta;
 use App\Helpers\Ollama;
 use Inertia\Inertia;
@@ -224,9 +225,11 @@ class PostController extends Controller
         $validated = $request->validated();
 
         $tags = $validated["tags"] ?? [];
+        $scraped_article_id = $validated["scraped_article_id"] ?? null;
 
         unset($validated["tags"]);
         unset($validated["published_at"]);
+        unset($validated["scraped_article_id"]);
 
         $validated["author_id"] = $request->user()->id;
         $validated["status"] ??= Post::STATUS_DRAFT;
@@ -243,6 +246,13 @@ class PostController extends Controller
 
         if( !empty($tags) ) {
             $post->tags()->sync($tags);
+        }
+
+        if( $scraped_article_id ) {
+            ScrapedArticle::query()
+                ->where("id", $scraped_article_id)
+                ->whereNull("post_id")
+                ->update(["post_id" => $post->id]);
         }
 
         $post->load([

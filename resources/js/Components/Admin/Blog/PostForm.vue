@@ -98,6 +98,7 @@
             thumbnail_path: firstImage?.src ?
                 new URL(firstImage.src).pathname :
                 null,
+            scraped_article_id: selectedScrapedArticle.id,
         });
     }
 

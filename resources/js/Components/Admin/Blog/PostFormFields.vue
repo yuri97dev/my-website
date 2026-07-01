@@ -236,6 +236,7 @@
 
     const form = ref({});
     const post = ref({});
+    const scrapedArticleId = ref(null);
     const categories = ref([]);
     const tags = ref([]);
 
@@ -331,9 +332,16 @@
 
         try {
             const url = route("api.blog.posts.store");
-            const { data } = await api.post(url, form.value);
+            const payload = { ...form.value };
+
+            if( scrapedArticleId.value ) {
+                payload.scraped_article_id = scrapedArticleId.value;
+            }
+
+            const { data } = await api.post(url, payload);
 
             post.value.id = data.post.id;
+            scrapedArticleId.value = null;
 
             toastSuccess("Ok", "Post criado com sucesso");
 
@@ -395,6 +403,7 @@
 
         post.value = postData;
         form.value = { ...form.value, ...postData };
+        scrapedArticleId.value = data?.scraped_article_id || null;
 
         isDialogOpen.value = true;
 
@@ -407,6 +416,7 @@
 
     function reset() {
         post.value = {};
+        scrapedArticleId.value = null;
 
         form.value = {
             ...form.value,

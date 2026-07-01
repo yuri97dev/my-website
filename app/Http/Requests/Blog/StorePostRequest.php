@@ -76,6 +76,13 @@ class StorePostRequest extends FormRequest
                 "integer",
                 Rule::exists("post_tags", "id"),
             ],
+            "scraped_article_id" => [
+                "nullable",
+                "integer",
+                Rule::exists("scraped_articles", "id")->where(function ($query) {
+                    $query->whereNull("post_id");
+                }),
+            ],
         ];
     }
 
@@ -104,6 +111,8 @@ class StorePostRequest extends FormRequest
             "tags.array" => "As tags devem ser informadas como uma lista.",
             "tags.*.integer" => "Cada tag deve ser um identificador válido.",
             "tags.*.exists" => "Uma ou mais tags informadas não existem.",
+            "scraped_article_id.integer" => "O artigo importado é inválido.",
+            "scraped_article_id.exists" => "O artigo importado não existe ou já está associado a um post.",
         ];
     }
 }
