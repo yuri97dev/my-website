@@ -14,7 +14,7 @@ class ScrapedArticleController extends Controller
     {
         $perPage = min($request->integer("per_page", 15), 100);
 
-        $paginator = ScrapedArticle::query()
+        $query = ScrapedArticle::query()
             ->select([
                 "id",
                 "article_source_id",
@@ -27,8 +27,13 @@ class ScrapedArticleController extends Controller
                 "updated_at",
             ])
             ->with("source:id,name")
-            ->orderByDesc("id")
-            ->paginate($perPage);
+            ->orderByDesc("id");
+
+        if( $request->integer("article_source_id") ) {
+            $query->where("article_source_id", $request->integer("article_source_id"));
+        }
+
+        $paginator = $query->paginate($perPage);
 
         return response()->json([
             "current_page" => $paginator->currentPage(),

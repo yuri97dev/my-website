@@ -48,15 +48,36 @@
             </v-col>
         </v-row>
 
+        <div
+            v-if="scrapedArticles.length > 0"
+            class="d-flex justify-center mt-4"
+        >
+            <v-btn
+                prepend-icon="mdi-arrow-down-circle"
+                text="Carregar Mais"
+                variant="tonal"
+                color="success"
+                :disabled="pagination.page === pagination.lastPage"
+                @click="handlePaginationUpdate(pagination.page + 1)"
+            ></v-btn>
+        </div>
+
         <template #actions>
-            <div class="text-center w-100">
-                <v-pagination
-                    :total-visible="5"
-                    :length="pagination.lastPage"
-                    :disabled="loading"
-                    @update:model-value="handlePaginationUpdate"
-                ></v-pagination>
-            </div>
+            <v-btn
+                prepend-icon="mdi-refresh"
+                text="Atualizar"
+                :disabled="loading"
+                @click="handlePaginationUpdate(1)"
+            ></v-btn>
+
+            <v-btn
+                variant="tonal"
+                color="primary"
+                prepend-icon="mdi-cloud-download"
+                text="Iniciar Scraping"
+                :loading="scraping"
+                @click="startScraping"
+            ></v-btn>
         </template>
     </BottomSheet>
 
@@ -188,6 +209,7 @@
     const contentTab = ref("original");
 
     const loading = ref(false);
+    const scraping = ref(false);
 
     const pagination = reactive({
         page: 1,
@@ -224,12 +246,22 @@
                 per_page: pagination.perPage,
             };
 
+            if( articleSource.value?.id ) {
+                params.article_source_id = articleSource.value.id;
+            }
+
             const { data } = await api.get(url, { params });
 
-            scrapedArticles.value = data.scraped_articles.map(sa => ({
+            const mappedScrapedArticles = data.scraped_articles.map(sa => ({
                 ...sa,
                 finalTitle: sa.translated_title || sa.title || "",
             }));
+
+            if( pagination.page === 1 ) {
+                scrapedArticles.value = mappedScrapedArticles;
+            } else {
+                scrapedArticles.value.push(...mappedScrapedArticles);
+            }
 
             pagination.page = data.current_page;
             pagination.perPage = data.per_page;
@@ -316,6 +348,29 @@
         }
     }
 
+    async function startScraping() {
+        scraping.value = true;
+
+        try {
+            const url = route("api.scraped-articles.scrape");
+            const payload = {};
+
+            if( articleSource.value?.id ) {
+                payload.article_source_id = articleSource.value.id;
+            }
+
+            await api.post(url, payload);
+
+            toastSuccess("Ok", "Scraping iniciado com sucesso");
+        } catch (e) {
+            console.error(e);
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao iniciar scraping");
+        } finally {
+            scraping.value = false;
+        }
+    }
+
     async function handlePaginationUpdate(page) {
         pagination.page = page;
         await getScrapedArticles();
@@ -351,6 +406,8 @@
 
     function open(data = {}) {
         articleSource.value = data;
+        pagination.page = 1;
+
         isOpen.value = true;
 
         nextTick(async () => {
