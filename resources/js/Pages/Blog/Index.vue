@@ -8,7 +8,7 @@
             v-model="search"
         ></SearchField>
 
-        <h2 v-if="!!category" class="text-grey">
+        <h2 v-if="!!category" class="text-grey my-0">
             Categoria:
 
             <strong class="text-primary text-decoration-underline">
@@ -146,22 +146,25 @@
 
     const search = ref([]);
 
-    const searchFields = ref([
-        {
-            key: "title",
-            title: "Título",
-        },
-        {
-            key: "category",
-            title: "Categoria",
-        },
-    ]);
-
     const pagination = reactive({
         page: 1,
         perPage: 50,
         lastPage: 1,
         total: 0,
+    });
+
+    const searchFields = computed(() => {
+        const fields = [{
+            key: "title",
+            title: "Título",
+        }];
+
+        if( !props.category ) fields.push({
+            key: "category",
+            title: "Categoria",
+        });
+
+        return fields;
     });
 
     const emptyStateText = computed(() => {
