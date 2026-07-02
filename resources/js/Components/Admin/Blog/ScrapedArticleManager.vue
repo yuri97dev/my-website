@@ -141,23 +141,44 @@
         </v-card-text>
 
         <template #actions>
-            <v-btn
-                v-if="!readOnly"
-                variant="tonal"
-                color="error"
-                prepend-icon="mdi-block-helper"
-                text="Desativar"
-                @click="handleDisableScrapedArticle"
-            ></v-btn>
+            <v-menu
+                offset="8"
+                location="bottom start"
+            >
+                <template #activator="{ props }">
+                    <v-btn
+                        variant="tonal"
+                        prepend-icon="mdi-dots-vertical"
+                        text="Mais Opções"
+                        v-bind="props"
+                    ></v-btn>
+                </template>
 
-            <v-btn
-                v-if="!readOnly && hasTranslation"
-                variant="tonal"
-                color="warning"
-                prepend-icon="mdi-translate-off"
-                text="Rejeitar Tradução"
-                @click="handleRejectTranslation"
-            ></v-btn>
+                <v-list border slim>
+                    <v-list-item
+                        v-if="!readOnly"
+                        prepend-icon="mdi-block-helper"
+                        title="Desativar"
+                        class="text-error"
+                        @click="handleDisableScrapedArticle"
+                    ></v-list-item>
+
+                    <v-list-item
+                        v-if="!readOnly && hasTranslation"
+                        prepend-icon="mdi-translate-off"
+                        title="Rejeitar Tradução"
+                        class="text-warning"
+                        @click="handleRejectTranslation"
+                    ></v-list-item>
+
+                    <v-list-item
+                        :href="selectedScrapedArticle?.url"
+                        target="_blank"
+                        prepend-icon="mdi-open-in-new"
+                        title="Abrir Original"
+                    ></v-list-item>
+                </v-list>
+            </v-menu>
 
             <v-spacer></v-spacer>
 
@@ -165,13 +186,6 @@
                 v-if="!readOnly"
                 name="content-action-buttons"
             ></slot>
-
-            <v-btn
-                :href="selectedScrapedArticle?.url"
-                target="_blank"
-                prepend-icon="mdi-open-in-new"
-                text="Abrir Original"
-            ></v-btn>
         </template>
     </Dialog>
 
