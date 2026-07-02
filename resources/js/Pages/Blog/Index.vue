@@ -8,6 +8,23 @@
             v-model="search"
         ></SearchField>
 
+        <h2 v-if="!!category" class="text-grey">
+            Categoria:
+
+            <strong class="text-primary text-decoration-underline">
+                {{ category }}
+            </strong>
+
+            <v-icon
+                role="button"
+                size="small"
+                icon="mdi-close"
+                class="ms-2"
+                title="Limpar filtro"
+                @click="goTo(route('blog.index'))"
+            ></v-icon>
+        </h2>
+
         <div
             v-if="!loading && posts.length === 0"
             class="d-flex align-center justify-center flex-grow-1"
