@@ -3,7 +3,7 @@
         <SearchField
             :fields="searchFields"
             multiple
-            @refresh="getPosts"
+            @refresh="handleSearch"
             @update:model-value="handleSearch"
             v-model="search"
         ></SearchField>
@@ -87,6 +87,19 @@
                     </v-card>
                 </v-col>
             </v-row>
+
+            <div class="d-flex justify-center mt-4">
+                <v-btn
+                    size="large"
+                    prepend-icon="mdi-arrow-down-circle"
+                    text="Carregar Mais"
+                    variant="tonal"
+                    color="success"
+                    :loading="loading"
+                    :disabled="pagination.page === pagination.lastPage"
+                    @click="handleLoadMore"
+                ></v-btn>
+            </div>
         </div>
     </Container>
 </template>
@@ -128,6 +141,7 @@
     const pagination = reactive({
         page: 1,
         perPage: 50,
+        lastPage: 1,
         total: 0,
     });
 
@@ -164,7 +178,7 @@
 
             const { data } = await api.get(url, { params });
 
-            posts.value = data.posts.map(post => {
+            const newPosts = data.posts.map(post => {
                 post.href = route("blog.show", {
                     category: post.category.slug,
                     slug: post.slug,
@@ -173,8 +187,15 @@
                 return post;
             });
 
+            if( pagination.page === 1 ) {
+                posts.value = newPosts;
+            } else {
+                posts.value.push(...newPosts);
+            }
+
             pagination.page = data.current_page;
             pagination.perPage = data.per_page;
+            pagination.lastPage = data.last_page;
             pagination.total = data.total;
         } catch (e) {
             console.log(e);
@@ -183,6 +204,11 @@
         } finally {
             loading.value = false;
         }
+    }
+
+    async function handleLoadMore() {
+        pagination.page++;
+        await getPosts();
     }
 
     function handleSearch() {
