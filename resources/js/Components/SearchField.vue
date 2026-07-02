@@ -49,13 +49,16 @@
             </template>
 
             <template #append-inner>
-                <div class="d-flex align-center ga-2">
+                <div
+                    class="d-flex align-center ga-2"
+                    @mousedown.stop.prevent
+                >
                     <v-btn
                         size="small"
                         icon="mdi-refresh"
                         variant="tonal"
                         color="primary"
-                        @click="handleRefresh"
+                        @click.stop="handleRefresh"
                     ></v-btn>
 
                     <v-btn
@@ -63,7 +66,7 @@
                         icon="mdi-close"
                         variant="tonal"
                         :disabled="!modelValue"
-                        @click="handleClear"
+                        @click.stop="handleClear"
                     ></v-btn>
                 </div>
             </template>
