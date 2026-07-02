@@ -57,3 +57,13 @@ a {
     border: 0;
     background-color: rgb(var(--v-theme-surface-light));
 }
+
+.post-container table {
+    border-collapse: collapse;
+    width: 100%;
+}
+.post-container table th,
+.post-container table td {
+    padding: 8px;
+    border: 1px solid rgb(var(--v-theme-surface-light));
+}
