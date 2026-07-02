@@ -13,7 +13,6 @@
                 :items="posts"
                 :items-length="pagination.total"
                 :loading="loading"
-                class="text-no-wrap"
                 @update:options="getPosts"
                 @click:row="handleRowClick"
                 v-model:page="pagination.page"
@@ -72,6 +71,10 @@
     import { alertError } from "@/Utils/Alert";
     import { formatDate } from "@/Utils/Common";
 
+    const CELL_PROPS = {
+        class: "text-no-wrap",
+    };
+
     const postFormRef = ref(null);
 
     const search = ref(null);
@@ -101,6 +104,9 @@
         {
             key: "title",
             title: "Título",
+            cellProps: {
+                style: "min-width: 40ch;",
+            },
         },
         {
             key: "category.name",
@@ -109,22 +115,33 @@
         {
             key: "slug",
             title: "Slug",
+            cellProps: {
+                style: "min-width: 40ch;",
+            },
         },
         {
             key: "created_at",
             title: "Criado Em",
+            headerProps: CELL_PROPS,
+            cellProps: CELL_PROPS,
         },
         {
             key: "published_at",
             title: "Publicado Em",
+            headerProps: CELL_PROPS,
+            cellProps: CELL_PROPS,
         },
         {
             key: "updated_at",
             title: "Atualizado Em",
+            headerProps: CELL_PROPS,
+            cellProps: CELL_PROPS,
         },
         {
             key: "deleted_at",
             title: "Deletado Em",
+            headerProps: CELL_PROPS,
+            cellProps: CELL_PROPS,
         },
     ]);
 
