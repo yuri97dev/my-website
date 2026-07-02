@@ -30,6 +30,10 @@
                                 <v-tab value="content">
                                     Conteúdo
                                 </v-tab>
+
+                                <v-tab value="links">
+                                    Links
+                                </v-tab>
                             </v-tabs>
                         </div>
 
@@ -146,6 +150,57 @@
                                         />
                                     </v-card>
                                 </v-tabs-window-item>
+
+                                <v-tabs-window-item
+                                    value="links"
+                                    class="h-100"
+                                >
+                                    <v-list
+                                        lines="two"
+                                        class="bg-surface-light rounded-lg"
+                                        style="max-height: 100%; overflow-y: auto"
+                                    >
+                                        <v-list-item
+                                            v-for="(link, index) in links"
+                                            :key="`link-${index}`"
+                                            :title="link.text"
+                                            :subtitle="link.href || link.dataRmHref"
+                                            prepend-icon="mdi-link"
+                                        >
+                                            <template #append>
+                                                <v-btn
+                                                    v-if="!!link.href"
+                                                    size="small"
+                                                    icon="mdi-delete"
+                                                    variant="tonal"
+                                                    color="error"
+                                                    class="rounded"
+                                                    @click.prevent="handleDeleteLink(link, index)"
+                                                ></v-btn>
+
+                                                <v-btn
+                                                    v-else-if="!!link.dataRmHref"
+                                                    size="small"
+                                                    icon="mdi-restore"
+                                                    variant="tonal"
+                                                    color="success"
+                                                    class="rounded"
+                                                    @click.prevent="handleRestoreLink(link, index)"
+                                                ></v-btn>
+
+                                                <v-btn
+                                                    :href="link.href || link.dataRmHref"
+                                                    target="_blank"
+                                                    size="small"
+                                                    icon="mdi-open-in-new"
+                                                    variant="tonal"
+                                                    color="primary"
+                                                    class="rounded ms-2"
+                                                ></v-btn>
+                                            </template>
+                                        </v-list-item>
+                                    </v-list>
+                                </v-tabs-window-item>
                             </v-tabs-window>
                         </div>
                     </div>
@@ -256,6 +311,34 @@
             : `<h1>${title || "Sem título"}</h1>${content || "Sem conteúdo"}`;
     });
 
+    const links = computed(() => {
+        const div = document.createElement("div");
+
+        div.innerHTML = htmlContent.value;
+
+        const links = div.querySelectorAll("a");
+
+        const duplicates = {};
+
+        return Array.from(links)
+            .map(link => ({
+                href: link.getAttribute("href"),
+                dataRmHref: link.getAttribute("data-rm-href"),
+                text: link.textContent,
+            }))
+            .filter(link => {
+                const key = link.href || link.dataRmHref;
+
+                if( !key ) return false;
+
+                if( duplicates[key] ) return false;
+
+                duplicates[key] = true;
+
+                return true;
+            });
+    });
+
     async function getPost() {
         loading.value.post = true;
 
@@ -358,6 +441,8 @@
     }
 
     async function handleSave() {
+        removeDataRmHrefs();
+
         if( isEditing.value ) {
             await updatePost();
         } else {
@@ -378,6 +463,56 @@
             e.preventDefault();
             form.value.thumbnail_path = new URL(image.src).pathname;
         }
+    }
+
+    function handleDeleteLink(link) {
+        const div = document.createElement("div");
+
+        div.innerHTML = form.value.content;
+
+        const linkSelector = `a[href="${link.href}"]`;
+        const linkElements = div.querySelectorAll(linkSelector);
+
+        if( !linkElements.length ) return;
+
+        linkElements.forEach(linkElement => {
+            linkElement.setAttribute("data-rm-href", linkElement.href);
+            linkElement.removeAttribute("href");
+        });
+
+        form.value.content = div.innerHTML;
+    }
+
+    function handleRestoreLink(link) {
+        const div = document.createElement("div");
+
+        div.innerHTML = form.value.content;
+
+        const linkSelector = `a[data-rm-href="${link.dataRmHref}"]`;
+        const linkElements = div.querySelectorAll(linkSelector);
+
+        if( !linkElements.length ) return;
+
+        linkElements.forEach(linkElement => {
+            linkElement.setAttribute("href", linkElement.getAttribute("data-rm-href"));
+            linkElement.removeAttribute("data-rm-href");
+        });
+
+        form.value.content = div.innerHTML;
+    }
+
+    function removeDataRmHrefs() {
+        const div = document.createElement("div");
+
+        div.innerHTML = form.value.content;
+
+        const linkElements = div.querySelectorAll("a[data-rm-href]");
+
+        linkElements.forEach(linkElement => {
+            linkElement.replaceWith(...linkElement.childNodes);
+        });
+
+        form.value.content = div.innerHTML;
     }
 
     function openCategoryManager() {
