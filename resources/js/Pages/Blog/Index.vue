@@ -105,7 +105,10 @@
                 </v-col>
             </v-row>
 
-            <div class="d-flex justify-center mt-4">
+            <div
+                v-if="pagination.page < pagination.lastPage"
+                class="d-flex justify-center mt-4"
+            >
                 <v-btn
                     size="large"
                     prepend-icon="mdi-arrow-down-circle"
@@ -113,7 +116,6 @@
                     variant="tonal"
                     color="success"
                     :loading="loading"
-                    :disabled="pagination.page === pagination.lastPage"
                     @click="handleLoadMore"
                 ></v-btn>
             </div>

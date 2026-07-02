@@ -77,8 +77,14 @@
     ].filter(Boolean));
 
     function handleContentClick(e) {
+        if( e.target.tagName === "A" ) {
+            e.target.setAttribute("target", "_blank");
+            return;
+        }
+
         if( e.target.tagName === "IMG" ) {
             imageViewerDialogRef.value.open(e.target.src);
+            return;
         }
     }
 </script>
