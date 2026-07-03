@@ -12,6 +12,7 @@ use League\HTMLToMarkdown\HtmlConverter;
 use League\HTMLToMarkdown\Converter\TableConverter;
 use App\Models\Post;
 use App\Models\PostChunk;
+use App\Models\SearchEmbeddingCache;
 use App\Models\ScrapedArticle;
 use App\Helpers\Meta;
 use App\Helpers\Ollama;
@@ -133,17 +134,7 @@ class PostController extends Controller
         $search = trim($search);
 
         if( !empty($search) ) {
-            $embedding = null;
-
-            try {
-                $ollama_response = Ollama::embed($search);
-
-                if( !empty($ollama_response["embeddings"]) ) {
-                    $embedding = json_encode($ollama_response["embeddings"][0]);
-                }
-            } catch(Exception $e) {
-                report($e);
-            }
+            $embedding = $this->resolveSearchEmbedding($search);
 
             $query_lexical_similarity = "ts_rank(
                 to_tsvector('portuguese', content),
@@ -320,5 +311,54 @@ class PostController extends Controller
         $excerpt = $converter->convert($content);
 
         return mb_substr($excerpt, 0, 160) . "...";
+    }
+
+    private function resolveSearchEmbedding(string $search): ?string
+    {
+        $normalized_query = $this->normalizeSearchQuery($search);
+        $embed_model = config("services.ollama.embed_model");
+
+        $cached = SearchEmbeddingCache::query()
+            ->where("normalized_query", $normalized_query)
+            ->where("embedding_model", $embed_model)
+            ->first();
+
+        if( $cached ) {
+            return $cached->embedding;
+        }
+
+        try {
+            $ollama_response = Ollama::embed($search);
+
+            if( empty($ollama_response["embeddings"]) ) {
+                return null;
+            }
+
+            $embedding = json_encode($ollama_response["embeddings"][0]);
+
+            SearchEmbeddingCache::updateOrCreate(
+                [
+                    "normalized_query" => $normalized_query,
+                    "embedding_model" => $embed_model,
+                ],
+                [
+                    "embedding" => $embedding,
+                ]
+            );
+
+            return $embedding;
+        } catch(Exception $e) {
+            report($e);
+            return null;
+        }
+    }
+
+    private function normalizeSearchQuery(string $search): string
+    {
+        $normalized_query = DB::scalar("
+            SELECT websearch_to_tsquery('portuguese', ?)::text
+        ", [$search]);
+
+        return $normalized_query ?: mb_strtolower($search);
     }
 }
