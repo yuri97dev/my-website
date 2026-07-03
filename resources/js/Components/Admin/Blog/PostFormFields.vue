@@ -68,7 +68,19 @@
                                                 class="mb-4"
                                                 @paste="handlePasteThumbnail"
                                                 v-model="form.thumbnail_path"
-                                            ></v-text-field>
+                                            >
+                                                <template #append-inner>
+                                                    <v-btn
+                                                        size="small"
+                                                        icon="mdi-crop"
+                                                        variant="tonal"
+                                                        color="primary"
+                                                        class="rounded"
+                                                        :loading="loading.thumbnail"
+                                                        @click.prevent="openThumbnailCropper"
+                                                    ></v-btn>
+                                                </template>
+                                            </v-text-field>
 
                                             <v-autocomplete
                                                 label="Categoria"
@@ -257,6 +269,11 @@
         ref="tagManagerRef"
         @update="getTags"
     />
+
+    <ImageCropperDialog
+        ref="cropperDialogRef"
+        @confirm="handleThumbnailCropConfirm"
+    />
 </template>
 
 <script setup>
@@ -273,6 +290,7 @@
     import Dialog from "@/Components/Dialog.vue";
     import CategoryManager from "@/Components/Admin/Blog/CategoryManager.vue";
     import TagManager from "@/Components/Admin/Blog/TagManager.vue";
+    import ImageCropperDialog from "@/Components/ImageCropperDialog.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
 
@@ -288,6 +306,7 @@
 
     const categoryManagerRef = ref(null);
     const tagManagerRef = ref(null);
+    const cropperDialogRef = ref(null);
 
     const form = ref({});
     const post = ref({});
@@ -299,6 +318,7 @@
         post: false,
         categories: false,
         tags: false,
+        thumbnail: false,
     });
 
     const isEditing = computed(() => !!post.value.id);
@@ -462,6 +482,54 @@
         if( !!image?.src ) {
             e.preventDefault();
             form.value.thumbnail_path = new URL(image.src).pathname;
+        }
+    }
+
+    function openThumbnailCropper() {
+        if( form.value.thumbnail_path ) {
+            cropperDialogRef.value?.open(form.value.thumbnail_path);
+            return;
+        }
+
+        const input = document.createElement("input");
+
+        input.type = "file";
+        input.accept = "image/*";
+
+        input.addEventListener("change", () => {
+            const file = input.files?.[0];
+
+            if( file ) {
+                cropperDialogRef.value?.open(file);
+            }
+        });
+
+        input.click();
+    }
+
+    async function handleThumbnailCropConfirm(file) {
+        loading.value.thumbnail = true;
+
+        const formData = new FormData();
+
+        formData.append("image", file);
+
+        if( isEditing.value ) {
+            formData.append("post_id", post.value.id);
+        }
+
+        try {
+            const url = route("api.blog.posts.images.store");
+            const { data } = await api.post(url, formData);
+
+            form.value.thumbnail_path = route("blog.images.show", data.image.id, false);
+
+            toastSuccess("Ok", "Thumbnail salva com sucesso");
+        } catch (e) {
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao salvar thumbnail");
+        } finally {
+            loading.value.thumbnail = false;
         }
     }
 
