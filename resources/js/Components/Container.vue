@@ -10,12 +10,11 @@
 
             <v-app-bar-title
                 tag="a"
-                class="d-flex align-center fill-height text-primary"
+                class="text-primary"
                 style="flex: unset"
                 :href="route('home')"
                 @click="goTo"
             >
-                <v-icon icon="mdi-brain"></v-icon>
                 {{ pageTitle }}
             </v-app-bar-title>
 

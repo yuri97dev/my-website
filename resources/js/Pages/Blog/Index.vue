@@ -65,43 +65,7 @@
                     cols="12"
                     lg="6" xl="4"
                 >
-                    <v-card
-                        hover
-                        border
-                        class="h-100"
-                        :href="post.href"
-                        @click.prevent="goToPostDetail(post)"
-                    >
-                        <v-img
-                            :src="post.thumbnail_path"
-                            height="240px"
-                            class="bg-surface-light"
-                            cover
-                        ></v-img>
-
-                        <v-card-title class="text-primary">
-                            <div class="lines-2">
-                                {{ post.title }}
-                            </div>
-                        </v-card-title>
-
-                        <v-card-text :title="post.excerpt">
-                            <div class="lines-2">
-                                {{ post.excerpt || "Sem resumo disponível" }}
-                            </div>
-
-                            <div class="d-flex align-center justify-space-between text-grey mt-2">
-                                <v-chip color="primary" variant="outlined">
-                                    {{ post.category.name }}
-                                </v-chip>
-
-                                <div class="d-flex align-center ga-2 text-grey">
-                                    <v-icon size="small" icon="mdi-clock"></v-icon>
-                                    {{ formatDate(post.updated_at, "dd/MM/yyyy HH:mm") }}
-                                </div>
-                            </div>
-                        </v-card-text>
-                    </v-card>
+                    <PostCard :post="post" />
                 </v-col>
             </v-row>
 
@@ -127,12 +91,13 @@
     import { ref, reactive, computed, onMounted, nextTick } from "vue";
 
     import Container from "@/Components/Container.vue";
+    import PostCard from "@/Components/PostCard.vue";
     import SearchField from "@/Components/SearchField.vue";
 
     import api from "@/api";
 
     import { alertError } from "@/Utils/Alert";
-    import { goTo, formatDate } from "@/Utils/Common";
+    import { goTo } from "@/Utils/Common";
 
     const props = defineProps({
         category: {
@@ -244,10 +209,6 @@
         nextTick(async () => {
             await getPosts();
         });
-    }
-
-    function goToPostDetail(post) {
-        goTo(post.href);
     }
 
     onMounted(async () => {
