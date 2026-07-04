@@ -6,17 +6,13 @@
         @close="handleClose"
         v-model="isOpen"
     >
-        <v-card-text>
-            <ImageCropper
-                ref="cropperRef"
-                :src="src"
-                :output-width="outputWidth"
-                :output-height="outputHeight"
-                :mime-type="mimeType"
-                :quality="quality"
-                @error="handleError"
-            ></ImageCropper>
-        </v-card-text>
+        <ImageCropper
+            ref="cropperRef"
+            :src="src"
+            :mime-type="mimeType"
+            :quality="quality"
+            @error="handleError"
+        ></ImageCropper>
 
         <template #actions>
             <v-btn
@@ -40,14 +36,6 @@
     import { alertError } from "@/Utils/Alert";
 
     const props = defineProps({
-        outputWidth: {
-            type: Number,
-            default: undefined,
-        },
-        outputHeight: {
-            type: Number,
-            default: undefined,
-        },
         mimeType: {
             type: String,
             default: "image/jpeg",

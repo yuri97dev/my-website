@@ -2,9 +2,9 @@
     <div class="image-cropper">
         <div class="d-flex justify-center pa-2">
             <v-btn-toggle
-                mandatory
                 divided
-                density="compact"
+                mandatory
+                variant="outlined"
                 v-model="isSquare"
             >
                 <v-btn
@@ -21,14 +21,14 @@
 
         <div
             ref="containerRef"
-            class="image-cropper__container"
-            :style="{ height }"
+            class="cropper-container"
+            style="height: 60dvh"
         ></div>
     </div>
 </template>
 
 <script setup>
-    import { ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
+    import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 
     import Cropper from "cropperjs";
 
@@ -36,18 +36,6 @@
         src: {
             type: [String, File, Blob],
             default: null,
-        },
-        height: {
-            type: String,
-            default: "360px",
-        },
-        outputWidth: {
-            type: Number,
-            default: undefined,
-        },
-        outputHeight: {
-            type: Number,
-            default: undefined,
         },
         mimeType: {
             type: String,
@@ -64,7 +52,7 @@
     ]);
 
     const containerRef = ref(null);
-    const isSquare = ref(false);
+    const isSquare = ref(true);
 
     let cropper = null;
     let objectUrl = null;
@@ -139,10 +127,7 @@
             throw new Error("Área de recorte indisponível");
         }
 
-        const canvas = await selection.$toCanvas({
-            width: props.outputWidth,
-            height: props.outputHeight,
-        });
+        const canvas = await selection.$toCanvas();
 
         return new Promise((resolve, reject) => {
             canvas.toBlob(
@@ -167,7 +152,7 @@
 
     watch(
         () => props.src,
-        () => nextTick(() => initCropper()),
+        () => initCropper(),
     );
 
     watch(isSquare, () => applyAspectRatio());
@@ -187,14 +172,7 @@
 </script>
 
 <style scoped>
-    .image-cropper__container {
-        width: 100%;
-        overflow: hidden;
-        border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-        border-radius: 4px;
-    }
-
-    .image-cropper__container :deep(cropper-canvas) {
+    .cropper-container :deep(cropper-canvas) {
         height: 100%;
     }
 </style>
