@@ -22,15 +22,25 @@
         <div
             ref="containerRef"
             class="cropper-container"
-            style="height: 60dvh"
-        ></div>
+        >
+            <Cropper
+                v-if="imageSrc"
+                ref="cropperRef"
+                class="cropper"
+                :src="imageSrc"
+                :stencil-props="stencilProps"
+                @error="emit('error', $event)"
+                @ready="refresh"
+            ></Cropper>
+        </div>
     </div>
 </template>
 
 <script setup>
-    import { ref, watch, onMounted, onBeforeUnmount } from "vue";
+    import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
-    import Cropper from "cropperjs";
+    import { Cropper } from "vue-advanced-cropper";
+    import "vue-advanced-cropper/dist/style.css";
 
     const props = defineProps({
         src: {
@@ -52,93 +62,35 @@
     ]);
 
     const containerRef = ref(null);
+    const cropperRef = ref(null);
     const isSquare = ref(true);
+    const imageSrc = ref(null);
 
-    let cropper = null;
+    const stencilProps = computed(() => isSquare.value ? { aspectRatio: 1 } : {});
+
     let objectUrl = null;
+    let resizeObserver = null;
 
-    function resolveSrc(src) {
-        if( !src ) return null;
-
-        if( src instanceof File || src instanceof Blob ) {
-            return URL.createObjectURL(src);
-        }
-
-        return src;
-    }
-
-    function revokeObjectUrl() {
-        if( objectUrl ) {
-            URL.revokeObjectURL(objectUrl);
-            objectUrl = null;
-        }
-    }
-
-    function destroyCropper() {
-        cropper?.destroy();
-        cropper = null;
-        revokeObjectUrl();
-    }
-
-    function applyAspectRatio() {
-        const selection = cropper?.getCropperSelection();
-
-        if( !selection ) return;
-
-        selection.aspectRatio = isSquare.value ? 1 : NaN;
-        selection.initialAspectRatio = isSquare.value ? 1 : NaN;
-
-        selection.$render();
-    }
-
-    async function initCropper() {
-        destroyCropper();
-
-        if( !props.src || !containerRef.value ) return;
-
-        const imageSrc = resolveSrc(props.src);
-
-        if( !imageSrc ) return;
-
-        if( props.src instanceof File || props.src instanceof Blob ) {
-            objectUrl = imageSrc;
-        }
-
-        const image = new Image();
-
-        image.src = imageSrc;
-
-        cropper = new Cropper(image, {
-            container: containerRef.value,
-        });
-
-        try {
-            await cropper.getCropperImage()?.$ready();
-            applyAspectRatio();
-        } catch (e) {
-            emit("error", e);
-        }
+    function refresh() {
+        nextTick(() => cropperRef.value?.refresh());
     }
 
     async function crop() {
-        const selection = cropper?.getCropperSelection();
+        await nextTick();
 
-        if( !selection ) {
+        cropperRef.value?.refresh();
+
+        const canvas = cropperRef.value?.getResult()?.canvas;
+
+        if( !canvas ) {
             throw new Error("Área de recorte indisponível");
         }
 
-        const canvas = await selection.$toCanvas();
-
         return new Promise((resolve, reject) => {
             canvas.toBlob(
-                (blob) => {
-                    if( !blob ) {
-                        reject(new Error("Erro ao gerar imagem recortada"));
-                        return;
-                    }
-
-                    resolve(blob);
-                },
+                (blob) => blob
+                    ? resolve(blob)
+                    : reject(new Error("Erro ao gerar imagem recortada")),
                 props.mimeType,
                 props.quality,
             );
@@ -152,17 +104,35 @@
 
     watch(
         () => props.src,
-        () => initCropper(),
+        (src) => {
+            if( objectUrl ) {
+                URL.revokeObjectURL(objectUrl);
+                objectUrl = null;
+            }
+
+            if( src instanceof File || src instanceof Blob ) {
+                objectUrl = URL.createObjectURL(src);
+                imageSrc.value = objectUrl;
+            } else {
+                imageSrc.value = src || null;
+            }
+        },
+        { immediate: true },
     );
 
-    watch(isSquare, () => applyAspectRatio());
+    watch(isSquare, refresh);
 
     onMounted(() => {
-        initCropper();
+        resizeObserver = new ResizeObserver(refresh);
+        resizeObserver.observe(containerRef.value);
     });
 
     onBeforeUnmount(() => {
-        destroyCropper();
+        resizeObserver?.disconnect();
+
+        if( objectUrl ) {
+            URL.revokeObjectURL(objectUrl);
+        }
     });
 
     defineExpose({
@@ -172,7 +142,13 @@
 </script>
 
 <style scoped>
-    .cropper-container :deep(cropper-canvas) {
+    .cropper-container {
+        height: 60dvh;
+        min-height: 400px;
+        overflow: hidden;
+    }
+
+    .cropper {
         height: 100%;
     }
 </style>
