@@ -56,11 +56,11 @@
             active: route().current("blog.index"),
         },
         {
-            key: "tools",
-            icon: "mdi-tools",
-            text: "Ferramentas",
-            href: route("tools"),
-            active: route().current("tools"),
+            key: "spreadsheet-formatter",
+            icon: "mdi-table-edit",
+            text: "Formatador de Planilhas",
+            href: route("tools.spreadsheet-formatter"),
+            active: route().current("tools.spreadsheet-formatter"),
         },
     ]);
 
