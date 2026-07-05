@@ -22,7 +22,7 @@
         </div>
 
         <v-fab
-            v-if="!!authUser"
+            v-if="isSysAdmin"
             app
             icon="mdi-pencil"
             size="large"
@@ -57,7 +57,7 @@
 
     const imageViewerDialogRef = ref(null);
 
-    const authUser = computed(() => page.props?.auth?.user);
+    const isSysAdmin = computed(() => page.props?.auth?.isSysAdmin);
 
     const slug = computed(() => props.post.slug);
     const category = computed(() => props.post.category);
