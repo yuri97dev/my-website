@@ -21,6 +21,15 @@
             ></div>
         </div>
 
+        <v-fab
+            v-if="!!authUser"
+            app
+            icon="mdi-pencil"
+            size="large"
+            color="primary"
+            @click="handleEditClick"
+        ></v-fab>
+
         <ImageViewerDialog
             ref="imageViewerDialogRef"
         ></ImageViewerDialog>
@@ -29,6 +38,7 @@
 
 <script setup>
     import { ref, computed } from "vue";
+    import { usePage } from "@inertiajs/vue3";
 
     import Container from "@/Components/Container.vue";
     import Breadcrumb from "@/Components/Breadcrumb.vue";
@@ -43,7 +53,11 @@
         },
     });
 
+    const page = usePage();
+
     const imageViewerDialogRef = ref(null);
+
+    const authUser = computed(() => page.props?.auth?.user);
 
     const slug = computed(() => props.post.slug);
     const category = computed(() => props.post.category);
@@ -53,6 +67,10 @@
         return title || "Post não encontrado";
     });
 
+    const editUrl = computed(() => {
+        const { id } = props.post;
+        return route("admin.blog.posts", { id });
+    });
 
     const breadcrumbs = computed(() => [
         {
@@ -86,5 +104,9 @@
             imageViewerDialogRef.value.open(e.target.src);
             return;
         }
+    }
+
+    function handleEditClick() {
+        window.open(editUrl.value, "_blank");
     }
 </script>

@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-    import { ref, reactive, nextTick } from "vue";
+    import { ref, reactive, nextTick, onMounted } from "vue";
 
     import api from "@/api";
 
@@ -193,4 +193,12 @@
     function handleRowClick(e, { item }) {
         postFormRef.value.open(item);
     }
+
+    onMounted(() => {
+        const { id } = route().params;
+
+        if( !id ) return;
+
+        postFormRef.value.open({ id });
+    });
 </script>
