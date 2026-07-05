@@ -3,9 +3,9 @@
 namespace App\Actions;
 
 use App\Helpers\HtmlFormatter;
+use App\Helpers\ScrapeHttp;
 use App\Models\ScrapedArticle;
 use App\Models\ScrapedArticleImage;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -77,10 +77,10 @@ class DownloadScrapedArticleImages
     {
         try {
 
-            $response = Http::timeout(20)
+            $response = ScrapeHttp::client($article->source)
+                ->timeout(20)
                 ->withHeaders([
                     "Accept" => "image/*,*/*;q=0.8",
-                    "User-Agent" => "Mozilla/5.0 (compatible; MyWebsiteBot/1.0)",
                 ])
                 ->get($src);
 

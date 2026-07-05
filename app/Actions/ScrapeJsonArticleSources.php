@@ -5,12 +5,12 @@ namespace App\Actions;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
 use Symfony\Component\DomCrawler\Crawler;
 use App\Models\ArticleSource;
 use App\Models\ScrapedArticle;
 use App\Actions\DownloadScrapedArticleImages;
 use App\Helpers\HtmlFormatter;
+use App\Helpers\ScrapeHttp;
 use Exception;
 
 class ScrapeJsonArticleSources
@@ -60,7 +60,9 @@ class ScrapeJsonArticleSources
 
     private function fetchItems(ArticleSource $source): Collection
     {
-        $response = Http::{$source->http_method}($source->list_url)->throw();
+        $response = ScrapeHttp::client($source)
+            ->{$source->http_method}($source->list_url)
+            ->throw();
 
         $data = $response->json();
 
@@ -84,7 +86,10 @@ class ScrapeJsonArticleSources
 
     private function buildArticle(ArticleSource $source, object $item): array
     {
-        $response = Http::{$source->http_method}($item->link)->throw();
+        $response = ScrapeHttp::client($source)
+            ->{$source->http_method}($item->link)
+            ->throw();
+
         $body = $response->body();
 
         $data = json_decode($body, true);
