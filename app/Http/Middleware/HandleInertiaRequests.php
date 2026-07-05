@@ -39,8 +39,12 @@ class HandleInertiaRequests extends Middleware
         return array_merge(parent::share($request), [
             "appName" => config("app.name"),
             "flash" => fn () => [
-                "success" => $request->session()->get("success"),
-                "error" => $request->session()->get("error"),
+                "success" => $request->hasSession()
+                    ? $request->session()->get("success")
+                    : null,
+                "error" => $request->hasSession()
+                    ? $request->session()->get("error")
+                    : null,
             ],
             "meta" => fn () => Meta::get(),
             "auth.user" => fn () => $request->user()?->only([
