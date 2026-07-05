@@ -73,7 +73,7 @@ class Post extends Model
     protected static function booted(): void
     {
         static::updated(function(Post $post) {
-            if( $post->wasChanged("content") ) {
+            if( $post->wasChanged(["content", "title"]) ) {
                 $post->chunks()->delete();
             }
         });
