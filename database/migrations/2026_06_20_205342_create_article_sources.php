@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create("article_sources", function (Blueprint $table) {
             $table->id();
-            $table->enum("driver", ["rss", "browser"]);
+            $table->enum("driver", ["rss", "browser", "json"]);
             $table->string("name", 100)->unique();
             $table->string("locale", 10)->default("en");
             $table->string("http_method", 10)->default("GET");

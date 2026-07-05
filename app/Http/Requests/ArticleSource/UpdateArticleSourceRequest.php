@@ -47,6 +47,7 @@ class UpdateArticleSourceRequest extends FormRequest
                 Rule::in([
                     ArticleSource::DRIVER_RSS,
                     ArticleSource::DRIVER_BROWSER,
+                    ArticleSource::DRIVER_JSON,
                 ]),
             ],
             "name" => [
@@ -82,7 +83,7 @@ class UpdateArticleSourceRequest extends FormRequest
     {
         return [
             "driver.required" => "O driver é obrigatório.",
-            "driver.in" => "O driver deve ser rss ou browser.",
+            "driver.in" => "O driver deve ser rss, browser ou json.",
             "name.required" => "O nome é obrigatório.",
             "name.max" => "O nome não pode ter mais de 100 caracteres.",
             "name.unique" => "Este nome já está em uso.",

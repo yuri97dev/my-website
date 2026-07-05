@@ -33,6 +33,11 @@ Schedule::job(new ScrapeArticleSourcesJob(driver: ArticleSource::DRIVER_BROWSER)
     ->everyTwoHours()
     ->withoutOverlapping();
 
+Schedule::job(new ScrapeArticleSourcesJob(driver: ArticleSource::DRIVER_JSON))
+    ->name("scrape-json-article-sources")
+    ->everyTwoHours()
+    ->withoutOverlapping();
+
 Schedule::call(new TranslateScrapedArticles)
     ->name("translate-scraped-articles")
     ->everyMinute()

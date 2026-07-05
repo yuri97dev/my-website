@@ -188,6 +188,7 @@
     const DRIVERS = [
         { title: "RSS", value: "rss" },
         { title: "Browser", value: "browser" },
+        { title: "JSON", value: "json" },
     ];
 
     const HTTP_METHODS = [ "GET", "POST" ];

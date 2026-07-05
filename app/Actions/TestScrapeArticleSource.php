@@ -14,6 +14,7 @@ class TestScrapeArticleSource
         return match($source->driver) {
             ArticleSource::DRIVER_RSS => (new ScrapeRssArticleSources)->scrapeOne($source),
             ArticleSource::DRIVER_BROWSER => (new ScrapeBrowserArticleSources)->scrapeOne($source),
+            ArticleSource::DRIVER_JSON => (new ScrapeJsonArticleSources)->scrapeOne($source),
             default => throw new Exception("Invalid driver."),
         };
     }

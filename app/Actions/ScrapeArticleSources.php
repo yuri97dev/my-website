@@ -28,8 +28,14 @@ class ScrapeArticleSources
             return;
         }
 
+        if( $driver === ArticleSource::DRIVER_JSON ) {
+            (new ScrapeJsonArticleSources)();
+            return;
+        }
+
         (new ScrapeRssArticleSources)();
         (new ScrapeBrowserArticleSources)();
+        (new ScrapeJsonArticleSources)();
     }
 
     private function scrapeSource(ArticleSource $source): void
@@ -37,6 +43,7 @@ class ScrapeArticleSources
         match($source->driver) {
             ArticleSource::DRIVER_RSS => (new ScrapeRssArticleSources)->scrapeSource($source),
             ArticleSource::DRIVER_BROWSER => (new ScrapeBrowserArticleSources)->scrapeSource($source),
+            ArticleSource::DRIVER_JSON => (new ScrapeJsonArticleSources)->scrapeSource($source),
             default => throw new Exception("Invalid driver."),
         };
     }

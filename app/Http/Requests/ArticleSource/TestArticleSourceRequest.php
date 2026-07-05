@@ -35,6 +35,7 @@ class TestArticleSourceRequest extends FormRequest
                 Rule::in([
                     ArticleSource::DRIVER_RSS,
                     ArticleSource::DRIVER_BROWSER,
+                    ArticleSource::DRIVER_JSON,
                 ]),
             ],
             "http_method" => ["required", "string", "max:10"],
@@ -53,7 +54,7 @@ class TestArticleSourceRequest extends FormRequest
     {
         return [
             "driver.required" => "O driver é obrigatório.",
-            "driver.in" => "O driver deve ser rss ou browser.",
+            "driver.in" => "O driver deve ser rss, browser ou json.",
             "http_method.required" => "O método HTTP é obrigatório.",
             "list_url.required" => "A URL da listagem é obrigatória.",
             "list_item_selector.required" => "O seletor de item da listagem é obrigatório.",

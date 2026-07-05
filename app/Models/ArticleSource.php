@@ -10,6 +10,7 @@ class ArticleSource extends Model
 {
     public const DRIVER_RSS = "rss";
     public const DRIVER_BROWSER = "browser";
+    public const DRIVER_JSON = "json";
 
     protected $fillable = [
         "driver",
