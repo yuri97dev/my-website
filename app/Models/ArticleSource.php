@@ -21,6 +21,7 @@ class ArticleSource extends Model
         "list_item_selector",
         "item_title_selector",
         "item_link_selector",
+        "item_link_base_url",
         "content_selector",
         "user_agent",
         "proxy_server",
@@ -48,5 +49,10 @@ class ArticleSource extends Model
     public function scopeDriver(Builder $query, string $driver): Builder
     {
         return $query->where("driver", $driver);
+    }
+
+    public function resolveItemLink(?string $link): string
+    {
+        return ($this->item_link_base_url ?? "") . ($link ?? "");
     }
 }

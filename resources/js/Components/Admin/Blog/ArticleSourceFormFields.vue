@@ -73,6 +73,16 @@
 
             <v-col cols="12" lg="6" xl="6">
                 <v-text-field
+                    label="Base URL do Link"
+                    hint="Opcional. Prefixo concatenado ao link obtido. Ex.: https://meusite.com/news/ ou https://meusite.com/news?slug="
+                    persistent-hint
+                    :error-messages="errors.item_link_base_url"
+                    v-model="form.item_link_base_url"
+                ></v-text-field>
+            </v-col>
+
+            <v-col cols="12" lg="6" xl="6">
+                <v-text-field
                     label="Selector do Conteúdo"
                     :error-messages="errors.content_selector"
                     v-model="form.content_selector"
@@ -285,6 +295,7 @@
                 list_item_selector: form.value.list_item_selector,
                 item_title_selector: form.value.item_title_selector,
                 item_link_selector: form.value.item_link_selector,
+                item_link_base_url: form.value.item_link_base_url,
                 content_selector: form.value.content_selector,
                 user_agent: form.value.user_agent,
                 proxy_server: form.value.proxy_server,
@@ -332,6 +343,7 @@
             list_item_selector: null,
             item_title_selector: null,
             item_link_selector: null,
+            item_link_base_url: null,
             content_selector: null,
             user_agent: null,
             proxy_server: null,

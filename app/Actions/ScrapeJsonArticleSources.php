@@ -77,7 +77,7 @@ class ScrapeJsonArticleSources
         return collect($list)
             ->map(fn(array $item) => (object) [
                 "title" => Arr::get($item, $source->item_title_selector),
-                "link" => Arr::get($item, $source->item_link_selector),
+                "link" => $source->resolveItemLink(Arr::get($item, $source->item_link_selector)),
             ])
             ->filter(fn($item) => !!$item->title && !!$item->link);
     }
@@ -85,8 +85,29 @@ class ScrapeJsonArticleSources
     private function buildArticle(ArticleSource $source, object $item): array
     {
         $response = Http::{$source->http_method}($item->link)->throw();
+        $body = $response->body();
 
-        $crawler = new Crawler($response->body());
+        $data = json_decode($body, true);
+
+        if( json_last_error() === JSON_ERROR_NONE && is_array($data) ) {
+            $content = Arr::get($data, $source->content_selector);
+
+            if( empty($content) ) {
+                throw new Exception("Content selector not found.");
+            }
+
+            if( is_array($content) ) {
+                $content = json_encode($content, JSON_UNESCAPED_UNICODE);
+            }
+
+            return [
+                "title" => $item->title,
+                "url" => $item->link,
+                "content" => (string) $content,
+            ];
+        }
+
+        $crawler = new Crawler($body);
 
         $main_content = $crawler
             ->filter($source->content_selector)

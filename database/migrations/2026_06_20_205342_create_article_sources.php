@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string("list_item_selector");
             $table->string("item_title_selector");
             $table->string("item_link_selector");
+            $table->string("item_link_base_url")->nullable();
             $table->string("content_selector");
             $table->string("user_agent", 500)->nullable();
             $table->string("proxy_server", 255)->nullable();

@@ -28,6 +28,7 @@ class ArticleSourceController extends Controller
                 "list_item_selector",
                 "item_title_selector",
                 "item_link_selector",
+                "item_link_base_url",
                 "content_selector",
                 "user_agent",
                 "proxy_server",

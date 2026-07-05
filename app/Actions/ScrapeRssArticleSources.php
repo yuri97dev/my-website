@@ -79,7 +79,7 @@ class ScrapeRssArticleSources
         return collect($list)
             ->map(fn(array $item) => (object) [
                 "title" => Arr::get($item, $source->item_title_selector),
-                "link" => Arr::get($item, $source->item_link_selector),
+                "link" => $source->resolveItemLink(Arr::get($item, $source->item_link_selector)),
             ])
             ->filter(fn($item) => !!$item->title && !!$item->link);
     }

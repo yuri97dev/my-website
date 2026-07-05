@@ -121,7 +121,7 @@ class ScrapeBrowserArticleSources
 
             return (object) [
                 "title" => $title,
-                "link" => $link,
+                "link" => $source->resolveItemLink($link),
             ];
         }))->filter(fn($item) => !!$item->title && !!$item->link);
     }
