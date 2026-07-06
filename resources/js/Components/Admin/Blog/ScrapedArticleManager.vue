@@ -6,22 +6,6 @@
         v-model="isOpen"
     >
         <v-row>
-            <template v-if="loading">
-                <v-col
-                    v-for="n in 4"
-                    :key="n"
-                    cols="12"
-                    xl="4" lg="6"
-                >
-                    <v-card variant="tonal" class="bg-surface-light h-100">
-                        <v-skeleton-loader
-                            type="paragraph"
-                            class="h-100"
-                        ></v-skeleton-loader>
-                    </v-card>
-                </v-col>
-            </template>
-
             <v-col
                 v-for="(scrapedArticle, index) in scrapedArticles"
                 :key="index"
@@ -81,6 +65,7 @@
                 variant="tonal"
                 color="success"
                 :disabled="pagination.page === pagination.lastPage"
+                :loading="loading"
                 @click="handlePaginationUpdate(pagination.page + 1)"
             ></v-btn>
         </div>
