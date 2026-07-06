@@ -27,9 +27,9 @@ RUN apt-get update && apt-get install -y \
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY --from=node:24.16.0-bookworm-slim /usr/local/bin/node /usr/local/bin/node
-COPY --from=node:24.16.0-bookworm-slim /usr/local/bin/npm /usr/local/bin/npm
-COPY --from=node:24.16.0-bookworm-slim /usr/local/bin/npx /usr/local/bin/npx
 COPY --from=node:24.16.0-bookworm-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -sf ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -sf ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
 COPY docker/php/app.ini /usr/local/etc/php/conf.d/app.ini
 COPY docker/php/fpm-env.conf /usr/local/etc/php-fpm.d/fpm-env.conf
