@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Notifications\ResetPasswordNotification;
+use App\Notifications\VerifyEmailNotification;
 
 #[Fillable(["name", "email", "password", "accepts_marketing"])]
 #[Hidden(["password", "remember_token"])]
@@ -47,5 +49,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isSystemAdmin(): bool
     {
         return $this->hasRole(Role::SYSTEM_ADMIN);
+    }
+
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyEmailNotification);
     }
 }
