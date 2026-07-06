@@ -1,5 +1,6 @@
 <template>
     <v-form
+        class="mb-4"
         @submit.prevent="updatePersonalData"
     >
         <v-card title="Dados Pessoais" :loading="loading.personalData">
