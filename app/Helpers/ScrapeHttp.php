@@ -6,6 +6,7 @@ use App\Models\ArticleSource;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
@@ -182,6 +183,8 @@ class ScrapeHttp
                         return false;
                     }
 
+                    self::logRetry($exception, $source);
+
                     $request->withHeaders(
                         self::buildHeaders(self::rotateProfileFor($source), $source),
                     );
@@ -287,5 +290,11 @@ class ScrapeHttp
         }
 
         return false;
+    }
+
+    private static function logRetry(Throwable $exception, ?ArticleSource $source): void
+    {
+        $context = $source ? " for source {$source->name}" : "";
+        Log::warning("ScrapeHttp: request failed{$context}: {$exception->getMessage()}");
     }
 }
