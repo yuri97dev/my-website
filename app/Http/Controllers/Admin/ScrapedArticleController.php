@@ -84,17 +84,26 @@ class ScrapedArticleController extends Controller
         ], 202);
     }
 
-    public function rejectTranslation(ScrapedArticle $scrapedArticle)
+    public function rejectTranslation(Request $request, ScrapedArticle $scrapedArticle)
     {
-        $scrapedArticle->update([
+        $permanent = $request->boolean("permanent");
+
+        $data = [
             "translated_title" => null,
             "translated_content" => null,
-            "translation_rejected_at" => now(),
-        ]);
+        ];
+
+        if( $permanent ) {
+            $data["translation_rejected_at"] = now();
+        }
+
+        $scrapedArticle->update($data);
 
         return response()->json([
             "scraped_article" => $scrapedArticle->fresh(),
-            "message" => "Tradução rejeitada com sucesso.",
+            "message" => $permanent
+                ? "Tradução rejeitada permanentemente."
+                : "Tradução rejeitada com sucesso.",
         ], 200);
     }
 }

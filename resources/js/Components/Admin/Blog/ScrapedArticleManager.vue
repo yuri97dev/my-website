@@ -193,17 +193,36 @@
 
     <Dialog
         title="Rejeitar Tradução"
-        message="Rejeitar a tradução e exibir o conteúdo original?"
-        max-width="400px"
+        max-width="500px"
         v-model="isRejectTranslationDialogOpen"
     >
+        <p class="mb-2">
+            A tradução será removida e o conteúdo original será exibido.
+        </p>
+
+        <p class="text-medium-emphasis text-body-2 mb-0">
+            <strong>Rejeitar:</strong> o artigo voltará ao processo de tradução automaticamente.
+        </p>
+
+        <p class="text-medium-emphasis text-body-2 mb-0">
+            <strong>Rejeitar permanentemente:</strong> o artigo nunca mais será traduzido.
+        </p>
+
         <template #actions>
             <v-btn
                 variant="tonal"
                 color="warning"
                 prepend-icon="mdi-translate-off"
-                text="Rejeitar Tradução"
-                @click="rejectTranslation"
+                text="Rejeitar"
+                @click="rejectTranslation(false)"
+            ></v-btn>
+
+            <v-btn
+                variant="tonal"
+                color="error"
+                prepend-icon="mdi-translate-off"
+                text="Rejeitar Permanentemente"
+                @click="rejectTranslation(true)"
             ></v-btn>
         </template>
     </Dialog>
@@ -355,7 +374,7 @@
         }
     }
 
-    async function rejectTranslation() {
+    async function rejectTranslation(permanent = false) {
         loading.value = true;
 
         try {
@@ -363,13 +382,13 @@
                 "api.scraped-articles.reject-translation",
                 selectedScrapedArticle.value.id,
             );
-            const { data } = await api.patch(url);
+            const { data } = await api.patch(url, { permanent });
 
             selectedScrapedArticle.value = data.scraped_article;
 
             contentTab.value = "original";
 
-            toastSuccess("Ok", "Tradução rejeitada com sucesso");
+            toastSuccess("Ok", data.message || "Tradução rejeitada com sucesso");
 
             isRejectTranslationDialogOpen.value = false;
 
