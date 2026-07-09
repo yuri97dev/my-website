@@ -160,6 +160,12 @@ class ScrapeHttp
     private static function logRetry(Throwable $exception, ?ArticleSource $source): void
     {
         $context = $source ? " for source {$source->name}" : "";
-        Log::warning("ScrapeHttp: request failed{$context}: {$exception->getMessage()}");
+
+        $headers = self::buildHeaders(self::profileFor($source), $source);
+
+        Log::warning(
+            "ScrapeHttp: request failed{$context}: {$exception->getMessage()}",
+            ["headers" => $headers],
+        );
     }
 }
