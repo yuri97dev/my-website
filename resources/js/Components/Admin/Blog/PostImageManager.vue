@@ -231,9 +231,9 @@
         const url = route("blog.images.show", id, false);
 
         const content = [
-            `<div class="blog-img-container">`,
-            `   <img src="${url}" class="border rounded" />`,
-            `</div>`,
+            //`<div class="blog-img-container">`,
+            `   <img src="${url}" />`,
+            //`</div>`,
         ].join("\n");
 
         const { success, error } = await copyText(content);

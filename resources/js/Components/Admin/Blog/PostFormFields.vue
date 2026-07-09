@@ -5,6 +5,7 @@
         hide-footer
         scrollable
         fullscreen
+        persistent
         transition="dialog-bottom-transition"
         @close="handleClose"
         v-model="isDialogOpen"
