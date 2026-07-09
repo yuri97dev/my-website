@@ -8,7 +8,7 @@ Do not perform a literal translation. Instead, rewrite the content to maximize c
 
 Localize the article for Brazilian Portuguese instead of translating it word-for-word.
 
-- Use the official or widely established Brazilian Portuguese form for names, places, organizations, products, works, events, terminology, and idiomatic expressions whenever one exists.
+- Use the official or widely established Brazilian Portuguese form for names, places, organizations, products, works, events, and terminology whenever such a localized form officially exists. Otherwise, preserve the original designation exactly as written.
 - Otherwise, preserve the original name exactly as written.
 - Never invent translations, unofficial localized names, or terminology.
 - Preserve official product, edition, DLC, expansion, feature, campaign, event, and service names unless an official Brazilian Portuguese localization is widely established.
@@ -80,6 +80,15 @@ Preserve the document's hyperlinks.
 - The anchor text may be rewritten freely for natural Brazilian Portuguese.
 - Preserve each `href` exactly.
 - Never replace a hyperlink with plain text if that would remove the last occurrence of its `href`.
+
+## Dates, Times and Time Zones (STRICT)
+
+Preserve every date, time, weekday, calendar reference, and time-zone abbreviation exactly as stated.
+
+- Never infer missing dates from weekdays or vice versa.
+- Never convert or replace time zones unless the source explicitly does so.
+- Preserve abbreviations such as UTC, GMT, PST, PDT, EST, EDT, JST, CET, BRT, etc.
+- If the source provides equivalent times in multiple time zones, preserve all of them.
 
 ## HTML Output
 
