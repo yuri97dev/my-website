@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\AiPromptController;
 use App\Http\Controllers\Admin\AiProviderController;
 use App\Http\Controllers\Admin\ArticleSourceController;
 use App\Http\Controllers\Admin\ScrapedArticleController;
+use App\Http\Controllers\Admin\ScrapeHttpProfileController;
 use App\Http\Controllers\Admin\SessionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Blog\PostCategoryController;
@@ -167,6 +168,18 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
         Route::patch("/scraped-articles/{scrapedArticle}/reject-translation", [
             ScrapedArticleController::class, "rejectTranslation",
         ])->name("api.scraped-articles.reject-translation");
+
+        Route::get("/scrape-http-profiles", [
+            ScrapeHttpProfileController::class, "index",
+        ])->name("api.scrape-http-profiles.index");
+
+        Route::put("/scrape-http-profiles/{scrapeHttpProfile}", [
+            ScrapeHttpProfileController::class, "update",
+        ])->name("api.scrape-http-profiles.update");
+
+        Route::delete("/scrape-http-profiles/{scrapeHttpProfile}", [
+            ScrapeHttpProfileController::class, "destroy",
+        ])->name("api.scrape-http-profiles.destroy");
     });
 
 Route::prefix("tools")->group(function() {
