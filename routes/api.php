@@ -173,6 +173,10 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             ScrapeHttpProfileController::class, "index",
         ])->name("api.scrape-http-profiles.index");
 
+        Route::post("/scrape-http-profiles", [
+            ScrapeHttpProfileController::class, "store",
+        ])->name("api.scrape-http-profiles.store");
+
         Route::put("/scrape-http-profiles/{scrapeHttpProfile}", [
             ScrapeHttpProfileController::class, "update",
         ])->name("api.scrape-http-profiles.update");

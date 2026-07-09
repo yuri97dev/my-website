@@ -69,4 +69,5 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
         Route::inertia("/jobs", "Admin/Jobs")->name("admin.jobs");
         Route::inertia("/logs", "Admin/Logs")->name("admin.logs");
         Route::inertia("/ai-providers", "Admin/AiProviders")->name("admin.ai-providers");
+        Route::inertia("/scrape-http-profiles", "Admin/ScrapeHttpProfiles")->name("admin.scrape-http-profiles");
     });

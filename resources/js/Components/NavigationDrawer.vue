@@ -87,6 +87,13 @@
             active: route().current("admin.ai-providers"),
         },
         {
+            key: "scrape-http-profiles",
+            icon: "mdi-web-box",
+            text: "Perfis HTTP",
+            href: route("admin.scrape-http-profiles"),
+            active: route().current("admin.scrape-http-profiles"),
+        },
+        {
             key: "sessions",
             icon: "mdi-monitor-account",
             text: "Sessões",

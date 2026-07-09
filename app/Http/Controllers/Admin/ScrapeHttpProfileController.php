@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ScrapeHttpProfile\StoreScrapeHttpProfileRequest;
 use App\Http\Requests\ScrapeHttpProfile\UpdateScrapeHttpProfileRequest;
 use App\Models\ScrapeHttpProfile;
 use Illuminate\Http\Request;
@@ -32,6 +33,15 @@ class ScrapeHttpProfileController extends Controller
             "total" => $paginator->total(),
             "scrape_http_profiles" => $paginator->items(),
         ], 200);
+    }
+
+    public function store(StoreScrapeHttpProfileRequest $request)
+    {
+        $scrapeHttpProfile = ScrapeHttpProfile::create($request->validated());
+
+        return response()->json([
+            "scrape_http_profile" => $scrapeHttpProfile,
+        ], 201);
     }
 
     public function update(UpdateScrapeHttpProfileRequest $request, ScrapeHttpProfile $scrapeHttpProfile)
