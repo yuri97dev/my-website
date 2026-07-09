@@ -26,16 +26,19 @@ Schedule::call(new GeneratePostChunks)
 Schedule::job(new ScrapeArticleSourcesJob(driver: ArticleSource::DRIVER_RSS))
     ->name("scrape-rss-article-sources")
     ->everyTwoHours()
+    ->unlessBetween("01:00", "06:00")
     ->withoutOverlapping();
 
 Schedule::job(new ScrapeArticleSourcesJob(driver: ArticleSource::DRIVER_BROWSER))
     ->name("scrape-browser-article-sources")
     ->everyTwoHours()
+    ->unlessBetween("01:00", "06:00")
     ->withoutOverlapping();
 
 Schedule::job(new ScrapeArticleSourcesJob(driver: ArticleSource::DRIVER_JSON))
     ->name("scrape-json-article-sources")
     ->everyTwoHours()
+    ->unlessBetween("01:00", "06:00")
     ->withoutOverlapping();
 
 Schedule::call(new TranslateScrapedArticles)
