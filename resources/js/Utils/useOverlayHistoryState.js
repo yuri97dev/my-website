@@ -1,16 +1,31 @@
 import { onBeforeUnmount, watch } from "vue";
 
 const stack = [];
-let ignorePop = false;
+let ignorePops = 0;
 
 window.addEventListener("popstate", () => {
-    if( ignorePop ) {
-        ignorePop = false;
+    if( ignorePops > 0 ) {
+        ignorePops--;
         return;
     }
 
     stack.pop()?.close();
 });
+
+function removeEntry(entry) {
+    const idx = stack.indexOf(entry);
+
+    if( idx === -1 ) return;
+
+    const wasTop = idx === stack.length - 1;
+
+    stack.splice(idx, 1);
+
+    if( wasTop ) {
+        ignorePops++;
+        history.back();
+    }
+}
 
 export function useOverlayHistoryState(isOpen) {
     let entry = null;
@@ -24,36 +39,13 @@ export function useOverlayHistoryState(isOpen) {
         }
 
         if( !open && wasOpen && entry ) {
-            const idx = stack.indexOf(entry);
-
-            if( idx === -1 ) {
-                entry = null;
-                return;
-            }
-
-            stack.splice(idx, 1);
-
-            if( idx === stack.length ) {
-                ignorePop = true;
-                history.back();
-            }
-
+            removeEntry(entry);
             entry = null;
         }
     });
 
     onBeforeUnmount(() => {
         if( !entry || !isOpen.value ) return;
-
-        const idx = stack.indexOf(entry);
-
-        if( idx === -1 ) return;
-
-        stack.splice(idx, 1);
-
-        if( idx === stack.length ) {
-            ignorePop = true;
-            history.back();
-        }
+        removeEntry(entry);
     });
 }
