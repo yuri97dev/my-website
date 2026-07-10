@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use Symfony\AI\Platform\Bridge\DeepSeek\Factory as DeepSeekFactory;
 use Symfony\AI\Platform\Bridge\Gemini\Factory as GeminiFactory;
+use Symfony\AI\Platform\Bridge\OpenAi\Factory as OpenAiFactory;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
 use App\Models\AiPrompt;
@@ -29,6 +30,7 @@ class TranslateScrapedArticles
         $platform = match($provider) {
             "gemini" => GeminiFactory::createPlatform($api_key),
             "deepseek" => DeepSeekFactory::createPlatform($api_key),
+            "openai" => OpenAiFactory::createPlatform($api_key),
             default => throw new Exception("Provedor não suportado"),
         };
 
