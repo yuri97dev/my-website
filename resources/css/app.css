@@ -45,7 +45,8 @@ a {
 
 .post-container img {
     max-width: 100%;
-    max-height: 50dvh;
+    height: auto;
+    max-height: min(50svh, 640px);
     background-color: rgb(var(--v-theme-surface-light));
     cursor: pointer;
 }
