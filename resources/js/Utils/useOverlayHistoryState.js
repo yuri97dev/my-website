@@ -1,55 +1,58 @@
-import { onBeforeUnmount, onMounted, watch } from "vue";
+import { onBeforeUnmount, watch } from "vue";
 
-function createOverlayId() {
-    return crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-}
+const stack = [];
+let ignorePop = false;
+
+window.addEventListener("popstate", () => {
+    if( ignorePop ) {
+        ignorePop = false;
+        return;
+    }
+
+    stack.pop()?.close();
+});
 
 export function useOverlayHistoryState(isOpen) {
-    const overlayId = createOverlayId();
-
-    let pushedByOverlay = false;
-    let closingByPopstate = false;
-
-    function onPopstate(event) {
-        if( !pushedByOverlay || !isOpen.value ) return;
-
-        if( event.state?.overlayId === overlayId ) return;
-
-        closingByPopstate = true;
-        pushedByOverlay = false;
-
-        isOpen.value = false;
-    }
+    let entry = null;
 
     watch(isOpen, (open, wasOpen) => {
         if( open && !wasOpen ) {
-            history.pushState({ overlayId }, "", window.location.href);
-            pushedByOverlay = true;
+            entry = { close: () => { isOpen.value = false; } };
+            history.pushState(null, "", location.href);
+            stack.push(entry);
             return;
         }
 
-        if( !open && wasOpen ) {
-            if( closingByPopstate ) {
-                closingByPopstate = false;
+        if( !open && wasOpen && entry ) {
+            const idx = stack.indexOf(entry);
+
+            if( idx === -1 ) {
+                entry = null;
                 return;
             }
 
-            if( pushedByOverlay ) {
-                pushedByOverlay = false;
+            stack.splice(idx, 1);
+
+            if( idx === stack.length ) {
+                ignorePop = true;
                 history.back();
             }
+
+            entry = null;
         }
     });
 
-    onMounted(() => {
-        window.addEventListener("popstate", onPopstate);
-    });
-
     onBeforeUnmount(() => {
-        window.removeEventListener("popstate", onPopstate);
+        if( !entry || !isOpen.value ) return;
 
-        if( pushedByOverlay && isOpen.value ) {
-            pushedByOverlay = false;
+        const idx = stack.indexOf(entry);
+
+        if( idx === -1 ) return;
+
+        stack.splice(idx, 1);
+
+        if( idx === stack.length ) {
+            ignorePop = true;
             history.back();
         }
     });
