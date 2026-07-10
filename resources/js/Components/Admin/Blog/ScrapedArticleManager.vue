@@ -157,6 +157,19 @@
                     ></v-list-item>
 
                     <v-list-item
+                        prepend-icon="mdi-content-copy"
+                        title="Copiar Texto da Aba"
+                        @click="copyActiveTabText"
+                    ></v-list-item>
+
+                    <v-list-item
+                        v-if="hasTranslation"
+                        prepend-icon="mdi-content-copy"
+                        title="Copiar Original e Traduzido"
+                        @click="copyOriginalAndTranslated"
+                    ></v-list-item>
+
+                    <v-list-item
                         :href="selectedScrapedArticle?.url"
                         target="_blank"
                         prepend-icon="mdi-open-in-new"
@@ -236,7 +249,7 @@
     import BottomSheet from "@/Components/BottomSheet.vue";
     import Dialog from "@/Components/Dialog.vue";
 
-    import { formatDate } from "@/Utils/Common";
+    import { copyText, formatDate } from "@/Utils/Common";
 
     import {
         alertError,
@@ -455,6 +468,62 @@
     function handleContentClick(e) {
         if( e.target.tagName === "A" ) {
             window.open(e.target.href, "_blank");
+        }
+    }
+
+    async function copyActiveTabText() {
+        const article = selectedScrapedArticle.value;
+
+        if( !article ) return;
+
+        const isTranslated = contentTab.value === "translated";
+
+        const title = isTranslated
+            ? (article.translated_title || article.title || "")
+            : (article.title || "");
+
+        const html = isTranslated
+            ? (article.translated_content ?? "")
+            : (article.content ?? "");
+
+        const content = [title, html].filter(Boolean).join("\n\n");
+
+        const { success, error } = await copyText(content);
+
+        if( !success ) {
+            alertError("Ooops", error || "Erro ao copiar texto");
+        } else {
+            toastSuccess("Ok", "Texto copiado com sucesso");
+        }
+    }
+
+    async function copyOriginalAndTranslated() {
+        const article = selectedScrapedArticle.value;
+
+        if( !article || !hasTranslation.value ) return;
+
+        const original = [
+            article.title || "",
+            article.content ?? "",
+        ].filter(Boolean).join("\n\n");
+
+        const translated = [
+            article.translated_title || "",
+            article.translated_content ?? "",
+        ].filter(Boolean).join("\n\n");
+
+        const content = [
+            `ORIGINAL: ${original}`,
+            "",
+            `TRADUZIDO: ${translated}`,
+        ].join("\n");
+
+        const { success, error } = await copyText(content);
+
+        if( !success ) {
+            alertError("Ooops", error || "Erro ao copiar texto");
+        } else {
+            toastSuccess("Ok", "Texto copiado com sucesso");
         }
     }
 
