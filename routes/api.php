@@ -16,6 +16,7 @@ use App\Http\Controllers\Blog\PostCategoryController;
 use App\Http\Controllers\Blog\PostController;
 use App\Http\Controllers\Blog\PostImageController;
 use App\Http\Controllers\Blog\PostTagController;
+use App\Http\Controllers\Blog\PostViewController;
 use App\Http\Controllers\SpreadsheetFormatterController;
 use App\Models\Role;
 
@@ -214,6 +215,12 @@ Route::prefix("blog/posts")->group(function () {
     Route::get("/tags", [
         PostTagController::class, "index",
     ])->name("api.blog.posts.tags.index");
+
+    Route::post("/{post}/views", [
+        PostViewController::class, "store",
+    ])
+        ->middleware("throttle:10,1")
+        ->name("api.blog.posts.views.store");
 
     Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])->group(function () {
         Route::get("/images", [

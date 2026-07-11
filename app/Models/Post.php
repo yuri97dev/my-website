@@ -62,6 +62,11 @@ class Post extends Model
         return $this->hasMany(PostChunk::class);
     }
 
+    public function views(): HasMany
+    {
+        return $this->hasMany(PostView::class);
+    }
+
     public function scopePublished(Builder $query): Builder
     {
         return $query

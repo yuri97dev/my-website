@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-    import { ref, computed } from "vue";
+    import { ref, computed, onMounted, onBeforeUnmount } from "vue";
     import { usePage } from "@inertiajs/vue3";
 
     import Container from "@/Components/Container.vue";
@@ -45,6 +45,8 @@
     import ImageViewerDialog from "@/Components/ImageViewerDialog.vue";
 
     import { formatDate } from "@/Utils/Common";
+
+    import api from "@/api";
 
     const props = defineProps({
         post: {
@@ -109,4 +111,19 @@
     function handleEditClick() {
         window.open(editUrl.value, "_blank");
     }
+
+    let viewTimer = null;
+
+    onMounted(() => {
+        if( isSysAdmin.value ) return;
+
+        viewTimer = setTimeout(() => {
+            const url = route("api.blog.posts.views.store", { post: props.post.id });
+            api.post(url).catch(() => {});
+        }, 5000);
+    });
+
+    onBeforeUnmount(() => {
+        if( viewTimer ) clearTimeout(viewTimer);
+    });
 </script>
