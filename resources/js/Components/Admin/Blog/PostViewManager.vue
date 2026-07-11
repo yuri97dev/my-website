@@ -1,7 +1,7 @@
 <template>
     <BottomSheet
         title="Visualizações"
-        height="70dvh"
+        height="80dvh"
         :loading="loading"
         v-model="isOpen"
     >
