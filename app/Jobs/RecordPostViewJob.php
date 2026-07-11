@@ -20,7 +20,9 @@ class RecordPostViewJob implements ShouldQueue
         protected string $visitor_hash,
         protected ?int $user_id = null,
         protected ?string $referrer = null,
-    ) {}
+    ) {
+        $this->onQueue("post-views");
+    }
 
     public function handle(): void
     {
