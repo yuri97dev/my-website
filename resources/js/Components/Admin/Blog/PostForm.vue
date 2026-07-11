@@ -12,6 +12,13 @@
             ></v-btn>
 
             <v-btn
+                v-if="post?.id"
+                prepend-icon="mdi-chart-bar"
+                text="Visualizações"
+                @click="openViewManager"
+            ></v-btn>
+
+            <v-btn
                 prepend-icon="mdi-image-multiple"
                 text="Imagens"
                 @click="openImageManager"
@@ -20,6 +27,8 @@
     </PostFormFields>
 
     <PostImageManager ref="imageManagerRef"/>
+
+    <PostViewManager ref="viewManagerRef"/>
 
     <ScrapedArticleManager ref="scrapedArticleManagerRef">
         <template #content-action-buttons>
@@ -39,6 +48,7 @@
 
     import PostFormFields from "@/Components/Admin/Blog/PostFormFields.vue";
     import PostImageManager from "@/Components/Admin/Blog/PostImageManager.vue";
+    import PostViewManager from "@/Components/Admin/Blog/PostViewManager.vue";
     import ScrapedArticleManager from "@/Components/Admin/Blog/ScrapedArticleManager.vue";
 
     const emit = defineEmits([
@@ -47,6 +57,7 @@
 
     const formFieldsRef = ref(null);
     const imageManagerRef = ref(null);
+    const viewManagerRef = ref(null);
     const scrapedArticleManagerRef = ref(null);
 
     const post = ref(null);
@@ -58,6 +69,10 @@
 
     function openImageManager() {
         imageManagerRef.value?.open(post.value.id);
+    }
+
+    function openViewManager() {
+        viewManagerRef.value?.open(post.value.id);
     }
 
     function openScrapedArticleManager() {

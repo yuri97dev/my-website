@@ -235,6 +235,10 @@ Route::prefix("blog/posts")->group(function () {
             PostImageController::class, "destroy",
         ])->name("api.blog.posts.images.destroy");
 
+        Route::get("/{post}/views", [
+            PostViewController::class, "index",
+        ])->name("api.blog.posts.views.index");
+
         Route::get("/{post}", [
             PostController::class, "getById",
         ])->name("api.blog.posts.get-by-id");
