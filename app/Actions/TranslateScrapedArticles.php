@@ -17,10 +17,11 @@ class TranslateScrapedArticles
     {
         $ai_prompt = AiPrompt::query()
             ->key("post-translation")
+            ->whereHas("aiProvider", fn ($query) => $query->enabled())
             ->with("aiProvider")
             ->first();
 
-        if( !$ai_prompt || !$ai_prompt->aiProvider->is_enabled ) {
+        if( !$ai_prompt ) {
             return;
         }
 
