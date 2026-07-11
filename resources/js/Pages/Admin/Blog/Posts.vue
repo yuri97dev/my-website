@@ -18,6 +18,10 @@
                 v-model:page="pagination.page"
                 v-model:items-per-page="pagination.perPage"
             >
+                <template #item.views_count="{ item }">
+                    {{ formatViewsCount(item.views_count) }}
+                </template>
+
                 <template #item.created_at="{ item }">
                     <span v-if="!!item.created_at">
                         {{ formatDate(item.created_at, "dd/MM/yyyy HH:mm") }}
@@ -120,6 +124,12 @@
             },
         },
         {
+            key: "views_count",
+            title: "Visualizações",
+            headerProps: CELL_PROPS,
+            cellProps: CELL_PROPS,
+        },
+        {
             key: "created_at",
             title: "Criado Em",
             headerProps: CELL_PROPS,
@@ -150,6 +160,10 @@
         perPage: 10,
         total: 0,
     });
+
+    function formatViewsCount(value) {
+        return Number(value || 0).toLocaleString("pt-BR");
+    }
 
     async function getPosts() {
         loading.value = true;

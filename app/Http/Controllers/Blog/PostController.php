@@ -69,6 +69,7 @@ class PostController extends Controller
                 "published_at",
                 "meta_description",
                 "thumbnail_path",
+                "views_count",
                 "created_at",
                 "updated_at",
             ])
