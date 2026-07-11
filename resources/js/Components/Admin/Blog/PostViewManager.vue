@@ -1,103 +1,100 @@
 <template>
-    <Dialog
+    <BottomSheet
         title="Visualizações"
-        max-width="900px"
-        no-body
-        scrollable
+        height="70dvh"
+        :loading="loading"
         v-model="isOpen"
     >
-        <div class="pa-4">
-            <v-row class="mb-4">
-                <v-col cols="12" sm="6" md="3">
-                    <v-card variant="tonal" color="primary">
-                        <v-card-text class="text-center">
-                            <div class="text-caption text-medium-emphasis">
-                                Total de visualizações
-                            </div>
+        <v-row class="mb-4">
+            <v-col cols="12" sm="6" md="3">
+                <v-card variant="tonal" color="primary">
+                    <v-card-text class="text-center">
+                        <div class="text-caption text-medium-emphasis">
+                            Total de visualizações
+                        </div>
 
-                            <div class="text-h5">
-                                {{ formatCount(summary.views_count) }}
-                            </div>
-                        </v-card-text>
-                    </v-card>
-                </v-col>
+                        <div class="text-h5">
+                            {{ formatCount(summary.views_count) }}
+                        </div>
+                    </v-card-text>
+                </v-card>
+            </v-col>
 
-                <v-col cols="12" sm="6" md="3">
-                    <v-card variant="tonal" color="success">
-                        <v-card-text class="text-center">
-                            <div class="text-caption text-medium-emphasis">
-                                Visitantes únicos
-                            </div>
+            <v-col cols="12" sm="6" md="3">
+                <v-card variant="tonal" color="success">
+                    <v-card-text class="text-center">
+                        <div class="text-caption text-medium-emphasis">
+                            Visitantes únicos
+                        </div>
 
-                            <div class="text-h5">
-                                {{ formatCount(summary.unique_visitors) }}
-                            </div>
-                        </v-card-text>
-                    </v-card>
-                </v-col>
+                        <div class="text-h5">
+                            {{ formatCount(summary.unique_visitors) }}
+                        </div>
+                    </v-card-text>
+                </v-card>
+            </v-col>
 
-                <v-col cols="12" sm="6" md="3">
-                    <v-card variant="tonal">
-                        <v-card-text class="text-center">
-                            <div class="text-caption text-medium-emphasis">
-                                Primeira visualização
-                            </div>
+            <v-col cols="12" sm="6" md="3">
+                <v-card variant="tonal">
+                    <v-card-text class="text-center">
+                        <div class="text-caption text-medium-emphasis">
+                            Primeira visualização
+                        </div>
 
-                            <div class="text-body-1">
-                                {{ formatDateTime(summary.first_viewed_at) }}
-                            </div>
-                        </v-card-text>
-                    </v-card>
-                </v-col>
+                        <div class="text-body-1">
+                            {{ formatDateTime(summary.first_viewed_at) }}
+                        </div>
+                    </v-card-text>
+                </v-card>
+            </v-col>
 
-                <v-col cols="12" sm="6" md="3">
-                    <v-card variant="tonal">
-                        <v-card-text class="text-center">
-                            <div class="text-caption text-medium-emphasis">
-                                Última visualização
-                            </div>
+            <v-col cols="12" sm="6" md="3">
+                <v-card variant="tonal">
+                    <v-card-text class="text-center">
+                        <div class="text-caption text-medium-emphasis">
+                            Última visualização
+                        </div>
 
-                            <div class="text-body-1">
-                                {{ formatDateTime(summary.last_viewed_at) }}
-                            </div>
-                        </v-card-text>
-                    </v-card>
-                </v-col>
-            </v-row>
+                        <div class="text-body-1">
+                            {{ formatDateTime(summary.last_viewed_at) }}
+                        </div>
+                    </v-card-text>
+                </v-card>
+            </v-col>
+        </v-row>
 
-            <v-card :loading="loading">
-                <v-data-table-server
-                    :headers="headers"
-                    :items="views"
-                    :items-length="pagination.total"
-                    :loading="loading"
-                    @update:options="getViews"
-                    v-model:page="pagination.page"
-                    v-model:items-per-page="pagination.perPage"
-                >
-                    <template #item.viewed_at="{ item }">
-                        {{ formatDateTime(item.viewed_at) }}
-                    </template>
+        <v-card>
+            <v-data-table-server
+                :headers="headers"
+                :items="views"
+                :items-length="pagination.total"
+                :loading="loading"
+                @update:options="getViews"
+                v-model:page="pagination.page"
+                v-model:items-per-page="pagination.perPage"
+            >
+                <template #item.viewed_at="{ item }">
+                    {{ formatDateTime(item.viewed_at) }}
+                </template>
 
-                    <template #item.visitor="{ item }">
-                        {{ item.user?.name || "Anônimo" }}
-                    </template>
+                <template #item.visitor="{ item }">
+                    {{ item.user?.name || "Anônimo" }}
+                </template>
 
-                    <template #item.referrer="{ item }">
-                        <span
-                            v-if="item.referrer"
-                            class="text-truncate d-inline-block"
-                            style="max-width: 280px;"
-                            :title="item.referrer"
-                        >
-                            {{ item.referrer }}
-                        </span>
+                <template #item.referrer="{ item }">
+                    <span
+                        v-if="item.referrer"
+                        class="text-truncate d-inline-block"
+                        style="max-width: 280px;"
+                        :title="item.referrer"
+                    >
+                        {{ item.referrer }}
+                    </span>
 
-                        <span v-else class="text-medium-emphasis">—</span>
-                    </template>
-                </v-data-table-server>
-            </v-card>
-        </div>
+                    <span v-else class="text-medium-emphasis">—</span>
+                </template>
+            </v-data-table-server>
+        </v-card>
 
         <template #actions>
             <v-btn
@@ -107,7 +104,7 @@
                 @click="getViews"
             ></v-btn>
         </template>
-    </Dialog>
+    </BottomSheet>
 </template>
 
 <script setup>
@@ -115,7 +112,7 @@
 
     import api from "@/api";
 
-    import Dialog from "@/Components/Dialog.vue";
+    import BottomSheet from "@/Components/BottomSheet.vue";
 
     import { alertError } from "@/Utils/Alert";
     import { formatDate } from "@/Utils/Common";
