@@ -1,15 +1,25 @@
 import { onBeforeUnmount, watch } from "vue";
 
 const stack = [];
-let ignorePops = 0;
+let selfPops = 0;
+
+function keepEntryClean() {
+    if( stack.length === 0 ) return;
+
+    queueMicrotask(() => {
+        if( stack.length === 0 ) return;
+        history.replaceState(null, "", location.href);
+    });
+}
 
 window.addEventListener("popstate", () => {
-    if( ignorePops > 0 ) {
-        ignorePops--;
-        return;
+    if( selfPops > 0 ) {
+        selfPops--;
+    } else {
+        stack.pop()?.close();
     }
 
-    stack.pop()?.close();
+    keepEntryClean();
 });
 
 function removeEntry(entry) {
@@ -22,7 +32,7 @@ function removeEntry(entry) {
     stack.splice(idx, 1);
 
     if( wasTop ) {
-        ignorePops++;
+        selfPops++;
         history.back();
     }
 }
@@ -45,7 +55,12 @@ export function useOverlayHistoryState(isOpen) {
     });
 
     onBeforeUnmount(() => {
-        if( !entry || !isOpen.value ) return;
-        removeEntry(entry);
+        if( !entry ) return;
+
+        const idx = stack.indexOf(entry);
+
+        if( idx !== -1 ) stack.splice(idx, 1);
+
+        entry = null;
     });
 }
