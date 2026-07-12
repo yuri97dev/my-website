@@ -414,12 +414,53 @@
         }
     }
 
+    function getPostImagePaths() {
+        const paths = new Set();
+
+        if( form.value.thumbnail_path ) {
+            try {
+                paths.add(new URL(form.value.thumbnail_path, window.location.origin).pathname);
+            } catch {
+                paths.add(form.value.thumbnail_path);
+            }
+        }
+
+        const div = document.createElement("div");
+
+        div.innerHTML = form.value.content || "";
+
+        div.querySelectorAll("img[src]").forEach(image => {
+            try {
+                paths.add(new URL(image.src, window.location.origin).pathname);
+            } catch {
+                paths.add(image.getAttribute("src"));
+            }
+        });
+
+        return [ ...paths ].filter(Boolean);
+    }
+
+    async function associatePostImages(postId) {
+        const paths = getPostImagePaths();
+
+        if( !paths.length ) return;
+
+        const url = route("api.blog.posts.images.associate");
+
+        await api.post(url, {
+            post_id: postId,
+            paths,
+        });
+    }
+
     async function updatePost() {
         loading.value.post = true;
 
         try {
             const url = route("api.blog.posts.update", post.value.id);
             await api.put(url, form.value);
+
+            await associatePostImages(post.value.id);
 
             toastSuccess("Ok", "Post salvo com sucesso");
         } catch (e) {
@@ -446,6 +487,8 @@
 
             post.value.id = data.post.id;
             scrapedArticleId.value = null;
+
+            await associatePostImages(data.post.id);
 
             toastSuccess("Ok", "Post criado com sucesso");
 

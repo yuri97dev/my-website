@@ -231,6 +231,10 @@ Route::prefix("blog/posts")->group(function () {
             PostImageController::class, "store",
         ])->name("api.blog.posts.images.store");
 
+        Route::post("/images/associate", [
+            PostImageController::class, "associate",
+        ])->name("api.blog.posts.images.associate");
+
         Route::delete("/images/{postImage}", [
             PostImageController::class, "destroy",
         ])->name("api.blog.posts.images.destroy");

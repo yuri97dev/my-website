@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\Blog\AssociatePostImagesRequest;
 use App\Http\Requests\Blog\StorePostImageRequest;
 use App\Models\PostImage;
 use Symfony\Component\HttpFoundation\Response;
@@ -76,5 +77,67 @@ class PostImageController extends Controller
         return response()->json([
             "message" => "Imagem removida com sucesso.",
         ], 200);
+    }
+
+    public function associate(AssociatePostImagesRequest $request)
+    {
+        $post_id = (int) $request->input("post_id");
+
+        $paths = collect($request->input("paths", []))
+            ->map(fn ($path) => $this->normalizeImagePath($path))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if( $paths->isEmpty() ) return response()->json([
+            "associated" => 0,
+        ], 200);
+
+        $ids = $paths
+            ->map(fn ($path) => $this->extractImageIdFromPath($path))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $associated = PostImage::query()
+            ->whereNull("post_id")
+            ->where(function ($query) use ($paths, $ids) {
+                $query->whereIn("path", $paths);
+
+                if( $ids->isNotEmpty() ) {
+                    $query->orWhereIn("id", $ids);
+                }
+            })
+            ->update(["post_id" => $post_id]);
+
+        return response()->json([
+            "associated" => $associated,
+        ], 200);
+    }
+
+    private function normalizeImagePath(string $path): ?string
+    {
+        $path = trim($path);
+
+        if( $path === "" ) {
+            return null;
+        }
+
+        if( Str::startsWith($path, ["http://", "https://"]) ) {
+            $path = parse_url($path, PHP_URL_PATH) ?: $path;
+        }
+
+        $path = "/" . ltrim($path, "/");
+
+        return $path !== "/" ? $path : null;
+    }
+
+    private function extractImageIdFromPath(string $path): ?string
+    {
+        if( preg_match("#^/blog/images/([0-9a-fA-F-]{36})$#", $path, $matches) ) {
+            return $matches[1];
+        }
+
+        return null;
     }
 }
