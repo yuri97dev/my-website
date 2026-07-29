@@ -87,7 +87,7 @@
 
     const isOpen = defineModel();
 
-    useOverlayHistoryState(isOpen, () => props.overlayId);
+    useOverlayHistoryState(isOpen, props.overlayId);
 
     const cardClasses = computed(() => {
         if( attrs.fullscreen !== "" ) return null;

@@ -91,7 +91,7 @@
 
     const isOpen = defineModel();
 
-    useOverlayHistoryState(isOpen, () => props.overlayId);
+    useOverlayHistoryState(isOpen, props.overlayId);
 
     function open() {
         isOpen.value = true;
