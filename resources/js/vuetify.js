@@ -65,5 +65,11 @@ export default createVuetify({
             noDataText: "Nenhum resultado encontrado",
             itemsPerPageText: "Itens por página",
         },
+        Dialog: {
+            closeOnBack: false,
+        },
+        BottomSheet: {
+            closeOnBack: false,
+        },
     },
 });
