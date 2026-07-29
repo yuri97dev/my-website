@@ -1,5 +1,6 @@
 <template>
     <Dialog
+        overlay-id="blog-post-image-cropper"
         title="Recortar Imagem"
         no-body
         max-width="900px"

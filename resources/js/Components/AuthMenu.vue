@@ -32,6 +32,7 @@
     ></v-btn>
 
     <Dialog
+        overlay-id="auth-logout"
         title="Logout"
         message="Tem certeza que deseja sair?"
         max-width="500"

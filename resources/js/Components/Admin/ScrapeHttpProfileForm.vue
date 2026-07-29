@@ -1,5 +1,6 @@
 <template>
     <BottomSheet
+        overlay-id="scrape-http-profile-form"
         :title="isEditing ? 'Editar Perfil HTTP' : 'Novo Perfil HTTP'"
         @close="handleClose"
         v-model="isDialogOpen"
@@ -101,6 +102,7 @@
     </BottomSheet>
 
     <Dialog
+        overlay-id="scrape-http-profile-confirm-remove"
         title="Excluir Perfil HTTP"
         max-width="500"
         v-model="isConfirmRemoveDialogOpen"

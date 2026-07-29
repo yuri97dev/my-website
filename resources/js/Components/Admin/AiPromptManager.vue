@@ -1,5 +1,6 @@
 <template>
     <Dialog
+        overlay-id="ai-prompt-list"
         :title="`Prompts — ${aiProvider?.name ?? ''}`"
         max-width="700"
         no-body
@@ -66,6 +67,7 @@
     </Dialog>
 
     <Dialog
+        overlay-id="ai-prompt-form"
         :title="form.id ? 'Editar Prompt' : 'Criar Prompt'"
         max-width="700"
         no-body
@@ -144,6 +146,7 @@
     </Dialog>
 
     <Dialog
+        overlay-id="ai-prompt-confirm-remove"
         title="Excluir Prompt"
         max-width="500"
         v-model="isConfirmRemoveDialogOpen"

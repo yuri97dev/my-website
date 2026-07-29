@@ -1,5 +1,6 @@
 <template>
     <Dialog
+        overlay-id="article-source-ai-prompt"
         :title="`Prompts de IA — ${articleSource?.name ?? ''}`"
         max-width="700"
         no-body

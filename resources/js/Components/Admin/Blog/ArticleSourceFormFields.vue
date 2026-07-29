@@ -1,5 +1,6 @@
 <template>
     <BottomSheet
+        overlay-id="article-source-form"
         :title="isEditing ? 'Editar Fonte' : 'Nova Fonte'"
         @close="handleClose"
         v-model="isDialogOpen"
@@ -159,6 +160,7 @@
     </BottomSheet>
 
     <Dialog
+        overlay-id="article-source-test-result"
         :title="testResult?.title ?? 'Resultado do Teste'"
         no-body
         scrollable

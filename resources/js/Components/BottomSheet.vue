@@ -60,6 +60,10 @@
     const attrs = useAttrs();
 
     const props = defineProps({
+        overlayId: {
+            type: String,
+            required: true,
+        },
         title: {
             type: String,
             required: true,
@@ -87,7 +91,7 @@
 
     const isOpen = defineModel();
 
-    useOverlayHistoryState(isOpen);
+    useOverlayHistoryState(isOpen, () => props.overlayId);
 
     function open() {
         isOpen.value = true;

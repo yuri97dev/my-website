@@ -1,5 +1,6 @@
 <template>
     <Dialog
+        overlay-id="blog-category-list"
         title="Categorias"
         max-width="600"
         no-body
@@ -66,6 +67,7 @@
     </Dialog>
 
     <Dialog
+        overlay-id="blog-category-form"
         title="Criar Categoria"
         max-width="500"
         @close="resetForm"
@@ -96,6 +98,7 @@
     </Dialog>
 
     <Dialog
+        overlay-id="blog-category-confirm-remove"
         title="Excluir Categoria"
         max-width="500"
         v-model="isConfirmRemoveDialogOpen"

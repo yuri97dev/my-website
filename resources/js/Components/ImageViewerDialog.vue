@@ -1,5 +1,6 @@
 <template>
     <Dialog
+        overlay-id="blog-image-viewer"
         title="Visualizar Imagem"
         no-body
         scrollable

@@ -1,5 +1,6 @@
 <template>
     <BottomSheet
+        overlay-id="scraped-article-list"
         title="Posts Baixados"
         height="90dvh"
         :loading="loading"
@@ -90,6 +91,7 @@
     </BottomSheet>
 
     <Dialog
+        overlay-id="scraped-article-content"
         :title="selectedScrapedArticleTitle"
         no-body
         scrollable
@@ -188,6 +190,7 @@
     </Dialog>
 
     <Dialog
+        overlay-id="scraped-article-disable"
         title="Desativar Artigo"
         message="Desativar o artigo?"
         max-width="400px"
@@ -205,6 +208,7 @@
     </Dialog>
 
     <Dialog
+        overlay-id="scraped-article-reject-translation"
         title="Rejeitar Tradução"
         max-width="500px"
         v-model="isRejectTranslationDialogOpen"

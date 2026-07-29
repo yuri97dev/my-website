@@ -1,5 +1,6 @@
 <template>
     <BottomSheet
+        overlay-id="ai-provider-form"
         :title="isEditing ? 'Editar Provedor de IA' : 'Novo Provedor de IA'"
         @close="handleClose"
         v-model="isDialogOpen"

@@ -61,6 +61,10 @@
     const attrs = useAttrs();
 
     const props = defineProps({
+        overlayId: {
+            type: String,
+            required: true,
+        },
         title: {
             type: String,
             required: true,
@@ -83,7 +87,7 @@
 
     const isOpen = defineModel();
 
-    useOverlayHistoryState(isOpen);
+    useOverlayHistoryState(isOpen, () => props.overlayId);
 
     const cardClasses = computed(() => {
         if( attrs.fullscreen !== "" ) return null;

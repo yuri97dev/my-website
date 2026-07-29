@@ -1,5 +1,6 @@
 <template>
     <Dialog
+        overlay-id="blog-tag-list"
         title="Tags"
         max-width="600"
         no-body
@@ -66,6 +67,7 @@
     </Dialog>
 
     <Dialog
+        overlay-id="blog-tag-form"
         title="Criar Tag"
         max-width="500"
         @close="resetForm"
@@ -96,6 +98,7 @@
     </Dialog>
 
     <Dialog
+        overlay-id="blog-tag-confirm-remove"
         title="Excluir Tag"
         max-width="500"
         v-model="isConfirmRemoveDialogOpen"

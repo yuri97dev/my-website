@@ -1,5 +1,6 @@
 <template>
     <Dialog
+        overlay-id="blog-post-form"
         :title="isEditing ? 'Editar Post' : 'Novo Post'"
         no-body
         hide-footer

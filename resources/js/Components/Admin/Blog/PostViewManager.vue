@@ -1,5 +1,6 @@
 <template>
     <BottomSheet
+        overlay-id="blog-post-views"
         title="Visualizações"
         height="80dvh"
         :loading="loading"

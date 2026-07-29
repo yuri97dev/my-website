@@ -47,6 +47,7 @@
     </div>
 
     <Dialog
+        overlay-id="account-revoke-session"
         title="Revogar Sessão"
         message="Tem certeza que deseja revogar a sessão?"
         max-width="500"

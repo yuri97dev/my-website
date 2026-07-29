@@ -1,5 +1,6 @@
 <template>
     <BottomSheet
+        overlay-id="post-image-list"
         title="Imagens Disponíveis"
         :loading="loading"
         v-model="isOpen"
@@ -87,6 +88,7 @@
     </BottomSheet>
 
     <Dialog
+        overlay-id="post-image-confirm-remove"
         title="Remover Imagem"
         message="Tem certeza que deseja remover a imagem?"
         max-width="400"
