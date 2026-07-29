@@ -364,5 +364,6 @@
 
     defineExpose({
         open,
+        getArticleSource: () => articleSource.value,
     });
 </script>

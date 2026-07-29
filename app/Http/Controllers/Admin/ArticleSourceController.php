@@ -37,6 +37,7 @@ class ArticleSourceController extends Controller
                 "created_at",
                 "updated_at",
             ])
+            ->withCount("aiPrompts")
             ->orderByDesc("id")
             ->paginate($perPage);
 

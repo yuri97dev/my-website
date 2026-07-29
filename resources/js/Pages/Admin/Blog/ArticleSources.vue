@@ -107,6 +107,10 @@
             title: "Selector do Conteúdo",
         },
         {
+            key: "ai_prompts_count",
+            title: "Prompts de IA",
+        },
+        {
             key: "is_enabled",
             title: "Ativo",
         },

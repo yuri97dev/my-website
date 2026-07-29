@@ -103,6 +103,17 @@
                 :error-messages="errors.content"
                 v-model="form.content"
             ></v-textarea>
+
+            <v-btn
+                v-if="!form.id"
+                variant="text"
+                color="primary"
+                prepend-icon="mdi-file-document-outline"
+                text="Usar template de tradução"
+                class="mt-2"
+                :loading="loadingTemplate"
+                @click="applyTranslationTemplate"
+            ></v-btn>
         </v-card-text>
 
         <template #actions>
@@ -170,9 +181,9 @@
 
     const prompts = ref([]);
     const selectedPrompt = ref(null);
-    const suggestedPrompt = ref(null);
 
     const loading = ref(false);
+    const loadingTemplate = ref(false);
     const saving = ref(false);
 
     function truncateContent(content) {
@@ -291,16 +302,20 @@
         await getPrompts();
     }
 
-    async function loadSuggestedPrompt() {
-        if( suggestedPrompt.value ) return;
+    async function applyTranslationTemplate() {
+        loadingTemplate.value = true;
 
         try {
             const url = route("api.ai-prompt-templates.show", "post-translation");
             const { data } = await api.get(url);
 
-            suggestedPrompt.value = data;
+            form.key = data.key ?? "";
+            form.content = data.content ?? "";
         } catch (e) {
-            console.log(e);
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao carregar template de tradução");
+        } finally {
+            loadingTemplate.value = false;
         }
     }
 
@@ -325,15 +340,6 @@
         resetForm();
 
         isDialogFormOpen.value = true;
-
-        if( prompts.value.length > 0 ) return;
-
-        nextTick(async () => {
-            await loadSuggestedPrompt();
-
-            form.key = suggestedPrompt.value?.key ?? "";
-            form.content = suggestedPrompt.value?.content ?? "";
-        });
     }
 
     function editPrompt(prompt) {

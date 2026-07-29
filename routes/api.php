@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\JobController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\AiPromptController;
 use App\Http\Controllers\Admin\AiProviderController;
+use App\Http\Controllers\Admin\ArticleSourceAiPromptController;
 use App\Http\Controllers\Admin\ArticleSourceController;
 use App\Http\Controllers\Admin\ScrapedArticleController;
 use App\Http\Controllers\Admin\ScrapeHttpProfileController;
@@ -118,6 +119,14 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             ArticleSourceController::class, "disable",
         ])->name("api.article-sources.disable");
 
+        Route::get("/article-sources/{articleSource}/ai-prompts", [
+            ArticleSourceAiPromptController::class, "index",
+        ])->name("api.article-sources.ai-prompts.index");
+
+        Route::put("/article-sources/{articleSource}/ai-prompts", [
+            ArticleSourceAiPromptController::class, "sync",
+        ])->name("api.article-sources.ai-prompts.sync");
+
         Route::get("/ai-providers", [
             AiProviderController::class, "index",
         ])->name("api.ai-providers.index");
@@ -134,8 +143,12 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             AiPromptController::class, "template",
         ])->name("api.ai-prompt-templates.show");
 
-        Route::get("/ai-providers/{aiProvider}/prompts", [
+        Route::get("/ai-prompts", [
             AiPromptController::class, "index",
+        ])->name("api.ai-prompts.index");
+
+        Route::get("/ai-providers/{aiProvider}/prompts", [
+            AiPromptController::class, "forProvider",
         ])->name("api.ai-providers.prompts.index");
 
         Route::post("/ai-providers/{aiProvider}/prompts", [

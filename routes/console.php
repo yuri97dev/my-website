@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 use App\Actions\RemoveExpiredSpreadsheetFiles;
 use App\Actions\GeneratePostChunks;
-use App\Actions\TranslateScrapedArticles;
+use App\Actions\ProcessScrapedArticlesWithAi;
 use App\Jobs\ScrapeArticleSourcesJob;
 use App\Models\ArticleSource;
 
@@ -41,7 +41,7 @@ Schedule::job(new ScrapeArticleSourcesJob(driver: ArticleSource::DRIVER_JSON))
     ->unlessBetween("01:00", "06:00")
     ->withoutOverlapping();
 
-Schedule::call(new TranslateScrapedArticles)
-    ->name("translate-scraped-articles")
+Schedule::call(new ProcessScrapedArticlesWithAi)
+    ->name("process-scraped-articles-with-ai")
     ->everyMinute()
     ->withoutOverlapping();

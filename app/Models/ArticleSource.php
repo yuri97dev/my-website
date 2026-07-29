@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ArticleSource extends Model
@@ -39,6 +40,14 @@ class ArticleSource extends Model
     public function articles(): HasMany
     {
         return $this->hasMany(ScrapedArticle::class);
+    }
+
+    public function aiPrompts(): BelongsToMany
+    {
+        return $this->belongsToMany(AiPrompt::class, "article_source_ai_prompts")
+            ->withPivot("position")
+            ->withTimestamps()
+            ->orderBy("article_source_ai_prompts.position");
     }
 
     public function scopeEnabled(Builder $query): Builder

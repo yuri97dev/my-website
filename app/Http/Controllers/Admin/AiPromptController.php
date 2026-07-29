@@ -36,7 +36,29 @@ class AiPromptController extends Controller
         ]);
     }
 
-    public function index(AiProvider $aiProvider)
+    public function index()
+    {
+        $prompts = AiPrompt::query()
+            ->select([
+                "id",
+                "ai_provider_id",
+                "key",
+                "model",
+            ])
+            ->with("aiProvider:id,name")
+            ->get()
+            ->sortBy([
+                fn ($prompt) => $prompt->aiProvider->name ?? "",
+                fn ($prompt) => $prompt->key,
+            ])
+            ->values();
+
+        return response()->json([
+            "ai_prompts" => $prompts,
+        ], 200);
+    }
+
+    public function forProvider(AiProvider $aiProvider)
     {
         $prompts = $aiProvider->prompts()
             ->select([
