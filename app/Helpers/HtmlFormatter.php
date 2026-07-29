@@ -72,7 +72,7 @@ class HtmlFormatter
             ->allowElement("abbr", ["title"])
             ->allowElement("code")
             ->allowElement("a", ["href", "title"])
-            ->allowElement("img", ["src", "alt", "title", "width", "height"])
+            ->allowElement("img", ["src", "alt", "title"])
             ->allowElement("figure")
             ->allowElement("figcaption")
             ->allowElement("table")
