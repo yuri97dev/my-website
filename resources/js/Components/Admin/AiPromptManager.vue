@@ -119,18 +119,13 @@
 
                 <v-list>
                     <v-list-item
-                        title="1. Localização fiel"
+                        title="1. Tradução e localização"
                         @click="applyTranslationTemplate('post-translation-01-localization')"
                     ></v-list-item>
 
                     <v-list-item
-                        title="2. Edição jornalística"
+                        title="2. Edição e revisão final"
                         @click="applyTranslationTemplate('post-translation-02-editorial')"
-                    ></v-list-item>
-
-                    <v-list-item
-                        title="3. Revisão e validação final"
-                        @click="applyTranslationTemplate('post-translation-03-validation')"
                     ></v-list-item>
                 </v-list>
             </v-menu>

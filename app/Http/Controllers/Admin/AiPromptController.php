@@ -19,10 +19,6 @@ class AiPromptController extends Controller
             "key" => "post-translation-02-editorial",
             "path" => "prompts/post-translation-02-editorial.txt",
         ],
-        "post-translation-03-validation" => [
-            "key" => "post-translation-03-validation",
-            "path" => "prompts/post-translation-03-validation.txt",
-        ],
     ];
 
     public function template(string $name)
