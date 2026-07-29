@@ -11,9 +11,17 @@ use App\Models\AiProvider;
 class AiPromptController extends Controller
 {
     private const TEMPLATES = [
-        "post-translation" => [
-            "key" => "post-translation",
-            "path" => "prompts/post-translation.txt",
+        "post-translation-01-localization" => [
+            "key" => "post-translation-01-localization",
+            "path" => "prompts/post-translation-01-localization.txt",
+        ],
+        "post-translation-02-editorial" => [
+            "key" => "post-translation-02-editorial",
+            "path" => "prompts/post-translation-02-editorial.txt",
+        ],
+        "post-translation-03-validation" => [
+            "key" => "post-translation-03-validation",
+            "path" => "prompts/post-translation-03-validation.txt",
         ],
     ];
 

@@ -104,16 +104,36 @@
                 v-model="form.content"
             ></v-textarea>
 
-            <v-btn
-                v-if="!form.id"
-                variant="text"
-                color="primary"
-                prepend-icon="mdi-file-document-outline"
-                text="Usar template de tradução"
-                class="mt-2"
-                :loading="loadingTemplate"
-                @click="applyTranslationTemplate"
-            ></v-btn>
+            <v-menu v-if="!form.id" location="bottom start">
+                <template #activator="{ props }">
+                    <v-btn
+                        variant="text"
+                        color="primary"
+                        prepend-icon="mdi-file-document-outline"
+                        text="Usar template de tradução"
+                        class="mt-2"
+                        :loading="loadingTemplate"
+                        v-bind="props"
+                    ></v-btn>
+                </template>
+
+                <v-list>
+                    <v-list-item
+                        title="1. Localização fiel"
+                        @click="applyTranslationTemplate('post-translation-01-localization')"
+                    ></v-list-item>
+
+                    <v-list-item
+                        title="2. Edição jornalística"
+                        @click="applyTranslationTemplate('post-translation-02-editorial')"
+                    ></v-list-item>
+
+                    <v-list-item
+                        title="3. Revisão e validação final"
+                        @click="applyTranslationTemplate('post-translation-03-validation')"
+                    ></v-list-item>
+                </v-list>
+            </v-menu>
         </v-card-text>
 
         <template #actions>
@@ -302,11 +322,11 @@
         await getPrompts();
     }
 
-    async function applyTranslationTemplate() {
+    async function applyTranslationTemplate(template) {
         loadingTemplate.value = true;
 
         try {
-            const url = route("api.ai-prompt-templates.show", "post-translation");
+            const url = route("api.ai-prompt-templates.show", template);
             const { data } = await api.get(url);
 
             form.key = data.key ?? "";
