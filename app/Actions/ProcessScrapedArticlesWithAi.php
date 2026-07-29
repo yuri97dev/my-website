@@ -40,6 +40,7 @@ class ProcessScrapedArticlesWithAi
 
         foreach($prompts as $prompt) {
             $content = $this->invokePrompt($prompt, $content);
+            sleep(rand(1, 3));
         }
 
         [$translated_title, $translated_content] = explode("</h1>", $content, 2);
