@@ -56,8 +56,6 @@
 <script setup>
     import { computed, useAttrs } from "vue";
 
-    import { useOverlayHistoryState } from "@/Utils/useOverlayHistoryState";
-
     const attrs = useAttrs();
 
     const props = defineProps({
@@ -86,8 +84,6 @@
     ]);
 
     const isOpen = defineModel();
-
-    useOverlayHistoryState(isOpen, props.overlayId);
 
     const cardClasses = computed(() => {
         if( attrs.fullscreen !== "" ) return null;

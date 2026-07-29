@@ -55,8 +55,6 @@
 <script setup>
     import { useAttrs } from "vue";
 
-    import { useOverlayHistoryState } from "@/Utils/useOverlayHistoryState";
-
     const attrs = useAttrs();
 
     const props = defineProps({
@@ -90,8 +88,6 @@
     ]);
 
     const isOpen = defineModel();
-
-    useOverlayHistoryState(isOpen, props.overlayId);
 
     function open() {
         isOpen.value = true;
