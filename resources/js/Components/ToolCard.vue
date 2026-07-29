@@ -6,7 +6,7 @@
     >
         <div
             class="d-flex align-center justify-center bg-grey-lighten-2"
-            style="height: 180px"
+            style="height: var(--thumbnail-height)"
         >
             <v-icon
                 :icon="tool.icon"

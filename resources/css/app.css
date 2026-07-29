@@ -2,6 +2,7 @@
     --center-width: 500px;
     --center-height: 400px;
     --spacing-default: 16px;
+    --thumbnail-height: 256px;
 }
 
 .v-row--density-default {

@@ -8,7 +8,7 @@
     >
         <v-img
             :src="post.thumbnail_path"
-            height="240px"
+            height="var(--thumbnail-height)"
             class="bg-surface-light"
             cover
         ></v-img>
