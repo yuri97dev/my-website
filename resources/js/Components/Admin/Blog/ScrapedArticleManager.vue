@@ -159,6 +159,14 @@
                     ></v-list-item>
 
                     <v-list-item
+                        v-if="canResetTranslationAttempts"
+                        prepend-icon="mdi-restart"
+                        title="Reiniciar Tentativas de Tradução"
+                        class="text-info"
+                        @click="handleResetTranslationAttempts"
+                    ></v-list-item>
+
+                    <v-list-item
                         prepend-icon="mdi-content-copy"
                         title="Copiar Texto da Aba"
                         @click="copyActiveTabText"
@@ -243,6 +251,24 @@
             ></v-btn>
         </template>
     </Dialog>
+
+    <Dialog
+        overlay-id="scraped-article-reset-translation-attempts"
+        title="Reiniciar Tentativas de Tradução"
+        message="Reiniciar a contagem de tentativas de tradução deste artigo?"
+        max-width="400px"
+        v-model="isResetTranslationAttemptsDialogOpen"
+    >
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="info"
+                prepend-icon="mdi-restart"
+                text="Reiniciar"
+                @click="resetTranslationAttempts"
+            ></v-btn>
+        </template>
+    </Dialog>
 </template>
 
 <script setup>
@@ -264,6 +290,7 @@
     const isScrapedArticleContentDialogOpen = ref(false);
     const isDisableScrapedArticleDialogOpen = ref(false);
     const isRejectTranslationDialogOpen = ref(false);
+    const isResetTranslationAttemptsDialogOpen = ref(false);
 
     const scrapedArticles = ref([]);
     const articleSource = ref(null);
@@ -289,6 +316,11 @@
     const hasTranslation = computed(() => (
         !!selectedScrapedArticle.value?.translated_title ||
         !!selectedScrapedArticle.value?.translated_content
+    ));
+
+    const canResetTranslationAttempts = computed(() => (
+        !readOnly.value &&
+        (selectedScrapedArticle.value?.translation_attempts ?? 0) > 0
     ));
 
     const selectedScrapedArticleTitle = computed(() => {
@@ -421,6 +453,35 @@
         }
     }
 
+    async function resetTranslationAttempts() {
+        loading.value = true;
+
+        try {
+            const url = route(
+                "api.scraped-articles.reset-translation-attempts",
+                selectedScrapedArticle.value.id,
+            );
+
+            const { data } = await api.patch(url);
+
+            selectedScrapedArticle.value = data.scraped_article;
+
+            toastSuccess("Ok", data.message || "Contagem de tentativas reiniciada com sucesso");
+
+            isResetTranslationAttemptsDialogOpen.value = false;
+
+            nextTick(async () => {
+                await getScrapedArticles();
+            });
+        } catch (e) {
+            console.error(e);
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao reiniciar tentativas de tradução");
+        } finally {
+            loading.value = false;
+        }
+    }
+
     async function startScraping() {
         scraping.value = true;
 
@@ -467,6 +528,11 @@
     function handleRejectTranslation() {
         if( !hasTranslation.value ) return;
         isRejectTranslationDialogOpen.value = true;
+    }
+
+    function handleResetTranslationAttempts() {
+        if( !canResetTranslationAttempts.value ) return;
+        isResetTranslationAttemptsDialogOpen.value = true;
     }
 
     function handleContentClick(e) {

@@ -106,4 +106,14 @@ class ScrapedArticleController extends Controller
                 : "Tradução rejeitada com sucesso.",
         ], 200);
     }
+
+    public function resetTranslationAttempts(ScrapedArticle $scrapedArticle)
+    {
+        $scrapedArticle->update(["translation_attempts" => 0]);
+
+        return response()->json([
+            "scraped_article" => $scrapedArticle->fresh(),
+            "message" => "Contagem de tentativas de tradução reiniciada com sucesso.",
+        ], 200);
+    }
 }

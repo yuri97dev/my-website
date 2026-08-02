@@ -183,6 +183,10 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             ScrapedArticleController::class, "rejectTranslation",
         ])->name("api.scraped-articles.reject-translation");
 
+        Route::patch("/scraped-articles/{scrapedArticle}/reset-translation-attempts", [
+            ScrapedArticleController::class, "resetTranslationAttempts",
+        ])->name("api.scraped-articles.reset-translation-attempts");
+
         Route::get("/scrape-http-profiles", [
             ScrapeHttpProfileController::class, "index",
         ])->name("api.scrape-http-profiles.index");
