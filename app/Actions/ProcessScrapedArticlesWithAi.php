@@ -11,18 +11,26 @@ use Symfony\AI\Platform\PlatformInterface;
 use App\Models\AiPrompt;
 use App\Models\AiProvider;
 use App\Models\ScrapedArticle;
+use App\Models\ScrapedArticleTranslationCache;
 use Exception;
+use Throwable;
 
 class ProcessScrapedArticlesWithAi
 {
+    private const MAX_TRANSLATION_ATTEMPTS = 3;
+
     public function __invoke(): void
     {
         $article = ScrapedArticle::query()
             ->enabled()
             ->whereNull("translation_rejected_at")
             ->whereNull("translated_content")
+            ->where("translation_attempts", "<", self::MAX_TRANSLATION_ATTEMPTS)
             ->whereHas("source.aiPrompts")
-            ->with("source.aiPrompts.aiProvider")
+            ->with([
+                "source.aiPrompts.aiProvider",
+                "translationCaches",
+            ])
             ->orderBy("id")
             ->first();
 
@@ -36,11 +44,36 @@ class ProcessScrapedArticlesWithAi
             return;
         }
 
+        $caches = $article->translationCaches->keyBy("ai_prompt_id");
+
         $content = "<h1>{$article->title}</h1>\n\n{$article->content}";
 
-        foreach($prompts as $prompt) {
-            $content = $this->invokePrompt($prompt, $content);
-            sleep(rand(1, 3));
+        try {
+            foreach($prompts as $prompt) {
+                $cached = $caches->get($prompt->id);
+
+                if( $cached ) {
+                    $content = $cached->content;
+                    continue;
+                }
+
+                $content = $this->invokePrompt($prompt, $content);
+
+                ScrapedArticleTranslationCache::query()->updateOrCreate(
+                    [
+                        "scraped_article_id" => $article->id,
+                        "ai_prompt_id" => $prompt->id,
+                    ],
+                    [
+                        "content" => $content,
+                    ],
+                );
+
+                sleep(rand(1, 3));
+            }
+        } catch(Throwable) {
+            $article->increment("translation_attempts");
+            return;
         }
 
         [$translated_title, $translated_content] = explode("</h1>", $content, 2);
@@ -52,6 +85,8 @@ class ProcessScrapedArticlesWithAi
         $article->translated_content = $translated_content;
 
         $article->save();
+
+        $article->translationCaches()->delete();
     }
 
     private function invokePrompt(AiPrompt $prompt, string $content): string

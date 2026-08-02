@@ -18,6 +18,7 @@ class ScrapedArticle extends Model
         "translated_title",
         "translated_content",
         "translation_rejected_at",
+        "translation_attempts",
         "is_enabled",
     ];
 
@@ -54,5 +55,10 @@ class ScrapedArticle extends Model
     public function images(): HasMany
     {
         return $this->hasMany(ScrapedArticleImage::class);
+    }
+
+    public function translationCaches(): HasMany
+    {
+        return $this->hasMany(ScrapedArticleTranslationCache::class);
     }
 }
