@@ -21,7 +21,9 @@
                 rounded: 'lg',
             }"
             :items="items"
+            @update:model-value="menuOpen = false"
             v-model="modelValue"
+            v-model:menu="menuOpen"
             v-model:search="search"
         >
             <template v-slot:chip="{ props, item, index }">
@@ -91,6 +93,7 @@
 
     const modelValue = defineModel();
     const search = ref("");
+    const menuOpen = ref(false);
 
     const items = computed(() => {
         const { key } = modelValue.value || {};
@@ -116,7 +119,13 @@
 
     function handleClear() {
         search.value = "";
-        modelValue.value = null;
+        menuOpen.value = false;
+
+        if( props.multiple ) {
+            modelValue.value = [];
+        } else {
+            modelValue.value = null;
+        }
     }
 
     function handleChipClick(item, index) {
