@@ -50,6 +50,21 @@ class LogController extends Controller
         ], Response::HTTP_OK);
     }
 
+    public function clearFile(string $filename)
+    {
+        $path = $this->resolveLogFilePath($filename);
+
+        if( $path === null ) return response()->json([
+            "message" => "Arquivo de log não encontrado.",
+        ], Response::HTTP_NOT_FOUND);
+
+        file_put_contents($path, "");
+
+        return response()->json([
+            "message" => "Logs limpos com sucesso.",
+        ], Response::HTTP_OK);
+    }
+
     public function showDaily(string $date)
     {
         try {
@@ -73,6 +88,34 @@ class LogController extends Controller
 
         return response()->json([
             "content" => file_get_contents($path),
+        ], Response::HTTP_OK);
+    }
+
+    public function clearDaily(string $date)
+    {
+        try {
+            $parsed = Carbon::createFromFormat("!Y-m-d", $date);
+        } catch (InvalidFormatException) {
+            return response()->json([
+                "message" => "Data inválida. Use o formato YYYY-MM-DD.",
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        if( $parsed->format("Y-m-d") !== $date ) return response()->json([
+            "message" => "Data inválida. Use o formato YYYY-MM-DD.",
+        ], Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $relative_path = "logs/" . $parsed->format("Y/m/d") . ".log";
+        $path = storage_path($relative_path);
+
+        if( !is_file($path) ) return response()->json([
+            "message" => "Arquivo de log não encontrado.",
+        ], Response::HTTP_NOT_FOUND);
+
+        file_put_contents($path, "");
+
+        return response()->json([
+            "message" => "Logs limpos com sucesso.",
         ], Response::HTTP_OK);
     }
 

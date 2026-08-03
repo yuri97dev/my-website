@@ -154,6 +154,33 @@
                 </div>
             </v-card-item>
         </v-card>
+
+        <v-fab
+            app
+            icon="mdi-delete-sweep"
+            size="large"
+            color="error"
+            :disabled="loading || !content"
+            @click="isClearLogsDialogOpen = true"
+        ></v-fab>
+
+        <Dialog
+            overlay-id="logs-clear"
+            title="Limpar Logs"
+            message="Limpar os logs?"
+            max-width="400px"
+            v-model="isClearLogsDialogOpen"
+        >
+            <template #actions>
+                <v-btn
+                    variant="tonal"
+                    color="error"
+                    prepend-icon="mdi-delete-sweep"
+                    text="Limpar"
+                    @click="clearLogs"
+                ></v-btn>
+            </template>
+        </Dialog>
     </Container>
 </template>
 
@@ -163,9 +190,10 @@
     import api from "@/api";
 
     import Container from "@/Components/Container.vue";
+    import Dialog from "@/Components/Dialog.vue";
     import LogFileSelect from "@/Components/Inputs/LogFileSelect.vue";
 
-    import { alertError } from "@/Utils/Alert";
+    import { alertError, toastSuccess } from "@/Utils/Alert";
     import { parseLogEntries, parseLogLines, logLevelColor } from "@/Utils/ParseLogs";
     import { formatDate, formatText } from "@/Utils/Common";
 
@@ -175,6 +203,7 @@
     const content = ref("");
     const loading = ref(false);
     const expandedTraces = ref(new Set());
+    const isClearLogsDialogOpen = ref(false);
 
     const dateString = computed(() => formatDate(date.value, "yyyy-MM-dd"));
 
@@ -237,6 +266,29 @@
             content.value = "";
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao buscar logs");
+        } finally {
+            loading.value = false;
+        }
+    }
+
+    async function clearLogs() {
+        loading.value = true;
+        expandedTraces.value = new Set();
+
+        try {
+            const url = selectedFile.value
+                ? route("api.logs.files.clear", selectedFile.value.name)
+                : route("api.logs.files.daily.clear", dateString.value);
+
+            await api.delete(url);
+
+            content.value = "";
+            isClearLogsDialogOpen.value = false;
+
+            toastSuccess("Ok", "Logs limpos com sucesso.");
+        } catch (e) {
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao limpar logs");
         } finally {
             loading.value = false;
         }

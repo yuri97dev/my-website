@@ -103,9 +103,17 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             LogController::class, "showDaily",
         ])->name("api.logs.files.daily.show");
 
+        Route::delete("/logs/files/daily/{date}", [
+            LogController::class, "clearDaily",
+        ])->name("api.logs.files.daily.clear");
+
         Route::get("/logs/files/{filename}", [
             LogController::class, "showFile",
         ])->name("api.logs.files.show");
+
+        Route::delete("/logs/files/{filename}", [
+            LogController::class, "clearFile",
+        ])->name("api.logs.files.clear");
 
         Route::get("/article-sources", [
             ArticleSourceController::class, "index",
