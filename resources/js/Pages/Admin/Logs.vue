@@ -1,7 +1,7 @@
 <template>
     <Container title="Logs" gapped>
         <v-row>
-            <v-col cols="12" lg="8">
+            <v-col cols="12" lg="4" xl="6">
                 <v-card hover>
                     <v-text-field
                         type="search"
@@ -32,12 +32,17 @@
                 </v-card>
             </v-col>
 
-            <v-col cols="12" lg="4">
+            <v-col cols="12" lg="4" xl="3">
+                <LogFileSelect v-model="selectedFile" />
+            </v-col>
+
+            <v-col cols="12" lg="4" xl="3">
                 <v-card hover>
                     <v-date-input
                         variant="solo"
                         prepend-icon=""
                         prepend-inner-icon="mdi-calendar-outline"
+                        :disabled="!!selectedFile"
                         v-model="date"
                     ></v-date-input>
                 </v-card>
@@ -48,11 +53,11 @@
             class="d-flex flex-column w-100 h-100"
             :loading="loading"
         >
-            <template v-if="logs.length > 0">
+            <template v-if="logEntries.length > 0">
                 <v-virtual-scroll
                     item-key="id"
                     height="400px"
-                    :items="filteredLogs"
+                    :items="filteredLogEntries"
                 >
                     <template #default="{ item }">
                         <v-list-item class="py-4">
@@ -113,6 +118,24 @@
                 </v-virtual-scroll>
             </template>
 
+            <template v-else-if="logLines.length > 0">
+                <v-virtual-scroll
+                    item-key="id"
+                    height="400px"
+                    :items="filteredLogLines"
+                >
+                    <template #default="{ item }">
+                        <v-list-item class="py-2">
+                            <v-list-item-title class="font-monospace text-wrap">
+                                {{ item.message }}
+                            </v-list-item-title>
+                        </v-list-item>
+
+                        <v-divider></v-divider>
+                    </template>
+                </v-virtual-scroll>
+            </template>
+
             <v-card-item v-else class="h-100">
                 <div class="d-flex flex-column align-center justify-center ga-2">
                     <v-icon
@@ -126,7 +149,7 @@
                     </span>
 
                     <span v-else class="text-grey">
-                        Nenhum log encontrado para esta data.
+                        Nenhum log encontrado.
                     </span>
                 </div>
             </v-card-item>
@@ -140,28 +163,48 @@
     import api from "@/api";
 
     import Container from "@/Components/Container.vue";
+    import LogFileSelect from "@/Components/Inputs/LogFileSelect.vue";
 
     import { alertError } from "@/Utils/Alert";
-    import { parseLogs, logLevelColor } from "@/Utils/ParseLogs";
+    import { parseLogEntries, parseLogLines, logLevelColor } from "@/Utils/ParseLogs";
     import { formatDate, formatText } from "@/Utils/Common";
 
     const search = ref("");
     const date = ref(new Date());
+    const selectedFile = ref(null);
     const content = ref("");
     const loading = ref(false);
     const expandedTraces = ref(new Set());
 
     const dateString = computed(() => formatDate(date.value, "yyyy-MM-dd"));
 
-    const logs = computed(() => parseLogs(content.value).reverse());
+    const logEntries = computed(() => parseLogEntries(content.value));
 
-    const filteredLogs = computed(() => {
+    const logLines = computed(() => {
+        if( logEntries.value.length > 0 ) {
+            return [];
+        }
+
+        return parseLogLines(content.value);
+    });
+
+    const filteredLogEntries = computed(() => {
         const keywords = formatText(search.value || "").split(" ");
 
-        if( keywords.length === 0 ) return logs.value;
+        if( keywords.length === 0 ) return logEntries.value;
 
-        return logs.value.filter(log => {
-            return keywords.every(keyword => log.forSearch.includes(keyword));
+        return logEntries.value.filter(entry => {
+            return keywords.every(keyword => entry.forSearch.includes(keyword));
+        });
+    });
+
+    const filteredLogLines = computed(() => {
+        const keywords = formatText(search.value || "").split(" ");
+
+        if( keywords.length === 0 ) return logLines.value;
+
+        return logLines.value.filter(line => {
+            return keywords.every(keyword => line.forSearch.includes(keyword));
         });
     });
 
@@ -182,7 +225,10 @@
         expandedTraces.value = new Set();
 
         try {
-            const url = route("api.logs.show", dateString.value);
+            const url = selectedFile.value
+                ? route("api.logs.files.show", selectedFile.value.name)
+                : route("api.logs.files.daily.show", dateString.value);
+
             const { data } = await api.get(url);
 
             content.value = data.content;
@@ -197,6 +243,11 @@
     }
 
     watch(date, async () => {
+        if( selectedFile.value ) return;
+        await getLogs();
+    });
+
+    watch(selectedFile, async () => {
         await getLogs();
     });
 

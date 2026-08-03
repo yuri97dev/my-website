@@ -61,7 +61,7 @@ function parseLogBlock(block, index) {
     };
 }
 
-export function parseLogs(content) {
+export function parseLogEntries(content) {
     if( !content?.trim() ) {
         return [];
     }
@@ -74,15 +74,34 @@ export function parseLogs(content) {
         return [];
     }
 
-    return starts.map((match, index) => {
-        const start = match.index;
+    return starts
+        .map((match, index) => {
+            const start = match.index;
 
-        const end = index + 1 < starts.length
-            ? starts[index + 1].index
-            : content.length;
+            const end = index + 1 < starts.length
+                ? starts[index + 1].index
+                : content.length;
 
-        return parseLogBlock(content.slice(start, end).trim(), index);
-    });
+            return parseLogBlock(content.slice(start, end).trim(), index);
+        })
+        .reverse();
+}
+
+export function parseLogLines(content) {
+    if( !content?.trim() ) {
+        return [];
+    }
+
+    const lines = content.split("\n");
+
+    return lines
+        .map((message, index) => ({
+            id: `line-${index}`,
+            lineNumber: index + 1,
+            message,
+            forSearch: formatText(message),
+        }))
+        .reverse();
 }
 
 export function logLevelColor(level) {

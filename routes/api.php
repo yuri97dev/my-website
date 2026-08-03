@@ -95,9 +95,17 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             JobController::class, "spreadsheetFormatter",
         ])->name("api.jobs.spreadsheet-formatter");
 
-        Route::get("/logs/{date}", [
-            LogController::class, "show",
-        ])->name("api.logs.show");
+        Route::get("/logs/files", [
+            LogController::class, "indexFiles",
+        ])->name("api.logs.files.index");
+
+        Route::get("/logs/files/daily/{date}", [
+            LogController::class, "showDaily",
+        ])->name("api.logs.files.daily.show");
+
+        Route::get("/logs/files/{filename}", [
+            LogController::class, "showFile",
+        ])->name("api.logs.files.show");
 
         Route::get("/article-sources", [
             ArticleSourceController::class, "index",
