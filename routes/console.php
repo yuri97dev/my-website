@@ -16,12 +16,12 @@ Artisan::command("inspire", function () {
 Schedule::call(new RemoveExpiredSpreadsheetFiles)
     ->name("remove-expired-spreadsheet-files")
     ->everyMinute()
-    ->withoutOverlapping();
+    ->withoutOverlapping(15);
 
 Schedule::call(new GeneratePostChunks)
     ->name("generate-post-chunks")
     ->everyTenSeconds()
-    ->withoutOverlapping();
+    ->withoutOverlapping(15);
 
 Schedule::job(new ScrapeArticleSourcesJob(driver: ArticleSource::DRIVER_RSS))
     ->name("scrape-rss-article-sources")
@@ -44,4 +44,4 @@ Schedule::job(new ScrapeArticleSourcesJob(driver: ArticleSource::DRIVER_JSON))
 Schedule::call(new ProcessScrapedArticlesWithAi)
     ->name("process-scraped-articles-with-ai")
     ->everyMinute()
-    ->withoutOverlapping();
+    ->withoutOverlapping(15);
