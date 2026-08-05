@@ -13,6 +13,7 @@ use App\Models\AiPrompt;
 use App\Models\AiProvider;
 use App\Models\ScrapedArticle;
 use App\Models\ScrapedArticleTranslationCache;
+use Illuminate\Support\Facades\Log;
 use Exception;
 use Throwable;
 
@@ -28,6 +29,7 @@ class ProcessScrapedArticlesWithAi
             ->whereNull("translated_content")
             ->where("translation_attempts", "<", self::MAX_TRANSLATION_ATTEMPTS)
             ->whereHas("source.aiPrompts")
+            ->whereDoesntHave("source.aiPrompts.aiProvider", fn ($query) => $query->where("is_enabled", false))
             ->with([
                 "source.aiPrompts.aiProvider",
                 "translationCaches",
@@ -40,13 +42,7 @@ class ProcessScrapedArticlesWithAi
         }
 
         $prompts = $article->source->aiPrompts;
-
-        if( $prompts->contains(fn ($prompt) => !$prompt->aiProvider->is_enabled) ) {
-            return;
-        }
-
         $caches = $article->translationCaches->keyBy("ai_prompt_id");
-
         $content = "<h1>{$article->title}</h1>\n\n{$article->content}";
 
         try {
@@ -72,23 +68,23 @@ class ProcessScrapedArticlesWithAi
 
                 sleep(rand(1, 3));
             }
-        } catch(Throwable) {
+
+            [$translated_title, $translated_content] = HtmlFormatter::splitHeading($content);
+
+            if( $translated_title === "" || mb_strlen($translated_title) > 500 ) {
+                $translated_title = $article->title;
+            }
+
+            $article->translated_title = $translated_title;
+            $article->translated_content = $translated_content;
+
+            $article->save();
+
+            $article->translationCaches()->delete();
+        } catch(Throwable $e) {
+            Log::error("ProcessScrapedArticlesWithAi: failed to translate article {$article->id}: {$e->getMessage()}");
             $article->increment("translation_attempts");
-            return;
         }
-
-        [$translated_title, $translated_content] = HtmlFormatter::splitHeading($content);
-
-        if( $translated_title === "" || mb_strlen($translated_title) > 500 ) {
-            $translated_title = $article->title;
-        }
-
-        $article->translated_title = $translated_title;
-        $article->translated_content = $translated_content;
-
-        $article->save();
-
-        $article->translationCaches()->delete();
     }
 
     private function invokePrompt(AiPrompt $prompt, string $content): string
