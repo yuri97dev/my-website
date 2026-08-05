@@ -160,7 +160,7 @@
             icon="mdi-delete-sweep"
             size="large"
             color="error"
-            :disabled="loading || !content"
+            :disabled="loading"
             @click="isClearLogsDialogOpen = true"
         ></v-fab>
 
