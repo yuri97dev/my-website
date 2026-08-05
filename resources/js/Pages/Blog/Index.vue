@@ -47,7 +47,7 @@
                     >
                         <v-card border class="h-100">
                             <v-img
-                                height="240px"
+                                height="var(--thumbnail-height)"
                                 class="bg-surface-light"
                                 cover
                             ></v-img>

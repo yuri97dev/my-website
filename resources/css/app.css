@@ -38,6 +38,7 @@ a {
     overflow: hidden;
     -webkit-line-clamp: 2;
     line-clamp: 2;
+    white-space: normal;
 }
 
 .post-container figure {
