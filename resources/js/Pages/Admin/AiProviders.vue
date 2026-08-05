@@ -2,47 +2,41 @@
     <Container title="Provedores de IA" gapped>
         <SearchField
             :fields="searchFields"
-            @refresh="getAiProviders"
-            @update:model-value="handleSearch"
+            @refresh="refresh"
             v-model="search"
         ></SearchField>
 
-        <v-card>
-            <v-data-table-server
-                :headers="headers"
-                :items="aiProviders"
-                :items-length="pagination.total"
-                :loading="loading"
-                class="text-no-wrap"
-                @update:options="getAiProviders"
-                @click:row="handleRowClick"
-                v-model:page="pagination.page"
-                v-model:items-per-page="pagination.perPage"
-            >
-                <template #item.is_enabled="{ item }">
-                    <v-icon
-                        :icon="item.is_enabled ? 'mdi-check-circle' : 'mdi-close-circle'"
-                        :color="item.is_enabled ? 'success' : 'error'"
-                    ></v-icon>
-                </template>
+        <VirtualRemoteTable
+            ref="tableRef"
+            items-key="ai_providers"
+            :href="route('api.ai-providers.index')"
+            :headers="headers"
+            :filters="filters"
+            :row-props="rowProps"
+        >
+            <template #item.is_enabled="{ item }">
+                <v-icon
+                    :icon="item.is_enabled ? 'mdi-check-circle' : 'mdi-close-circle'"
+                    :color="item.is_enabled ? 'success' : 'error'"
+                ></v-icon>
+            </template>
 
-                <template #item.created_at="{ item }">
-                    <span v-if="!!item.created_at">
-                        {{ formatDate(item.created_at, "dd/MM/yyyy HH:mm") }}
-                    </span>
-                </template>
+            <template #item.created_at="{ item }">
+                <span v-if="!!item.created_at">
+                    {{ formatDate(item.created_at, "dd/MM/yyyy HH:mm") }}
+                </span>
+            </template>
 
-                <template #item.updated_at="{ item }">
-                    <span v-if="!!item.updated_at">
-                        {{ formatDate(item.updated_at, "dd/MM/yyyy HH:mm") }}
-                    </span>
-                </template>
-            </v-data-table-server>
-        </v-card>
+            <template #item.updated_at="{ item }">
+                <span v-if="!!item.updated_at">
+                    {{ formatDate(item.updated_at, "dd/MM/yyyy HH:mm") }}
+                </span>
+            </template>
+        </VirtualRemoteTable>
 
         <AiProviderForm
             ref="aiProviderFormRef"
-            @form-closed="getAiProviders"
+            @form-closed="refresh"
         ></AiProviderForm>
 
         <v-fab
@@ -56,22 +50,18 @@
 </template>
 
 <script setup>
-    import { ref, reactive, nextTick } from "vue";
-
-    import api from "@/api";
+    import { ref, computed } from "vue";
 
     import Container from "@/Components/Container.vue";
     import AiProviderForm from "@/Components/Admin/AiProviderForm.vue";
     import SearchField from "@/Components/SearchField.vue";
+    import VirtualRemoteTable from "@/Components/VirtualRemoteTable.vue";
 
-    import { alertError } from "@/Utils/Alert";
     import { formatDate } from "@/Utils/Common";
 
     const aiProviderFormRef = ref(null);
-
+    const tableRef = ref(null);
     const search = ref(null);
-    const aiProviders = ref([]);
-    const loading = ref(false);
 
     const searchFields = ref([
         {
@@ -111,52 +101,24 @@
         },
     ]);
 
-    const pagination = reactive({
-        page: 1,
-        perPage: 10,
-        total: 0,
+    const filters = computed(() => {
+        if( !search.value ) return {};
+
+        const { key, search: searchValue } = search.value;
+
+        return {
+            [key]: searchValue,
+        };
     });
 
-    async function getAiProviders() {
-        loading.value = true;
-
-        try {
-            const url = route("api.ai-providers.index");
-
-            const params = {
-                page: pagination.page,
-                per_page: pagination.perPage,
-            };
-
-            if( search.value ) {
-                const { key, search: searchValue } = search.value || {};
-                params[key] = searchValue;
-            }
-
-            const { data } = await api.get(url, { params });
-
-            aiProviders.value = data.ai_providers;
-
-            pagination.page = data.current_page;
-            pagination.perPage = data.per_page;
-            pagination.total = data.total;
-        } catch (e) {
-            const { message } = e?.response?.data || {};
-            alertError("Ooops", message || "Erro ao buscar provedores de IA");
-        }
-
-        loading.value = false;
+    function rowProps({ item }) {
+        return {
+            style: { cursor: "pointer" },
+            onDblclick: () => aiProviderFormRef.value.open(item),
+        };
     }
 
-    function handleSearch() {
-        pagination.page = 1;
-
-        nextTick(async () => {
-            await getAiProviders();
-        });
-    }
-
-    function handleRowClick(e, { item }) {
-        aiProviderFormRef.value.open(item);
+    function refresh() {
+        tableRef.value?.fetchItems(1);
     }
 </script>

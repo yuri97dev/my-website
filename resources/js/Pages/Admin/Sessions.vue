@@ -2,46 +2,37 @@
     <Container title="Sessões" gapped>
         <SearchField
             :fields="searchFields"
-            @refresh="getSessions"
-            @update:model-value="handleSearch"
+            @refresh="refresh"
             v-model="search"
         ></SearchField>
 
-        <v-card>
-            <v-data-table-server
-                :headers="headers"
-                :items="sessions"
-                :items-length="pagination.total"
-                :loading="loading"
-                class="text-no-wrap"
-                @update:options="getSessions"
-                v-model:page="pagination.page"
-                v-model:items-per-page="pagination.perPage"
-            >
-                <template #item.last_activity="{ item }">
-                    <span v-if="!!item.last_activity">
-                        {{ formatDate(item.last_activity, "dd/MM/yyyy HH:mm") }}
-                    </span>
-                </template>
-            </v-data-table-server>
-        </v-card>
+        <VirtualRemoteTable
+            ref="tableRef"
+            items-key="sessions"
+            :href="route('api.sessions.index')"
+            :headers="headers"
+            :filters="filters"
+        >
+            <template #item.last_activity="{ item }">
+                <span v-if="!!item.last_activity">
+                    {{ formatDate(item.last_activity, "dd/MM/yyyy HH:mm") }}
+                </span>
+            </template>
+        </VirtualRemoteTable>
     </Container>
 </template>
 
 <script setup>
-    import { ref, reactive, nextTick } from "vue";
+    import { ref, computed } from "vue";
 
     import Container from "@/Components/Container.vue";
     import SearchField from "@/Components/SearchField.vue";
+    import VirtualRemoteTable from "@/Components/VirtualRemoteTable.vue";
 
-    import api from "@/api";
-
-    import { alertError } from "@/Utils/Alert";
     import { formatDate } from "@/Utils/Common";
 
+    const tableRef = ref(null);
     const search = ref(null);
-    const sessions = ref([]);
-    const loading = ref(false);
 
     const searchFields = ref([
         {
@@ -81,47 +72,17 @@
         },
     ]);
 
-    const pagination = reactive({
-        page: 1,
-        perPage: 10,
-        total: 0,
+    const filters = computed(() => {
+        if( !search.value ) return {};
+
+        const { key, search: searchValue } = search.value;
+
+        return {
+            [key]: searchValue,
+        };
     });
 
-    async function getSessions() {
-        loading.value = true;
-
-        try {
-            const url = route("api.sessions.index");
-
-            const params = {
-                page: pagination.page,
-                per_page: pagination.perPage,
-            };
-
-            if( search.value ) {
-                const { key, search: searchValue } = search.value || {};
-                params[key] = searchValue;
-            }
-
-            const { data } = await api.get(url, { params });
-
-            sessions.value = data.sessions;
-
-            pagination.page = data.current_page;
-            pagination.perPage = data.per_page;
-            pagination.total = data.total;
-        } catch (e) {
-            alertError("Ooops", "Erro ao buscar sessões");
-        }
-
-        loading.value = false;
-    }
-
-    function handleSearch() {
-        pagination.page = 1;
-
-        nextTick(async () => {
-            await getSessions();
-        });
+    function refresh() {
+        tableRef.value?.fetchItems(1);
     }
 </script>

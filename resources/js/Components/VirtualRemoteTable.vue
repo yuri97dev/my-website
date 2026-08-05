@@ -6,21 +6,21 @@
             hover
             fixed-header
             :loading="loading"
-            :items="itens"
-            :headers="cabecalhosMapeados"
+            :items="items"
+            :headers="mappedHeaders"
             :show-select="showSelect"
             :item-value="itemValue"
             :row-props="rowProps"
-            :no-data-text="fraseListaVazia"
+            :no-data-text="emptyListText"
             v-model="selected"
         >
             <template
-                v-for="cf in cabecalhosFiltraveis"
-                :key="cf.key"
-                #[`header.${cf.key}`]="{ column }"
+                v-for="header in filterableHeaders"
+                :key="header.key"
+                #[`header.${header.key}`]
             >
                 <div class="d-flex align-center ga-4">
-                    <span>{{ cf.title }}</span>
+                    <span>{{ header.title }}</span>
 
                     <v-menu
                         offset="8"
@@ -32,23 +32,23 @@
                                 size="x-small"
                                 variant="tonal"
                                 class="rounded"
-                                :color="colunaFiltrada(cf) ? 'primary' : undefined"
-                                :icon="colunaFiltrada(cf) ? 'mdi-filter' : 'mdi-filter-outline'"
-                                @click="iniciarRascunho(cf)"
+                                :color="isColumnFiltered(header) ? 'primary' : undefined"
+                                :icon="isColumnFiltered(header) ? 'mdi-filter' : 'mdi-filter-outline'"
+                                @click="initColumnFilterDraft(header)"
                             ></v-btn>
                         </template>
 
                         <v-card border min-width="280">
                             <v-card-text class="d-flex flex-column ga-2">
                                 <v-text-field
-                                    v-for="(campo, i) in camposFiltro(cf.key, cf.field)"
-                                    :key="campo.key"
+                                    v-for="(filterField, i) in getFilterFields(header.key, header.field)"
+                                    :key="filterField.key"
                                     :autofocus="i === 0"
-                                    :label="campo.label"
-                                    :placeholder="cf.title"
-                                    :type="cf.field.type"
-                                    v-model="rascunhoFiltrosColuna[campo.key]"
-                                    @keyup.enter="filtrarColuna(cf)"
+                                    :label="filterField.label"
+                                    :placeholder="header.title"
+                                    :type="header.field.type"
+                                    v-model="columnFilterDraft[filterField.key]"
+                                    @keyup.enter="applyColumnFilter(header)"
                                 ></v-text-field>
                             </v-card-text>
 
@@ -60,12 +60,12 @@
                                 <v-btn
                                     color="primary"
                                     variant="tonal"
-                                    @click="filtrarColuna(cf)"
+                                    @click="applyColumnFilter(header)"
                                 >Filtrar</v-btn>
 
                                 <v-btn
                                     variant="text"
-                                    @click="filtrarColuna(cf, true)"
+                                    @click="applyColumnFilter(header, true)"
                                 >Limpar</v-btn>
                             </v-card-actions>
                         </v-card>
@@ -91,7 +91,7 @@
                     ref="sentinelRef"
                     class="sentinel bg-primary"
                 >
-                    <td :colspan="numColunas"></td>
+                    <td :colspan="columnCount"></td>
                 </tr>
             </template>
         </v-data-table-virtual>
@@ -107,7 +107,7 @@
             </div>
 
             <div class="text-no-wrap text-center">
-                {{ formatarNumero(itens.length, 0) }} de {{ formatarNumero(paginacao.TotalItens, 0) }} linha(s)
+                {{ formatNumber(items.length, 0) }} de {{ formatNumber(pagination.total, 0) }} linha(s)
             </div>
 
             <div
@@ -125,8 +125,8 @@
 
     import api from "@/api";
 
-    import { alertError } from "@/utils/Alert";
-    import { formatarNumero } from "@/utils/Common";
+    import { alertError } from "@/Utils/Alert";
+    import { formatNumber } from "@/Utils/Common";
 
     const selected = defineModel({
         default: () => [],
@@ -134,6 +134,10 @@
 
     const props = defineProps({
         href: {
+            type: String,
+            required: true,
+        },
+        itemsKey: {
             type: String,
             required: true,
         },
@@ -157,6 +161,10 @@
             type: Boolean,
             default: true,
         },
+        perPage: {
+            type: Number,
+            default: 50,
+        },
         showSelect: Boolean,
         itemValue: String,
         prepareItem: {
@@ -165,86 +173,90 @@
         },
     });
 
+    const emit = defineEmits([
+        "loaded",
+    ]);
+
     const tableRef = ref(null);
     const sentinelRef = ref(null);
 
     const loading = ref(false);
-    const numConsultas = ref(0);
-    const numErros = ref(0);
+    const requestCount = ref(0);
+    const errorCount = ref(0);
 
-    const itens = ref([]);
+    const items = ref([]);
 
-    const paginacao = reactive({
-        ItensPorPagina: 200,
-        PaginaAtual: 1,
-        TotalItens: 0,
+    const pagination = reactive({
+        page: 1,
+        perPage: props.perPage,
+        total: 0,
     });
 
-    const filtrosColunaPadrao = computed(() => {
-        const padrao = {};
+    const defaultColumnFilters = computed(() => {
+        const defaults = {};
 
         for(const { key, field } of props.headers) {
-            const valor = field?.value;
+            const value = field?.value;
 
-            if( !valor ) continue;
+            if( !value ) continue;
 
-            if( typeof valor === "object" ) {
-                for(const [s, v] of Object.entries(valor)) {
-                    if( v ) padrao[`${key}${s}`] = v;
+            if( typeof value === "object" ) {
+                for(const [suffix, fieldValue] of Object.entries(value)) {
+                    if( fieldValue ) defaults[`${key}${suffix}`] = fieldValue;
                 }
             } else {
-                padrao[key] = valor;
+                defaults[key] = value;
             }
         }
 
-        return padrao;
+        return defaults;
     });
 
-    const filtrosColuna = reactive({ ...filtrosColunaPadrao.value });
-    const rascunhoFiltrosColuna = reactive({});
+    const columnFilters = reactive({ ...defaultColumnFilters.value });
+    const columnFilterDraft = reactive({});
 
-    const metodoHttp = computed(() => props.method.toLowerCase());
+    const httpMethod = computed(() => props.method.toLowerCase());
 
-    const cabecalhosMapeados = computed(() => {
-        if( props.headers.length > 0 ) return props.headers.map(({ field, ...h }) => ({
-            ...h,
+    const mappedHeaders = computed(() => {
+        if( props.headers.length > 0 ) return props.headers.map(({ field, ...header }) => ({
+            ...header,
             sortable: false,
         }));
 
-        const [ primeiroItem ] = itens.value || [];
+        const [ firstItem ] = items.value || [];
 
-        return Object.keys(primeiroItem || {}).map(key => ({
+        return Object.keys(firstItem || {}).map(key => ({
             title: key,
             key,
             sortable: false,
         }));
     });
 
-    const cabecalhosFiltraveis = computed(() => props.headers.filter(h => h.field));
+    const filterableHeaders = computed(() => props.headers.filter(header => header.field));
 
-    const numColunas = computed(() => {
-        return cabecalhosMapeados.value.length + (props.showSelect ? 1 : 0);
+    const columnCount = computed(() => {
+        return mappedHeaders.value.length + (props.showSelect ? 1 : 0);
     });
 
-    const fraseListaVazia = computed(() => {
-        if( loading.value || itens.value.length > 0 ) return " ";
+    const emptyListText = computed(() => {
+        if( loading.value || items.value.length > 0 ) return " ";
 
-        if( numErros.value > 0 ) return "Erro ao buscar itens";
-        if( !props.autoLoad && numConsultas.value == 0 ) return "Informe os filtros e busque";
+        if( errorCount.value > 0 ) return "Erro ao buscar itens";
+        if( !props.autoLoad && requestCount.value == 0 ) return "Informe os filtros e busque";
 
-        if( numConsultas.value > 0 ) {
-            const temFiltros = (
-                Object.keys(filtrosColuna).length > 0 ||
+        if( requestCount.value > 0 ) {
+            const hasFilters = (
+                Object.keys(columnFilters).length > 0 ||
                 Object.keys(props.filters).length > 0
             );
 
-            return temFiltros ? "Nenhum resultado encontrado" : "Não há registros para exibir";
+            return hasFilters ? "Nenhum resultado encontrado" : "Não há registros para exibir";
         }
 
         return "Não há registros para exibir";
     });
 
-    function camposFiltro(key, field) {
+    function getFilterFields(key, field) {
         if( field?.type === "date" ) return [
             { key: `${key}Ini`, label: "Início" },
             { key: `${key}Fim`, label: "Fim" },
@@ -253,65 +265,69 @@
         return [{ key }];
     }
 
-    function colunaFiltrada(cf) {
-        return camposFiltro(cf.key, cf.field).some(c => filtrosColuna[c.key]);
+    function isColumnFiltered(header) {
+        return getFilterFields(header.key, header.field).some(field => columnFilters[field.key]);
     }
 
-    function iniciarRascunho(cf) {
-        for(const { key } of camposFiltro(cf.key, cf.field)) {
-            rascunhoFiltrosColuna[key] = filtrosColuna[key] ?? "";
+    function initColumnFilterDraft(header) {
+        for(const { key } of getFilterFields(header.key, header.field)) {
+            columnFilterDraft[key] = columnFilters[key] ?? "";
         }
     }
 
-    async function filtrarColuna(cf, limpar = false) {
-        for(const { key } of camposFiltro(cf.key, cf.field)) {
-            if( limpar ) {
-                delete rascunhoFiltrosColuna[key];
-                delete filtrosColuna[key];
+    async function applyColumnFilter(header, clear = false) {
+        for(const { key } of getFilterFields(header.key, header.field)) {
+            if( clear ) {
+                delete columnFilterDraft[key];
+                delete columnFilters[key];
                 continue;
             }
 
-            const valor = rascunhoFiltrosColuna[key]?.trim();
+            const value = columnFilterDraft[key]?.trim();
 
-            if( valor ) {
-                filtrosColuna[key] = valor;
+            if( value ) {
+                columnFilters[key] = value;
             } else {
-                delete filtrosColuna[key];
+                delete columnFilters[key];
             }
         }
 
-        await buscarItens(1);
+        await fetchItems(1);
     }
 
-    const podeCarregarMaisItens = computed(() => {
+    const canLoadMoreItems = computed(() => {
         if( loading.value ) return false;
-        if( numErros.value > 0 ) return false;
-        if( numConsultas.value == 0 ) return true;
-        return itens.value.length < paginacao.TotalItens;
+        if( errorCount.value > 0 ) return false;
+        if( requestCount.value == 0 ) return true;
+        return items.value.length < pagination.total;
     });
 
     let observer = null;
     let abortController = null;
 
-    async function buscarItens(PaginaAtual = 1) {
+    function extractItems(data) {
+        return data?.[props.itemsKey] || [];
+    }
+
+    async function fetchItems(page = 1) {
         abortController?.abort();
         abortController = new AbortController();
 
         loading.value = true;
 
-        if( PaginaAtual === 1 ) {
-            itens.value = [];
+        if( page === 1 ) {
+            items.value = [];
         }
 
         try {
             const baseParams = {
                 ...props.filters,
-                ...filtrosColuna,
-                ...paginacao,
-                PaginaAtual,
+                ...columnFilters,
+                page,
+                per_page: pagination.perPage,
             };
 
-            const filters = metodoHttp.value === "get" ? {
+            const requestConfig = httpMethod.value === "get" ? {
                 signal: abortController.signal,
                 params: baseParams,
             } : {
@@ -319,55 +335,63 @@
                 signal: abortController.signal,
             };
 
-            const { data } = await api[metodoHttp.value](props.href, filters);
+            const { data } = await api[httpMethod.value](props.href, requestConfig);
 
-            numConsultas.value++;
+            requestCount.value++;
 
-            if( PaginaAtual === 1 ) {
-                itens.value = mapearItens(data?.Itens || []);
+            const newItems = mapItems(extractItems(data));
+
+            if( page === 1 ) {
+                items.value = newItems;
             } else {
-                itens.value.push(...mapearItens(data?.Itens || []));
+                items.value.push(...newItems);
             }
 
-            paginacao.ItensPorPagina = data?.ItensPorPagina || 300;
-            paginacao.PaginaAtual = data?.PaginaAtual || 1;
-            paginacao.TotalItens = data?.TotalItens || 0;
+            pagination.page = data?.current_page || page;
+            pagination.perPage = data?.per_page || pagination.perPage;
+            pagination.total = data?.total || 0;
 
             loading.value = false;
-            numErros.value = 0;
+            errorCount.value = 0;
+
+            emit("loaded", data);
         } catch(e) {
             if( e?.code === "ERR_CANCELED" ) return;
 
-            const { Message } = e?.response?.data || {};
-            alertError("Ooops", Message || "Erro ao buscar itens");
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao buscar itens");
 
             loading.value = false;
-            numErros.value++;
+            errorCount.value++;
         }
     }
 
     watch(() => props.filters, async () => {
-        await buscarItens(1);
+        await fetchItems(1);
     }, {
         deep: true,
+    });
+
+    watch(() => props.href, async () => {
+        await fetchItems(1);
     });
 
     onMounted(() => {
         const wrapper = tableRef.value?.$el?.querySelector(".v-table__wrapper");
 
         observer = new IntersectionObserver(async ([ entry ]) => {
-            if( !entry.isIntersecting || !podeCarregarMaisItens.value ) return;
+            if( !entry.isIntersecting || !canLoadMoreItems.value ) return;
 
-            const pertoFim = (wrapper.scrollHeight - wrapper.scrollTop - wrapper.clientHeight) < 100;
+            const nearBottom = (wrapper.scrollHeight - wrapper.scrollTop - wrapper.clientHeight) < 100;
 
-            if( !pertoFim ) return;
+            if( !nearBottom ) return;
 
-            if( itens.value.length == 0 ) {
+            if( items.value.length == 0 ) {
                 if( props.autoLoad ) {
-                    await buscarItens(1);
+                    await fetchItems(1);
                 }
             } else {
-                await buscarItens(paginacao.PaginaAtual + 1);
+                await fetchItems(pagination.page + 1);
             }
         });
 
@@ -382,13 +406,13 @@
         observer = null;
     });
 
-    function mapearItens(lista) {
-        if( !props.prepareItem ) return lista;
-        return lista.map(props.prepareItem);
+    function mapItems(list) {
+        if( !props.prepareItem ) return list;
+        return list.map(props.prepareItem);
     }
 
     defineExpose({
-        buscarItens,
+        fetchItems,
     });
 </script>
 

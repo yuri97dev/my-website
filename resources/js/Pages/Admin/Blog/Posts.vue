@@ -2,55 +2,50 @@
     <Container title="Posts" gapped>
         <SearchField
             :fields="searchFields"
-            @refresh="getPosts"
-            @update:model-value="handleSearch"
+            @refresh="refresh"
             v-model="search"
         ></SearchField>
 
-        <v-card>
-            <v-data-table-server
-                :headers="headers"
-                :items="posts"
-                :items-length="pagination.total"
-                :loading="loading"
-                @update:options="getPosts"
-                @click:row="handleRowClick"
-                v-model:page="pagination.page"
-                v-model:items-per-page="pagination.perPage"
-            >
-                <template #item.views_count="{ item }">
-                    {{ formatViewsCount(item.views_count) }}
-                </template>
+        <VirtualRemoteTable
+            ref="tableRef"
+            items-key="posts"
+            :href="route('api.blog.posts.index')"
+            :headers="headers"
+            :filters="filters"
+            :row-props="rowProps"
+        >
+            <template #item.views_count="{ item }">
+                {{ formatViewsCount(item.views_count) }}
+            </template>
 
-                <template #item.created_at="{ item }">
-                    <span v-if="!!item.created_at">
-                        {{ formatDate(item.created_at, "dd/MM/yyyy HH:mm") }}
-                    </span>
-                </template>
+            <template #item.created_at="{ item }">
+                <span v-if="!!item.created_at">
+                    {{ formatDate(item.created_at, "dd/MM/yyyy HH:mm") }}
+                </span>
+            </template>
 
-                <template #item.published_at="{ item }">
-                    <span v-if="!!item.published_at">
-                        {{ formatDate(item.published_at, "dd/MM/yyyy HH:mm") }}
-                    </span>
-                </template>
+            <template #item.published_at="{ item }">
+                <span v-if="!!item.published_at">
+                    {{ formatDate(item.published_at, "dd/MM/yyyy HH:mm") }}
+                </span>
+            </template>
 
-                <template #item.updated_at="{ item }">
-                    <span v-if="!!item.updated_at">
-                        {{ formatDate(item.updated_at, "dd/MM/yyyy HH:mm") }}
-                    </span>
-                </template>
+            <template #item.updated_at="{ item }">
+                <span v-if="!!item.updated_at">
+                    {{ formatDate(item.updated_at, "dd/MM/yyyy HH:mm") }}
+                </span>
+            </template>
 
-                <template #item.deleted_at="{ item }">
-                    <span v-if="!!item.deleted_at">
-                        {{ formatDate(item.deleted_at, "dd/MM/yyyy HH:mm") }}
-                    </span>
-                </template>
-            </v-data-table-server>
-        </v-card>
+            <template #item.deleted_at="{ item }">
+                <span v-if="!!item.deleted_at">
+                    {{ formatDate(item.deleted_at, "dd/MM/yyyy HH:mm") }}
+                </span>
+            </template>
+        </VirtualRemoteTable>
 
         <PostForm
             ref="postFormRef"
-            @form-closed="getPosts"
+            @form-closed="refresh"
         ></PostForm>
 
         <v-fab
@@ -64,15 +59,13 @@
 </template>
 
 <script setup>
-    import { ref, reactive, nextTick, onMounted } from "vue";
-
-    import api from "@/api";
+    import { ref, computed, onMounted } from "vue";
 
     import Container from "@/Components/Container.vue";
     import PostForm from "@/Components/Admin/Blog/PostForm.vue";
     import SearchField from "@/Components/SearchField.vue";
+    import VirtualRemoteTable from "@/Components/VirtualRemoteTable.vue";
 
-    import { alertError } from "@/Utils/Alert";
     import { formatDate } from "@/Utils/Common";
 
     const CELL_PROPS = {
@@ -80,10 +73,8 @@
     };
 
     const postFormRef = ref(null);
-
+    const tableRef = ref(null);
     const search = ref(null);
-    const posts = ref([]);
-    const loading = ref(false);
 
     const searchFields = ref([
         {
@@ -155,57 +146,29 @@
         },
     ]);
 
-    const pagination = reactive({
-        page: 1,
-        perPage: 10,
-        total: 0,
+    const filters = computed(() => {
+        if( !search.value ) return {};
+
+        const { key, search: searchValue } = search.value;
+
+        return {
+            [key]: searchValue,
+        };
     });
 
     function formatViewsCount(value) {
         return Number(value || 0).toLocaleString("pt-BR");
     }
 
-    async function getPosts() {
-        loading.value = true;
-
-        try {
-            const url = route("api.blog.posts.index");
-
-            const params = {
-                page: pagination.page,
-                per_page: pagination.perPage,
-            };
-
-            if( search.value ) {
-                const { key, search: searchValue } = search.value || {};
-                params[key] = searchValue;
-            }
-
-            const { data } = await api.get(url, { params });
-
-            posts.value = data.posts;
-
-            pagination.page = data.current_page;
-            pagination.perPage = data.per_page;
-            pagination.total = data.total;
-        } catch (e) {
-            const { message } = e?.response?.data || {};
-            alertError("Ooops", message || "Erro ao buscar posts");
-        }
-
-        loading.value = false;
+    function rowProps({ item }) {
+        return {
+            style: { cursor: "pointer" },
+            onDblclick: () => postFormRef.value.open(item),
+        };
     }
 
-    function handleSearch() {
-        pagination.page = 1;
-
-        nextTick(async () => {
-            await getPosts();
-        });
-    }
-
-    function handleRowClick(e, { item }) {
-        postFormRef.value.open(item);
+    function refresh() {
+        tableRef.value?.fetchItems(1);
     }
 
     onMounted(() => {

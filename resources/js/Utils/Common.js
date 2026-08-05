@@ -121,6 +121,13 @@ export async function copyText(text) {
     }
 }
 
+export function formatNumber(value, fractionDigits = 0) {
+    return Number(value || 0).toLocaleString("pt-BR", {
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: fractionDigits,
+    });
+}
+
 export function goTo(p) {
     if( !p ) {
         throw new Error("No event or href provided");

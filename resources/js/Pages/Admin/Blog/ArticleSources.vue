@@ -1,40 +1,34 @@
 <template>
     <Container title="Fontes de Artigos" gapped>
         <SearchField
-            @refresh="getArticleSources"
-            @update:model-value="handleSearch"
+            @refresh="refresh"
             v-model="search"
         ></SearchField>
 
-        <v-card>
-            <v-data-table-server
-                :headers="headers"
-                :items="articleSources"
-                :items-length="pagination.total"
-                :loading="loading"
-                class="text-no-wrap"
-                @update:options="getArticleSources"
-                @click:row="handleRowClick"
-                v-model:page="pagination.page"
-                v-model:items-per-page="pagination.perPage"
-            >
-                <template #item.created_at="{ item }">
-                    <span v-if="!!item.created_at">
-                        {{ formatDate(item.created_at, "dd/MM/yyyy HH:mm") }}
-                    </span>
-                </template>
+        <VirtualRemoteTable
+            ref="tableRef"
+            items-key="article_sources"
+            :href="route('api.article-sources.index')"
+            :headers="headers"
+            :filters="filters"
+            :row-props="rowProps"
+        >
+            <template #item.created_at="{ item }">
+                <span v-if="!!item.created_at">
+                    {{ formatDate(item.created_at, "dd/MM/yyyy HH:mm") }}
+                </span>
+            </template>
 
-                <template #item.updated_at="{ item }">
-                    <span v-if="!!item.updated_at">
-                        {{ formatDate(item.updated_at, "dd/MM/yyyy HH:mm") }}
-                    </span>
-                </template>
-            </v-data-table-server>
-        </v-card>
+            <template #item.updated_at="{ item }">
+                <span v-if="!!item.updated_at">
+                    {{ formatDate(item.updated_at, "dd/MM/yyyy HH:mm") }}
+                </span>
+            </template>
+        </VirtualRemoteTable>
 
         <ArticleSourceForm
             ref="articleSourceFormRef"
-            @form-closed="getArticleSources"
+            @form-closed="refresh"
         ></ArticleSourceForm>
 
         <v-fab
@@ -48,22 +42,18 @@
 </template>
 
 <script setup>
-    import { ref, reactive, nextTick } from "vue";
-
-    import api from "@/api";
+    import { ref, computed } from "vue";
 
     import Container from "@/Components/Container.vue";
     import ArticleSourceForm from "@/Components/Admin/Blog/ArticleSourceForm.vue";
     import SearchField from "@/Components/SearchField.vue";
+    import VirtualRemoteTable from "@/Components/VirtualRemoteTable.vue";
 
-    import { alertError } from "@/Utils/Alert";
     import { formatDate } from "@/Utils/Common";
 
     const articleSourceFormRef = ref(null);
-
+    const tableRef = ref(null);
     const search = ref(null);
-    const articleSources = ref([]);
-    const loading = ref(false);
 
     const headers = ref([
         {
@@ -124,52 +114,24 @@
         },
     ]);
 
-    const pagination = reactive({
-        page: 1,
-        perPage: 10,
-        total: 0,
+    const filters = computed(() => {
+        if( !search.value ) return {};
+
+        const { key, search: searchValue } = search.value;
+
+        return {
+            [key]: searchValue,
+        };
     });
 
-    async function getArticleSources() {
-        loading.value = true;
-
-        try {
-            const url = route("api.article-sources.index");
-
-            const params = {
-                page: pagination.page,
-                per_page: pagination.perPage,
-            };
-
-            if( search.value ) {
-                const { key, search: searchValue } = search.value || {};
-                params[key] = searchValue;
-            }
-
-            const { data } = await api.get(url, { params });
-
-            articleSources.value = data.article_sources;
-
-            pagination.page = data.current_page;
-            pagination.perPage = data.per_page;
-            pagination.total = data.total;
-        } catch (e) {
-            const { message } = e?.response?.data || {};
-            alertError("Ooops", message || "Erro ao buscar sites");
-        }
-
-        loading.value = false;
+    function rowProps({ item }) {
+        return {
+            style: { cursor: "pointer" },
+            onDblclick: () => articleSourceFormRef.value.open(item),
+        };
     }
 
-    function handleSearch() {
-        pagination.page = 1;
-
-        nextTick(async () => {
-            await getArticleSources();
-        });
-    }
-
-    function handleRowClick(e, { item }) {
-        articleSourceFormRef.value.open(item);
+    function refresh() {
+        tableRef.value?.fetchItems(1);
     }
 </script>
