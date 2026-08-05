@@ -202,6 +202,36 @@ class HtmlFormatter
         });
     }
 
+    /**
+     * @return array{0: string, 1: string}
+     */
+    public static function splitHeading(string $html): array
+    {
+        if( empty($html) ) {
+            return ["", $html];
+        }
+
+        $html5 = new HTML5();
+
+        $document = $html5->loadHTML($html);
+        $body = $document->getElementsByTagName("body")->item(0);
+
+        if( !$body ) {
+            $document = $html5->loadHTML("<html><body>{$html}</body></html>");
+            $body = $document->getElementsByTagName("body")->item(0);
+        }
+
+        $title = "";
+        $heading = $body->getElementsByTagName("h1")->item(0);
+
+        if( $heading ) {
+            $title = trim($heading->textContent);
+            $heading->parentNode?->removeChild($heading);
+        }
+
+        return [$title, trim($html5->saveHTML($body->childNodes))];
+    }
+
     private static function transformHtmlFragment(string $html, callable $visitor): string
     {
         if( empty($html) ) return $html;

@@ -98,6 +98,7 @@ class ScrapedArticleController extends Controller
         }
 
         $scrapedArticle->update($data);
+        $scrapedArticle->translationCaches()->delete();
 
         return response()->json([
             "scraped_article" => $scrapedArticle->fresh(),

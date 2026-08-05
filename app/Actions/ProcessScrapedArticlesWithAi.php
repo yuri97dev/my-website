@@ -8,6 +8,7 @@ use Symfony\AI\Platform\Bridge\OpenAi\Factory as OpenAiFactory;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
 use Symfony\AI\Platform\PlatformInterface;
+use App\Helpers\HtmlFormatter;
 use App\Models\AiPrompt;
 use App\Models\AiProvider;
 use App\Models\ScrapedArticle;
@@ -53,7 +54,7 @@ class ProcessScrapedArticlesWithAi
                 $cached = $caches->get($prompt->id);
 
                 if( $cached ) {
-                    $content = $cached->content;
+                    $content = $this->stripCodeFences($cached->content);
                     continue;
                 }
 
@@ -76,10 +77,11 @@ class ProcessScrapedArticlesWithAi
             return;
         }
 
-        [$translated_title, $translated_content] = explode("</h1>", $content, 2);
+        [$translated_title, $translated_content] = HtmlFormatter::splitHeading($content);
 
-        $translated_title = ltrim($translated_title, "<h1>");
-        $translated_title = trim($translated_title);
+        if( $translated_title === "" || mb_strlen($translated_title) > 500 ) {
+            $translated_title = $article->title;
+        }
 
         $article->translated_title = $translated_title;
         $article->translated_content = $translated_content;
@@ -100,7 +102,27 @@ class ProcessScrapedArticlesWithAi
 
         $result = $platform->invoke($prompt->model, $messages);
 
-        return $result->asText();
+        return $this->stripCodeFences($result->asText());
+    }
+
+    private function stripCodeFences(string $content): string
+    {
+        $content = trim($content);
+
+        if( !str_starts_with($content, "```") ) {
+            return $content;
+        }
+
+        $line_break = strpos($content, "\n");
+
+        $content = $line_break === false ? "" : substr($content, $line_break + 1);
+        $content = rtrim($content);
+
+        if( str_ends_with($content, "```") ) {
+            $content = substr($content, 0, -3);
+        }
+
+        return trim($content);
     }
 
     private function platform(AiProvider $provider): PlatformInterface
