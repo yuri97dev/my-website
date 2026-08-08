@@ -7,11 +7,25 @@
         @click.prevent="goTo(post.href)"
     >
         <v-img
+            v-if="showThumbnail"
             :src="post.thumbnail_path"
             height="var(--thumbnail-height)"
             class="bg-surface-light"
             cover
+            @error="thumbnailFailed = true"
         ></v-img>
+
+        <div
+            v-else
+            class="d-flex align-center justify-center bg-surface-light"
+            style="height: var(--thumbnail-height)"
+        >
+            <v-icon
+                icon="mdi-image-outline"
+                size="64"
+                color="grey"
+            ></v-icon>
+        </div>
 
         <v-card-title class="text-primary">
             <div class="lines-2">
@@ -39,12 +53,19 @@
 </template>
 
 <script setup>
+    import { ref, computed } from "vue";
     import { formatDate, goTo } from "@/Utils/Common";
 
-    defineProps({
+    const props = defineProps({
         post: {
             type: Object,
             required: true,
         },
     });
+
+    const thumbnailFailed = ref(false);
+
+    const showThumbnail = computed(() =>
+        !!props.post.thumbnail_path && !thumbnailFailed.value
+    );
 </script>
