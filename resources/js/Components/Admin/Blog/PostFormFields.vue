@@ -18,7 +18,7 @@
             >
                 <Pane
                     min-size="30"
-                    size="40"
+                    size="70"
                     class="pa-4"
                     style="background: transparent"
                 >
@@ -45,108 +45,110 @@
                                     value="header"
                                     class="d-flex align-center justify-center h-100"
                                 >
-                                    <v-card
-                                        variant="tonal"
-                                        class="w-100 mx-auto"
-                                        style="max-width: var(--center-width)"
-                                    >
-                                        <v-card-text style="max-height: 100%; overflow-y: auto">
-                                            <v-text-field
-                                                label="Título"
-                                                class="mb-4"
-                                                required
-                                                v-model="form.title"
-                                            ></v-text-field>
+                                    <div class="d-flex flex-column justify-center w-100 h-100">
+                                        <v-card
+                                            variant="tonal"
+                                            class="w-100 mx-auto"
+                                            style="max-width: var(--center-width)"
+                                        >
+                                            <v-card-text style="max-height: 100%; overflow-y: auto">
+                                                <v-text-field
+                                                    label="Título"
+                                                    class="mb-4"
+                                                    required
+                                                    v-model="form.title"
+                                                ></v-text-field>
 
-                                            <v-text-field
-                                                label="Slug"
-                                                class="mb-4"
-                                                required
-                                                v-model="form.slug"
-                                            ></v-text-field>
+                                                <v-text-field
+                                                    label="Slug"
+                                                    class="mb-4"
+                                                    required
+                                                    v-model="form.slug"
+                                                ></v-text-field>
 
-                                            <v-text-field
-                                                label="Thumbnail (URL)"
-                                                class="mb-4"
-                                                @paste="handlePasteThumbnail"
-                                                v-model="form.thumbnail_path"
-                                            >
-                                                <template #append-inner>
-                                                    <v-btn
-                                                        size="small"
-                                                        icon="mdi-crop"
-                                                        variant="tonal"
-                                                        color="primary"
-                                                        class="rounded"
-                                                        :loading="loading.thumbnail"
-                                                        @click.prevent="openThumbnailCropper"
-                                                    ></v-btn>
-                                                </template>
-                                            </v-text-field>
+                                                <v-text-field
+                                                    label="Thumbnail (URL)"
+                                                    class="mb-4"
+                                                    @paste="handlePasteThumbnail"
+                                                    v-model="form.thumbnail_path"
+                                                >
+                                                    <template #append-inner>
+                                                        <v-btn
+                                                            size="small"
+                                                            icon="mdi-crop"
+                                                            variant="tonal"
+                                                            color="primary"
+                                                            class="rounded"
+                                                            :loading="loading.thumbnail"
+                                                            @click.prevent="openThumbnailCropper"
+                                                        ></v-btn>
+                                                    </template>
+                                                </v-text-field>
 
-                                            <v-autocomplete
-                                                label="Categoria"
-                                                class="mb-4"
-                                                item-title="name"
-                                                item-value="id"
-                                                required
-                                                :loading="loading.categories"
-                                                :items="categories"
-                                                :return-object="false"
-                                                v-model="form.category_id"
-                                            >
-                                                <template #append-inner>
-                                                    <v-btn
-                                                        size="small"
-                                                        icon="mdi-playlist-edit"
-                                                        variant="tonal"
-                                                        color="primary"
-                                                        class="rounded"
-                                                        @click.prevent="openCategoryManager"
-                                                    ></v-btn>
-                                                </template>
-                                            </v-autocomplete>
+                                                <v-autocomplete
+                                                    label="Categoria"
+                                                    class="mb-4"
+                                                    item-title="name"
+                                                    item-value="id"
+                                                    required
+                                                    :loading="loading.categories"
+                                                    :items="categories"
+                                                    :return-object="false"
+                                                    v-model="form.category_id"
+                                                >
+                                                    <template #append-inner>
+                                                        <v-btn
+                                                            size="small"
+                                                            icon="mdi-playlist-edit"
+                                                            variant="tonal"
+                                                            color="primary"
+                                                            class="rounded"
+                                                            @click.prevent="openCategoryManager"
+                                                        ></v-btn>
+                                                    </template>
+                                                </v-autocomplete>
 
-                                            <v-autocomplete
-                                                label="Tags"
-                                                class="mb-4"
-                                                item-title="name"
-                                                item-value="id"
-                                                chips
-                                                multiple
-                                                :loading="loading.tags"
-                                                :items="tags"
-                                                v-model="form.tags"
-                                            >
-                                                <template #append-inner>
-                                                    <v-btn
-                                                        size="small"
-                                                        icon="mdi-playlist-edit"
-                                                        variant="tonal"
-                                                        color="primary"
-                                                        class="rounded"
-                                                        @click.prevent="openTagManager"
-                                                    ></v-btn>
-                                                </template>
-                                            </v-autocomplete>
+                                                <v-autocomplete
+                                                    label="Tags"
+                                                    class="mb-4"
+                                                    item-title="name"
+                                                    item-value="id"
+                                                    chips
+                                                    multiple
+                                                    :loading="loading.tags"
+                                                    :items="tags"
+                                                    v-model="form.tags"
+                                                >
+                                                    <template #append-inner>
+                                                        <v-btn
+                                                            size="small"
+                                                            icon="mdi-playlist-edit"
+                                                            variant="tonal"
+                                                            color="primary"
+                                                            class="rounded"
+                                                            @click.prevent="openTagManager"
+                                                        ></v-btn>
+                                                    </template>
+                                                </v-autocomplete>
 
-                                            <v-textarea
-                                                label="Resumo"
-                                                class="mb-4"
-                                                rows="1"
-                                                auto-grow
-                                                v-model="form.excerpt"
-                                            ></v-textarea>
+                                                <v-textarea
+                                                    label="Resumo"
+                                                    class="mb-4"
+                                                    rows="1"
+                                                    auto-grow
+                                                    v-model="form.excerpt"
+                                                ></v-textarea>
 
-                                            <v-switch
-                                                label="Publicar"
-                                                color="primary"
-                                                false-value="draft"
-                                                true-value="published"
-                                                v-model="form.status"
-                                            ></v-switch>
-                                        </v-card-text>
-                                    </v-card>
+                                                <v-switch
+                                                    label="Publicar"
+                                                    color="primary"
+                                                    false-value="draft"
+                                                    true-value="published"
+                                                    v-model="form.status"
+                                                ></v-switch>
+                                            </v-card-text>
+                                        </v-card>
+                                    </div>
                                 </v-tabs-window-item>
 
                                 <v-tabs-window-item
@@ -222,7 +224,7 @@
 
                 <Pane
                     min-size="30"
-                    size="60"
+                    size="30"
                     class="pa-4"
                     style="background: transparent"
                 >
