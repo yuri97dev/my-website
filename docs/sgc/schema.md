@@ -41,7 +41,7 @@ Conexão padrão (`pgsql` em produção). Todas as tabelas do módulo usam prefi
 | parent_id | bigint FK → sgc_companies | sim | | filial; sem UI no MVP |
 | legal_name | string(255) | não | | razão social |
 | trade_name | string(255) | não | | nome fantasia |
-| document | string(14) | sim | | CNPJ, só dígitos |
+| document | string(20) | sim | | documento fiscal (CNPJ, VAT, EIN…); normalizar sem máscara |
 | street | string(255) | não | | |
 | number | string(20) | não | | |
 | district | string(100) | não | | bairro |

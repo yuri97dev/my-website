@@ -231,14 +231,14 @@ Nenhum nesta fase.
 
 ## Critérios de aceite
 
-- [ ] Migration Postgres roda sem erro: `php artisan migrate`.
-- [ ] Models `Tenant`, `Company`, `TenantMember` existem com `$table` prefixado e relacionamentos corretos.
-- [ ] `SGCContext` set/get/forget funciona.
-- [ ] Traits `BelongsToTenant` e `BelongsToCompany` aplicam global scope e preenchem no creating.
-- [ ] `TenantLimit` retorna limites estáticos (`companies`, `members`, `records`).
-- [ ] Middleware `tenant` registrado, valida membership e popula `SGCContext`.
-- [ ] (Recomendado) RLS habilitado em ao menos uma tabela de teste.
-- [ ] (Recomendado) `TenantIsolationTest` passa.
+- [x] Migration Postgres roda sem erro: `php artisan migrate`.
+- [x] Models `Tenant`, `Company`, `TenantMember` existem com `$table` prefixado e relacionamentos corretos.
+- [x] `SGCContext` set/get/forget funciona.
+- [x] Traits `BelongsToTenant` e `BelongsToCompany` aplicam global scope e preenchem no creating.
+- [x] `TenantLimit` retorna limites estáticos (`companies`, `members`, `records`).
+- [x] Middleware `tenant` registrado, valida membership e popula `SGCContext`.
+- [x] (Recomendado) RLS habilitado em ao menos uma tabela de teste.
+- [x] (Recomendado) `TenantIsolationTest` passa.
 
 ## Pegadinhas
 

@@ -17,7 +17,7 @@ Documentação de implementação do **SGC** (*Sistema de Gestão Comercial*): c
 
 | Fase | Documento | Status |
 |------|-----------|--------|
-| 0 | [phase-0-tenant-infra.md](phase-0-tenant-infra.md) | pendente |
+| 0 | [phase-0-tenant-infra.md](phase-0-tenant-infra.md) | concluída |
 | 1 | [phase-1-companies-members.md](phase-1-companies-members.md) | pendente |
 | 2 | [phase-2-customers.md](phase-2-customers.md) | pendente |
 | 3 | [phase-3-catalog.md](phase-3-catalog.md) | pendente |
