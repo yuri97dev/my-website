@@ -43,7 +43,12 @@ class ProcessScrapedArticlesWithAi
 
         $prompts = $article->source->aiPrompts;
         $caches = $article->translationCaches->keyBy("ai_prompt_id");
-        $content = "<h1>{$article->title}</h1>\n\n{$article->content}";
+
+        $content = implode("\n\n", [
+            "<h1>{$article->title}</h1>",
+            $article->content,
+            "A matéria acima foi extraída de: {$article->source->url}",
+        ]);
 
         try {
             foreach($prompts as $prompt) {
