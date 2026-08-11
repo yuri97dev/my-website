@@ -11,4 +11,16 @@ export const tools = [
             "Exporta CSV/XLSX",
         ],
     },
+    {
+        key: "sgc",
+        title: "SGC",
+        subtitle: "Sistema de gestão comercial",
+        icon: "mdi-storefront-outline",
+        href: route("tools.sgc"),
+        features: [
+            "Empresas",
+            "Clientes",
+            "Produtos",
+        ],
+    },
 ];

@@ -39,6 +39,8 @@ Route::prefix("tools")->group(function () {
     Route::get("/spreadsheet-formatter/files/{uuid}/download", [
         SpreadsheetFormatterController::class, "download"
     ])->name("tools.spreadsheet-formatter.download");
+
+    Route::inertia("/sgc", "Tools/Sgc/Index")->name("tools.sgc");
 });
 
 Route::prefix("blog")->group(function () {

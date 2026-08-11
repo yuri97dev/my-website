@@ -41,6 +41,7 @@
     import { usePage } from "@inertiajs/vue3";
 
     import { goTo } from "@/Utils/Common";
+    import { tools } from "@/Data/tools";
 
     const drawer = defineModel();
     const page = usePage();
@@ -55,13 +56,13 @@
             href: route("blog.index"),
             active: route().current("blog.index"),
         },
-        {
-            key: "spreadsheet-formatter",
-            icon: "mdi-table-edit",
-            text: "Formatador de Planilhas",
-            href: route("tools.spreadsheet-formatter"),
-            active: route().current("tools.spreadsheet-formatter"),
-        },
+        ...tools.map(tool => ({
+            key: tool.key,
+            icon: tool.icon,
+            text: tool.title,
+            href: tool.href,
+            active: route().current(`tools.${tool.key}*`),
+        })),
     ]);
 
     const adminLinks = computed(() => [
