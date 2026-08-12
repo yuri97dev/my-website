@@ -19,6 +19,7 @@ use App\Http\Controllers\Blog\PostImageController;
 use App\Http\Controllers\Blog\PostTagController;
 use App\Http\Controllers\Blog\PostViewController;
 use App\Http\Controllers\SpreadsheetFormatterController;
+use App\Http\Controllers\PostalCodeAddressController;
 use App\Http\Controllers\Sgc\BrandController as SgcBrandController;
 use App\Http\Controllers\Sgc\CompanyController as SgcCompanyController;
 use App\Http\Controllers\Sgc\CustomerController as SgcCustomerController;
@@ -224,6 +225,10 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             ScrapeHttpProfileController::class, "destroy",
         ])->name("api.scrape-http-profiles.destroy");
     });
+
+Route::get("/postal-code/{postalCode}", [
+    PostalCodeAddressController::class, "show",
+])->name("api.postal-code.show");
 
 Route::prefix("tools")->group(function() {
     Route::post("/spreadsheet-formatter/upload", [
