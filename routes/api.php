@@ -19,6 +19,11 @@ use App\Http\Controllers\Blog\PostImageController;
 use App\Http\Controllers\Blog\PostTagController;
 use App\Http\Controllers\Blog\PostViewController;
 use App\Http\Controllers\SpreadsheetFormatterController;
+use App\Http\Controllers\Sgc\BrandController as SgcBrandController;
+use App\Http\Controllers\Sgc\CompanyController as SgcCompanyController;
+use App\Http\Controllers\Sgc\CustomerController as SgcCustomerController;
+use App\Http\Controllers\Sgc\ProductCategoryController as SgcProductCategoryController;
+use App\Http\Controllers\Sgc\ProductController as SgcProductController;
 use App\Models\Role;
 
 Route::prefix("auth")->group(function() {
@@ -234,6 +239,100 @@ Route::prefix("tools")->group(function() {
     Route::delete("/spreadsheet-formatter/files/{uuid}", [
         SpreadsheetFormatterController::class, "destroy"
     ])->name("api.tools.spreadsheet-formatter.files.destroy");
+
+    Route::prefix("sgc")->middleware("auth")->group(function () {
+        Route::get("/companies", [
+            SgcCompanyController::class, "index",
+        ])->name("api.tools.sgc.companies.index");
+
+        Route::post("/companies", [
+            SgcCompanyController::class, "store",
+        ])->name("api.tools.sgc.companies.store");
+
+        Route::get("/companies/{sgcCompany}", [
+            SgcCompanyController::class, "show",
+        ])->name("api.tools.sgc.companies.show");
+
+        Route::put("/companies/{sgcCompany}", [
+            SgcCompanyController::class, "update",
+        ])->name("api.tools.sgc.companies.update");
+
+        Route::delete("/companies/{sgcCompany}", [
+            SgcCompanyController::class, "destroy",
+        ])->name("api.tools.sgc.companies.destroy");
+
+        Route::get("/customers", [
+            SgcCustomerController::class, "index",
+        ])->name("api.tools.sgc.customers.index");
+
+        Route::post("/customers", [
+            SgcCustomerController::class, "store",
+        ])->name("api.tools.sgc.customers.store");
+
+        Route::get("/customers/{sgcCustomer}", [
+            SgcCustomerController::class, "show",
+        ])->name("api.tools.sgc.customers.show");
+
+        Route::put("/customers/{sgcCustomer}", [
+            SgcCustomerController::class, "update",
+        ])->name("api.tools.sgc.customers.update");
+
+        Route::delete("/customers/{sgcCustomer}", [
+            SgcCustomerController::class, "destroy",
+        ])->name("api.tools.sgc.customers.destroy");
+
+        Route::get("/brands", [
+            SgcBrandController::class, "index",
+        ])->name("api.tools.sgc.brands.index");
+
+        Route::post("/brands", [
+            SgcBrandController::class, "store",
+        ])->name("api.tools.sgc.brands.store");
+
+        Route::put("/brands/{sgcBrand}", [
+            SgcBrandController::class, "update",
+        ])->name("api.tools.sgc.brands.update");
+
+        Route::delete("/brands/{sgcBrand}", [
+            SgcBrandController::class, "destroy",
+        ])->name("api.tools.sgc.brands.destroy");
+
+        Route::get("/product-categories", [
+            SgcProductCategoryController::class, "index",
+        ])->name("api.tools.sgc.product-categories.index");
+
+        Route::post("/product-categories", [
+            SgcProductCategoryController::class, "store",
+        ])->name("api.tools.sgc.product-categories.store");
+
+        Route::put("/product-categories/{sgcProductCategory}", [
+            SgcProductCategoryController::class, "update",
+        ])->name("api.tools.sgc.product-categories.update");
+
+        Route::delete("/product-categories/{sgcProductCategory}", [
+            SgcProductCategoryController::class, "destroy",
+        ])->name("api.tools.sgc.product-categories.destroy");
+
+        Route::get("/products", [
+            SgcProductController::class, "index",
+        ])->name("api.tools.sgc.products.index");
+
+        Route::post("/products", [
+            SgcProductController::class, "store",
+        ])->name("api.tools.sgc.products.store");
+
+        Route::get("/products/{sgcProduct}", [
+            SgcProductController::class, "show",
+        ])->name("api.tools.sgc.products.show");
+
+        Route::put("/products/{sgcProduct}", [
+            SgcProductController::class, "update",
+        ])->name("api.tools.sgc.products.update");
+
+        Route::delete("/products/{sgcProduct}", [
+            SgcProductController::class, "destroy",
+        ])->name("api.tools.sgc.products.destroy");
+    });
 });
 
 Route::prefix("blog/posts")->group(function () {

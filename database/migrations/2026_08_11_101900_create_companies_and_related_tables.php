@@ -35,6 +35,7 @@ return new class extends Migration
             $table->string("address_postal_code")->nullable();
             $table->string("address_country")->nullable();
 
+            $table->softDeletes();
             $table->timestamps();
         });
 
@@ -48,6 +49,8 @@ return new class extends Migration
             $table->foreignId("user_id")
                 ->constrained()
                 ->cascadeOnDelete();
+
+            $table->string("role");
 
             $table->timestamps();
 
@@ -63,6 +66,7 @@ return new class extends Migration
             $table->string("tax_id")->nullable();
             $table->date("birth_date")->nullable();
 
+            $table->softDeletes();
             $table->timestamps();
         });
 
@@ -137,6 +141,7 @@ return new class extends Migration
             $table->string("name");
             $table->text("technical_specifications")->nullable();
 
+            $table->softDeletes();
             $table->timestamps();
         });
 
