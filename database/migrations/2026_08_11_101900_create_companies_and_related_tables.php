@@ -18,6 +18,11 @@ return new class extends Migration
                 ->constrained("users")
                 ->cascadeOnDelete();
 
+            $table->foreignId("parent_id")
+                ->nullable()
+                ->constrained("sgc_companies")
+                ->nullOnDelete();
+
             $table->string("legal_name");
             $table->string("trade_name")->nullable();
             $table->string("document")->nullable();
