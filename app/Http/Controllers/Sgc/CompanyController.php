@@ -13,12 +13,12 @@ class CompanyController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = min($request->integer("per_page", 15), 100);
+        $per_page = min($request->integer("per_page", 15), 100);
 
         $paginator = SgcCompany::query()
             ->accessibleBy($request->user())
             ->orderByDesc("id")
-            ->paginate($perPage);
+            ->paginate($per_page);
 
         return response()->json([
             "current_page" => $paginator->currentPage(),
@@ -46,40 +46,40 @@ class CompanyController extends Controller
         ], 201);
     }
 
-    public function show(Request $request, SgcCompany $sgcCompany)
+    public function show(Request $request, SgcCompany $sgc_company)
     {
         abort_unless(
-            $sgcCompany->isAccessibleBy($request->user()),
+            $sgc_company->isAccessibleBy($request->user()),
             Response::HTTP_FORBIDDEN
         );
 
         return response()->json([
-            "company" => $sgcCompany,
+            "company" => $sgc_company,
         ], 200);
     }
 
-    public function update(UpdateCompanyRequest $request, SgcCompany $sgcCompany)
+    public function update(UpdateCompanyRequest $request, SgcCompany $sgc_company)
     {
         abort_unless(
-            $sgcCompany->isAccessibleBy($request->user()),
+            $sgc_company->isAccessibleBy($request->user()),
             Response::HTTP_FORBIDDEN
         );
 
-        $sgcCompany->update($request->validated());
+        $sgc_company->update($request->validated());
 
         return response()->json([
-            "company" => $sgcCompany->fresh(),
+            "company" => $sgc_company->fresh(),
         ], 200);
     }
 
-    public function destroy(Request $request, SgcCompany $sgcCompany)
+    public function destroy(Request $request, SgcCompany $sgc_company)
     {
         abort_unless(
-            $sgcCompany->owner_id === $request->user()->id,
+            $sgc_company->owner_id === $request->user()->id,
             Response::HTTP_FORBIDDEN
         );
 
-        $sgcCompany->delete();
+        $sgc_company->delete();
 
         return response()->json([
             "message" => "Empresa removida com sucesso.",

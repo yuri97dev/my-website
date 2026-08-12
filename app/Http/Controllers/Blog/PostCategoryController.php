@@ -31,18 +31,18 @@ class PostCategoryController extends Controller
         ], 201);
     }
 
-    public function update(UpdatePostCategoryRequest $request, PostCategory $postCategory)
+    public function update(UpdatePostCategoryRequest $request, PostCategory $post_category)
     {
-        $postCategory->update($request->validated());
+        $post_category->update($request->validated());
 
         return response()->json([
-            "category" => $postCategory->fresh()->only(["id", "slug", "name"]),
+            "category" => $post_category->fresh()->only(["id", "slug", "name"]),
         ], 200);
     }
 
-    public function destroy(PostCategory $postCategory)
+    public function destroy(PostCategory $post_category)
     {
-        $postCategory->delete();
+        $post_category->delete();
 
         return response()->json([
             "message" => "Categoria removida com sucesso.",

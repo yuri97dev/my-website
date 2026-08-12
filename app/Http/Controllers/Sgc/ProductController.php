@@ -26,12 +26,12 @@ class ProductController extends Controller
             Response::HTTP_FORBIDDEN
         );
 
-        $perPage = min($request->integer("per_page", 15), 100);
+        $per_page = min($request->integer("per_page", 15), 100);
 
         $paginator = $company->products()
             ->with(["brand", "category"])
             ->orderByDesc("sgc_products.id")
-            ->paginate($perPage);
+            ->paginate($per_page);
 
         return response()->json([
             "current_page" => $paginator->currentPage(),
@@ -63,51 +63,51 @@ class ProductController extends Controller
         ], 201);
     }
 
-    public function show(Request $request, SgcProduct $sgcProduct)
+    public function show(Request $request, SgcProduct $sgc_product)
     {
         abort_unless(
-            $this->productAccessibleByUser($sgcProduct, $request->user()),
+            $this->productAccessibleByUser($sgc_product, $request->user()),
             Response::HTTP_FORBIDDEN
         );
 
-        $sgcProduct->load(["brand", "category"]);
+        $sgc_product->load(["brand", "category"]);
 
         return response()->json([
-            "product" => $sgcProduct,
+            "product" => $sgc_product,
         ], 200);
     }
 
-    public function update(UpdateProductRequest $request, SgcProduct $sgcProduct)
+    public function update(UpdateProductRequest $request, SgcProduct $sgc_product)
     {
         $validated = $request->validated();
         $company_id = $validated["company_id"];
 
-        $sgcProduct->update(collect($validated)->except([
+        $sgc_product->update(collect($validated)->except([
             "notes",
             "company_id",
         ])->all());
 
         if( array_key_exists("notes", $validated) ) {
-            $sgcProduct->companies()->updateExistingPivot($company_id, [
+            $sgc_product->companies()->updateExistingPivot($company_id, [
                 "notes" => $validated["notes"],
             ]);
         }
 
-        $sgcProduct->load(["brand", "category"]);
+        $sgc_product->load(["brand", "category"]);
 
         return response()->json([
-            "product" => $sgcProduct,
+            "product" => $sgc_product,
         ], 200);
     }
 
-    public function destroy(Request $request, SgcProduct $sgcProduct)
+    public function destroy(Request $request, SgcProduct $sgc_product)
     {
         abort_unless(
-            $this->productAccessibleByUser($sgcProduct, $request->user()),
+            $this->productAccessibleByUser($sgc_product, $request->user()),
             Response::HTTP_FORBIDDEN
         );
 
-        $sgcProduct->delete();
+        $sgc_product->delete();
 
         return response()->json([
             "message" => "Produto removido com sucesso.",

@@ -12,11 +12,11 @@ class BrandController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = min($request->integer("per_page", 15), 100);
+        $per_page = min($request->integer("per_page", 15), 100);
 
         $paginator = SgcBrand::query()
             ->orderBy("name")
-            ->paginate($perPage);
+            ->paginate($per_page);
 
         return response()->json([
             "current_page" => $paginator->currentPage(),
@@ -36,18 +36,18 @@ class BrandController extends Controller
         ], 201);
     }
 
-    public function update(UpdateBrandRequest $request, SgcBrand $sgcBrand)
+    public function update(UpdateBrandRequest $request, SgcBrand $sgc_brand)
     {
-        $sgcBrand->update($request->validated());
+        $sgc_brand->update($request->validated());
 
         return response()->json([
-            "brand" => $sgcBrand->fresh(),
+            "brand" => $sgc_brand->fresh(),
         ], 200);
     }
 
-    public function destroy(SgcBrand $sgcBrand)
+    public function destroy(SgcBrand $sgc_brand)
     {
-        $sgcBrand->delete();
+        $sgc_brand->delete();
 
         return response()->json([
             "message" => "Marca removida com sucesso.",

@@ -34,7 +34,7 @@ class UpdateAiPromptRequest extends FormRequest
      */
     public function rules(): array
     {
-        $aiPrompt = $this->route("aiPrompt");
+        $ai_prompt = $this->route("ai_prompt");
 
         return [
             "key" => [
@@ -43,8 +43,8 @@ class UpdateAiPromptRequest extends FormRequest
                 "string",
                 "max:100",
                 Rule::unique("ai_prompts", "key")
-                    ->where("ai_provider_id", $aiPrompt->ai_provider_id)
-                    ->ignore($aiPrompt),
+                    ->where("ai_provider_id", $ai_prompt->ai_provider_id)
+                    ->ignore($ai_prompt),
             ],
             "content" => ["sometimes", "required", "string"],
             "model" => ["sometimes", "required", "string", "max:100"],

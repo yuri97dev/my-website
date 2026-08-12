@@ -44,11 +44,11 @@ Route::prefix("tools")->group(function () {
 });
 
 Route::prefix("blog")->group(function () {
-    Route::get("/images/{postImage}", [
+    Route::get("/images/{post_image}", [
         PostImageController::class, "show",
     ])->name("blog.images.show");
 
-    Route::get("/sc-images/{scrapedArticleImage}", [
+    Route::get("/sc-images/{scraped_article_image}", [
         ScrapedArticleImageController::class, "show",
     ])->name("blog.scraped-images.show");
 

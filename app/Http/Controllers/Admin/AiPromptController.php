@@ -62,9 +62,9 @@ class AiPromptController extends Controller
         ], 200);
     }
 
-    public function forProvider(AiProvider $aiProvider)
+    public function forProvider(AiProvider $ai_provider)
     {
-        $prompts = $aiProvider->prompts()
+        $prompts = $ai_provider->prompts()
             ->select([
                 "id",
                 "ai_provider_id",
@@ -82,27 +82,27 @@ class AiPromptController extends Controller
         ], 200);
     }
 
-    public function store(StoreAiPromptRequest $request, AiProvider $aiProvider)
+    public function store(StoreAiPromptRequest $request, AiProvider $ai_provider)
     {
-        $aiPrompt = $aiProvider->prompts()->create($request->validated());
+        $ai_prompt = $ai_provider->prompts()->create($request->validated());
 
         return response()->json([
-            "ai_prompt" => $aiPrompt,
+            "ai_prompt" => $ai_prompt,
         ], 201);
     }
 
-    public function update(UpdateAiPromptRequest $request, AiPrompt $aiPrompt)
+    public function update(UpdateAiPromptRequest $request, AiPrompt $ai_prompt)
     {
-        $aiPrompt->update($request->validated());
+        $ai_prompt->update($request->validated());
 
         return response()->json([
-            "ai_prompt" => $aiPrompt->fresh(),
+            "ai_prompt" => $ai_prompt->fresh(),
         ], 200);
     }
 
-    public function destroy(AiPrompt $aiPrompt)
+    public function destroy(AiPrompt $ai_prompt)
     {
-        $aiPrompt->delete();
+        $ai_prompt->delete();
 
         return response()->json([
             "message" => "Prompt removido com sucesso.",

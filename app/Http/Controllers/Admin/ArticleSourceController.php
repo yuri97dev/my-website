@@ -15,7 +15,7 @@ class ArticleSourceController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = min($request->integer("per_page", 15), 100);
+        $per_page = min($request->integer("per_page", 15), 100);
 
         $paginator = ArticleSource::query()
             ->select([
@@ -39,7 +39,7 @@ class ArticleSourceController extends Controller
             ])
             ->withCount("aiPrompts")
             ->orderByDesc("id")
-            ->paginate($perPage);
+            ->paginate($per_page);
 
         return response()->json([
             "current_page" => $paginator->currentPage(),
@@ -52,28 +52,28 @@ class ArticleSourceController extends Controller
 
     public function store(StoreArticleSourceRequest $request)
     {
-        $articleSource = ArticleSource::create($request->validated());
+        $article_source = ArticleSource::create($request->validated());
 
         return response()->json([
-            "article_source" => $articleSource,
+            "article_source" => $article_source,
         ], 201);
     }
 
-    public function update(UpdateArticleSourceRequest $request, ArticleSource $articleSource)
+    public function update(UpdateArticleSourceRequest $request, ArticleSource $article_source)
     {
-        $articleSource->update($request->validated());
+        $article_source->update($request->validated());
 
         return response()->json([
-            "article_source" => $articleSource->fresh(),
+            "article_source" => $article_source->fresh(),
         ], 200);
     }
 
-    public function disable(ArticleSource $articleSource)
+    public function disable(ArticleSource $article_source)
     {
-        $articleSource->update(["is_enabled" => false]);
+        $article_source->update(["is_enabled" => false]);
 
         return response()->json([
-            "article_source" => $articleSource->fresh(),
+            "article_source" => $article_source->fresh(),
             "message" => "Fonte desabilitada com sucesso.",
         ], 200);
     }

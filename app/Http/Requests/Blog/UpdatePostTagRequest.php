@@ -43,7 +43,7 @@ class UpdatePostTagRequest extends FormRequest
                 "string",
                 "max:255",
                 Rule::unique("post_tags", "slug")
-                    ->ignore($this->route("postTag")),
+                    ->ignore($this->route("post_tag")),
             ],
         ];
     }

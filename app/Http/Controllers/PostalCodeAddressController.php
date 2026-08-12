@@ -7,15 +7,15 @@ use Symfony\Component\HttpFoundation\Response;
 
 class PostalCodeAddressController extends Controller
 {
-    public function show(string $postalCode, ResolvePostalCodeAddress $resolvePostalCodeAddress)
+    public function show(string $postal_code, ResolvePostalCodeAddress $resolve_postal_code_address)
     {
-        $normalized = $resolvePostalCodeAddress->normalizePostalCode($postalCode);
+        $normalized = $resolve_postal_code_address->normalizePostalCode($postal_code);
 
         if( $normalized === null ) return response()->json([
             "message" => "CEP inválido.",
         ], Response::HTTP_UNPROCESSABLE_ENTITY);
 
-        $address = $resolvePostalCodeAddress($postalCode);
+        $address = $resolve_postal_code_address($postal_code);
 
         if( $address === null ) return response()->json([
             "message" => "CEP não encontrado.",

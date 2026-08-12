@@ -10,12 +10,12 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = min($request->integer("per_page", 15), 100);
+        $per_page = min($request->integer("per_page", 15), 100);
 
         $paginator = User::query()
             ->with("roles:id,slug,name")
             ->orderByDesc("created_at")
-            ->paginate($perPage);
+            ->paginate($per_page);
 
         return response()->json([
             "current_page" => $paginator->currentPage(),

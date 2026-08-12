@@ -26,12 +26,12 @@ class CustomerController extends Controller
             Response::HTTP_FORBIDDEN
         );
 
-        $perPage = min($request->integer("per_page", 15), 100);
+        $per_page = min($request->integer("per_page", 15), 100);
 
         $paginator = $company->customers()
             ->with("addresses")
             ->orderByDesc("sgc_customers.id")
-            ->paginate($perPage);
+            ->paginate($per_page);
 
         return response()->json([
             "current_page" => $paginator->currentPage(),
@@ -68,56 +68,56 @@ class CustomerController extends Controller
         ], 201);
     }
 
-    public function show(Request $request, SgcCustomer $sgcCustomer)
+    public function show(Request $request, SgcCustomer $sgc_customer)
     {
         abort_unless(
-            $this->customerAccessibleByUser($sgcCustomer, $request->user()),
+            $this->customerAccessibleByUser($sgc_customer, $request->user()),
             Response::HTTP_FORBIDDEN
         );
 
-        $sgcCustomer->load("addresses");
+        $sgc_customer->load("addresses");
 
         return response()->json([
-            "customer" => $sgcCustomer,
+            "customer" => $sgc_customer,
         ], 200);
     }
 
-    public function update(UpdateCustomerRequest $request, SgcCustomer $sgcCustomer)
+    public function update(UpdateCustomerRequest $request, SgcCustomer $sgc_customer)
     {
         $validated = $request->validated();
         $company_id = $validated["company_id"];
 
-        $sgcCustomer->update(collect($validated)->except([
+        $sgc_customer->update(collect($validated)->except([
             "notes",
             "addresses",
             "company_id",
         ])->all());
 
         if( array_key_exists("notes", $validated) ) {
-            $sgcCustomer->companies()->updateExistingPivot($company_id, [
+            $sgc_customer->companies()->updateExistingPivot($company_id, [
                 "notes" => $validated["notes"],
             ]);
         }
 
         if( array_key_exists("addresses", $validated) ) {
-            $this->syncAddresses($sgcCustomer, $validated["addresses"] ?? []);
+            $this->syncAddresses($sgc_customer, $validated["addresses"] ?? []);
         }
 
-        $sgcCustomer->load("addresses");
+        $sgc_customer->load("addresses");
 
         return response()->json([
-            "customer" => $sgcCustomer,
+            "customer" => $sgc_customer,
         ], 200);
     }
 
-    public function destroy(Request $request, SgcCustomer $sgcCustomer)
+    public function destroy(Request $request, SgcCustomer $sgc_customer)
     {
         abort_unless(
-            $this->customerAccessibleByUser($sgcCustomer, $request->user()),
+            $this->customerAccessibleByUser($sgc_customer, $request->user()),
             Response::HTTP_FORBIDDEN
         );
 
-        $sgcCustomer->delete();
+        $sgc_customer->delete();
 
         return response()->json([
             "message" => "Cliente removido com sucesso.",

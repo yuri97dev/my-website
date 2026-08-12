@@ -19,7 +19,7 @@ class ScrapeArticleSourcesJob implements ShouldQueue
     public const CACHE_LOCK_TTL = 600;
 
     public function __construct(
-        protected ?int $articleSourceId = null,
+        protected ?int $article_source_id = null,
         protected ?string $driver = null,
     ) {
         $this->onQueue("scraping");
@@ -27,17 +27,17 @@ class ScrapeArticleSourcesJob implements ShouldQueue
 
     public function handle(): void
     {
-        $lockAcquiredByController = Cache::has(self::CACHE_LOCK_KEY);
-        $lockAcquired = Cache::add(self::CACHE_LOCK_KEY, true, self::CACHE_LOCK_TTL);
+        $lock_acquired_by_controller = Cache::has(self::CACHE_LOCK_KEY);
+        $lock_acquired = Cache::add(self::CACHE_LOCK_KEY, true, self::CACHE_LOCK_TTL);
 
-        if( !$lockAcquiredByController && !$lockAcquired ) return;
+        if( !$lock_acquired_by_controller && !$lock_acquired ) return;
 
         try {
-            $source = $this->articleSourceId
-                ? ArticleSource::find($this->articleSourceId)
+            $source = $this->article_source_id
+                ? ArticleSource::find($this->article_source_id)
                 : null;
 
-            if( $this->articleSourceId && !$source ) return;
+            if( $this->article_source_id && !$source ) return;
 
             (new ScrapeArticleSources)($source, $this->driver);
         } finally {

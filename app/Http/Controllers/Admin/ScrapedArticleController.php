@@ -12,7 +12,7 @@ class ScrapedArticleController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = min($request->integer("per_page", 15), 100);
+        $per_page = min($request->integer("per_page", 15), 100);
 
         $query = ScrapedArticle::query()
             ->select([
@@ -33,7 +33,7 @@ class ScrapedArticleController extends Controller
             $query->where("article_source_id", $request->integer("article_source_id"));
         }
 
-        $paginator = $query->paginate($perPage);
+        $paginator = $query->paginate($per_page);
 
         return response()->json([
             "current_page" => $paginator->currentPage(),
@@ -44,47 +44,47 @@ class ScrapedArticleController extends Controller
         ], 200);
     }
 
-    public function show(ScrapedArticle $scrapedArticle)
+    public function show(ScrapedArticle $scraped_article)
     {
-        $scrapedArticle->load("source:id,name,driver");
+        $scraped_article->load("source:id,name,driver");
 
         return response()->json([
-            "scraped_article" => $scrapedArticle,
+            "scraped_article" => $scraped_article,
         ], 200);
     }
 
-    public function disable(ScrapedArticle $scrapedArticle)
+    public function disable(ScrapedArticle $scraped_article)
     {
-        $scrapedArticle->update(["is_enabled" => false]);
+        $scraped_article->update(["is_enabled" => false]);
 
         return response()->json([
-            "scraped_article" => $scrapedArticle->fresh(),
+            "scraped_article" => $scraped_article->fresh(),
             "message" => "Artigo inativado com sucesso.",
         ], 200);
     }
 
     public function scrape(Request $request)
     {
-        $lockAcquired = Cache::add(
+        $lock_acquired = Cache::add(
             ScrapeArticleSourcesJob::CACHE_LOCK_KEY,
             true,
             ScrapeArticleSourcesJob::CACHE_LOCK_TTL,
         );
 
-        if( !$lockAcquired ) return response()->json([
+        if( !$lock_acquired ) return response()->json([
             "message" => "Scraping já está em andamento.",
         ], 409);
 
-        $articleSourceId = $request->integer("article_source_id") ?: null;
+        $article_source_id = $request->integer("article_source_id") ?: null;
 
-        ScrapeArticleSourcesJob::dispatch($articleSourceId)->afterResponse();
+        ScrapeArticleSourcesJob::dispatch($article_source_id)->afterResponse();
 
         return response()->json([
             "message" => "Scraping iniciado com sucesso.",
         ], 202);
     }
 
-    public function rejectTranslation(Request $request, ScrapedArticle $scrapedArticle)
+    public function rejectTranslation(Request $request, ScrapedArticle $scraped_article)
     {
         $permanent = $request->boolean("permanent");
 
@@ -97,23 +97,23 @@ class ScrapedArticleController extends Controller
             $data["translation_rejected_at"] = now();
         }
 
-        $scrapedArticle->update($data);
-        $scrapedArticle->translationCaches()->delete();
+        $scraped_article->update($data);
+        $scraped_article->translationCaches()->delete();
 
         return response()->json([
-            "scraped_article" => $scrapedArticle->fresh(),
+            "scraped_article" => $scraped_article->fresh(),
             "message" => $permanent
                 ? "Tradução rejeitada permanentemente."
                 : "Tradução rejeitada com sucesso.",
         ], 200);
     }
 
-    public function resetTranslationAttempts(ScrapedArticle $scrapedArticle)
+    public function resetTranslationAttempts(ScrapedArticle $scraped_article)
     {
-        $scrapedArticle->update(["translation_attempts" => 0]);
+        $scraped_article->update(["translation_attempts" => 0]);
 
         return response()->json([
-            "scraped_article" => $scrapedArticle->fresh(),
+            "scraped_article" => $scraped_article->fresh(),
             "message" => "Contagem de tentativas de tradução reiniciada com sucesso.",
         ], 200);
     }

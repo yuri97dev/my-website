@@ -11,8 +11,8 @@ class SessionController extends Controller
 {
     public function index(Request $request)
     {
-        $currentSessionId = $request->session()->getId();
-        $perPage = min($request->integer("per_page", 15), 100);
+        $current_session_id = $request->session()->getId();
+        $per_page = min($request->integer("per_page", 15), 100);
 
         $paginator = DB::table("sessions")
             ->leftJoin("users", "sessions.user_id", "=", "users.id")
@@ -26,10 +26,10 @@ class SessionController extends Controller
                 "users.email as user_email",
             ])
             ->orderByDesc("sessions.last_activity")
-            ->paginate($perPage);
+            ->paginate($per_page);
 
         $sessions = collect($paginator->items())
-            ->map(function ($session) use ($currentSessionId) {
+            ->map(function ($session) use ($current_session_id) {
                 $data = (array) $session;
 
                 unset($data["user_agent"]);

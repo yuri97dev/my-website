@@ -31,18 +31,18 @@ class PostTagController extends Controller
         ], 201);
     }
 
-    public function update(UpdatePostTagRequest $request, PostTag $postTag)
+    public function update(UpdatePostTagRequest $request, PostTag $post_tag)
     {
-        $postTag->update($request->validated());
+        $post_tag->update($request->validated());
 
         return response()->json([
-            "tag" => $postTag->fresh()->only(["id", "slug", "name"]),
+            "tag" => $post_tag->fresh()->only(["id", "slug", "name"]),
         ], 200);
     }
 
-    public function destroy(PostTag $postTag)
+    public function destroy(PostTag $post_tag)
     {
-        $postTag->delete();
+        $post_tag->delete();
 
         return response()->json([
             "message" => "Tag removida com sucesso.",

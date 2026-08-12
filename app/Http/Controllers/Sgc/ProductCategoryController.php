@@ -12,11 +12,11 @@ class ProductCategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = min($request->integer("per_page", 15), 100);
+        $per_page = min($request->integer("per_page", 15), 100);
 
         $paginator = SgcProductCategory::query()
             ->orderBy("name")
-            ->paginate($perPage);
+            ->paginate($per_page);
 
         return response()->json([
             "current_page" => $paginator->currentPage(),
@@ -36,18 +36,18 @@ class ProductCategoryController extends Controller
         ], 201);
     }
 
-    public function update(UpdateProductCategoryRequest $request, SgcProductCategory $sgcProductCategory)
+    public function update(UpdateProductCategoryRequest $request, SgcProductCategory $sgc_product_category)
     {
-        $sgcProductCategory->update($request->validated());
+        $sgc_product_category->update($request->validated());
 
         return response()->json([
-            "product_category" => $sgcProductCategory->fresh(),
+            "product_category" => $sgc_product_category->fresh(),
         ], 200);
     }
 
-    public function destroy(SgcProductCategory $sgcProductCategory)
+    public function destroy(SgcProductCategory $sgc_product_category)
     {
-        $sgcProductCategory->delete();
+        $sgc_product_category->delete();
 
         return response()->json([
             "message" => "Categoria removida com sucesso.",

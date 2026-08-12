@@ -8,9 +8,9 @@ use App\Models\ArticleSource;
 
 class ArticleSourceAiPromptController extends Controller
 {
-    public function index(ArticleSource $articleSource)
+    public function index(ArticleSource $article_source)
     {
-        $prompts = $articleSource->aiPrompts()
+        $prompts = $article_source->aiPrompts()
             ->select([
                 "ai_prompts.id",
                 "ai_prompts.ai_provider_id",
@@ -25,13 +25,13 @@ class ArticleSourceAiPromptController extends Controller
         ], 200);
     }
 
-    public function sync(SyncArticleSourceAiPromptsRequest $request, ArticleSource $articleSource)
+    public function sync(SyncArticleSourceAiPromptsRequest $request, ArticleSource $article_source)
     {
         $payload = collect($request->validated("ai_prompt_ids"))
             ->mapWithKeys(fn ($id, $index) => [$id => ["position" => $index + 1]])
             ->all();
 
-        $articleSource->aiPrompts()->sync($payload);
+        $article_source->aiPrompts()->sync($payload);
 
         return response()->json([
             "message" => "Prompts de IA atualizados com sucesso.",

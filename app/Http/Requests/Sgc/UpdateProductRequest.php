@@ -54,7 +54,7 @@ class UpdateProductRequest extends SgcFormRequest
                 $validator->errors()->add("company_id", "Empresa inválida ou sem permissão.");
             }
 
-            $product = $this->route("sgcProduct");
+            $product = $this->route("sgc_product");
 
             if( $product && !$product->companies()->where("sgc_companies.id", $company_id)->exists() ) {
                 $validator->errors()->add("company_id", "Produto não vinculado a esta empresa.");

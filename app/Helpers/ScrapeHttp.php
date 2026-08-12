@@ -20,7 +20,7 @@ class ScrapeHttp
 
     private const CONNECT_TIMEOUT = 10;
 
-    private static array $profileIndexes = [];
+    private static array $profile_indexes = [];
 
     private static ?array $profiles = null;
 
@@ -84,11 +84,11 @@ class ScrapeHttp
 
         $profiles = self::profiles();
 
-        if( !isset(self::$profileIndexes[$key]) ) {
-            self::$profileIndexes[$key] = array_rand($profiles);
+        if( !isset(self::$profile_indexes[$key]) ) {
+            self::$profile_indexes[$key] = array_rand($profiles);
         }
 
-        return $profiles[self::$profileIndexes[$key]];
+        return $profiles[self::$profile_indexes[$key]];
     }
 
     private static function rotateProfileFor(?ArticleSource $source): array
@@ -97,11 +97,11 @@ class ScrapeHttp
 
         $profiles = self::profiles();
 
-        $index = self::$profileIndexes[$key] ?? array_rand($profiles);
+        $index = self::$profile_indexes[$key] ?? array_rand($profiles);
 
-        self::$profileIndexes[$key] = ($index + 1) % count($profiles);
+        self::$profile_indexes[$key] = ($index + 1) % count($profiles);
 
-        return $profiles[self::$profileIndexes[$key]];
+        return $profiles[self::$profile_indexes[$key]];
     }
 
     private static function buildHeaders(array $profile, ?ArticleSource $source): array

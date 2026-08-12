@@ -43,7 +43,7 @@ class UpdatePostCategoryRequest extends FormRequest
                 "string",
                 "max:255",
                 Rule::unique("post_categories", "slug")
-                    ->ignore($this->route("postCategory")),
+                    ->ignore($this->route("post_category")),
             ],
         ];
     }

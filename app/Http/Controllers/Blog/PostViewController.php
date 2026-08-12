@@ -45,9 +45,9 @@ class PostViewController extends Controller
         ], 200);
     }
 
-    public function store(Request $request, Post $post, RecordPostView $recordPostView)
+    public function store(Request $request, Post $post, RecordPostView $record_post_view)
     {
-        $recordPostView($post, $request);
+        $record_post_view($post, $request);
         return response()->noContent();
     }
 }

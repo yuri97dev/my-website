@@ -56,7 +56,7 @@ class UpdateArticleSourceRequest extends FormRequest
                 "string",
                 "max:100",
                 Rule::unique("article_sources", "name")
-                    ->ignore($this->route("articleSource")),
+                    ->ignore($this->route("article_source")),
             ],
             "locale" => ["sometimes", "required", "string", "max:10"],
             "http_method" => ["sometimes", "required", "string", "max:10"],
@@ -66,7 +66,7 @@ class UpdateArticleSourceRequest extends FormRequest
                 "string",
                 "max:255",
                 Rule::unique("article_sources", "list_url")
-                    ->ignore($this->route("articleSource")),
+                    ->ignore($this->route("article_source")),
             ],
             "list_item_selector" => ["sometimes", "required", "string", "max:255"],
             "item_title_selector" => ["sometimes", "required", "string", "max:255"],

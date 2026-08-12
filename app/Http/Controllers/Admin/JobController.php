@@ -11,11 +11,11 @@ class JobController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = min($request->integer("per_page", 15), 100);
+        $per_page = min($request->integer("per_page", 15), 100);
 
         $paginator = Job::query()
             ->orderByDesc("created_at")
-            ->paginate($perPage);
+            ->paginate($per_page);
 
         return response()->json([
             "current_page" => $paginator->currentPage(),
@@ -28,12 +28,12 @@ class JobController extends Controller
 
     public function spreadsheetFormatter(Request $request)
     {
-        $perPage = min($request->integer("per_page", 15), 100);
+        $per_page = min($request->integer("per_page", 15), 100);
 
         $paginator = SpreadsheetJob::query()
             ->with("user:id,name,email")
             ->orderByDesc("created_at")
-            ->paginate($perPage);
+            ->paginate($per_page);
 
         return response()->json([
             "current_page" => $paginator->currentPage(),

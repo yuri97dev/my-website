@@ -12,7 +12,7 @@ class ScrapeHttpProfileController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = min($request->integer("per_page", 15), 100);
+        $per_page = min($request->integer("per_page", 15), 100);
 
         $paginator = ScrapeHttpProfile::query()
             ->select([
@@ -24,7 +24,7 @@ class ScrapeHttpProfileController extends Controller
                 "updated_at",
             ])
             ->orderByDesc("id")
-            ->paginate($perPage);
+            ->paginate($per_page);
 
         return response()->json([
             "current_page" => $paginator->currentPage(),
@@ -37,25 +37,25 @@ class ScrapeHttpProfileController extends Controller
 
     public function store(StoreScrapeHttpProfileRequest $request)
     {
-        $scrapeHttpProfile = ScrapeHttpProfile::create($request->validated());
+        $scrape_http_profile = ScrapeHttpProfile::create($request->validated());
 
         return response()->json([
-            "scrape_http_profile" => $scrapeHttpProfile,
+            "scrape_http_profile" => $scrape_http_profile,
         ], 201);
     }
 
-    public function update(UpdateScrapeHttpProfileRequest $request, ScrapeHttpProfile $scrapeHttpProfile)
+    public function update(UpdateScrapeHttpProfileRequest $request, ScrapeHttpProfile $scrape_http_profile)
     {
-        $scrapeHttpProfile->update($request->validated());
+        $scrape_http_profile->update($request->validated());
 
         return response()->json([
-            "scrape_http_profile" => $scrapeHttpProfile->fresh(),
+            "scrape_http_profile" => $scrape_http_profile->fresh(),
         ], 200);
     }
 
-    public function destroy(ScrapeHttpProfile $scrapeHttpProfile)
+    public function destroy(ScrapeHttpProfile $scrape_http_profile)
     {
-        $scrapeHttpProfile->delete();
+        $scrape_http_profile->delete();
 
         return response()->json([
             "message" => "Perfil HTTP removido com sucesso.",

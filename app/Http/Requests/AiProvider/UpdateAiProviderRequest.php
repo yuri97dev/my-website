@@ -42,7 +42,7 @@ class UpdateAiProviderRequest extends FormRequest
                 "string",
                 "max:100",
                 Rule::unique("ai_providers", "name")
-                    ->ignore($this->route("aiProvider")),
+                    ->ignore($this->route("ai_provider")),
             ],
             "provider" => ["sometimes", "required", "string", "max:50"],
             "api_key" => ["sometimes", "nullable", "string"],

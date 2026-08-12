@@ -35,10 +35,10 @@ class SystemAdminUserSeeder extends Seeder
             ],
         );
 
-        $systemAdminRole = Role::query()
+        $system_admin_role = Role::query()
             ->where("slug", Role::SYSTEM_ADMIN)
             ->firstOrFail();
 
-        $user->roles()->syncWithoutDetaching([$systemAdminRole->id]);
+        $user->roles()->syncWithoutDetaching([$system_admin_role->id]);
     }
 }

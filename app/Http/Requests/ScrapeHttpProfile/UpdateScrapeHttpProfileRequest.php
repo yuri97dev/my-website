@@ -35,7 +35,7 @@ class UpdateScrapeHttpProfileRequest extends FormRequest
                 "string",
                 "max:100",
                 Rule::unique("scrape_http_profiles", "name")
-                    ->ignore($this->route("scrapeHttpProfile")),
+                    ->ignore($this->route("scrape_http_profile")),
             ],
             "headers" => ["sometimes", "required", "array", "min:1"],
             "headers.*" => ["required", "string"],

@@ -34,7 +34,7 @@ class StoreAiPromptRequest extends FormRequest
      */
     public function rules(): array
     {
-        $aiProvider = $this->route("aiProvider");
+        $ai_provider = $this->route("ai_provider");
 
         return [
             "key" => [
@@ -42,7 +42,7 @@ class StoreAiPromptRequest extends FormRequest
                 "string",
                 "max:100",
                 Rule::unique("ai_prompts", "key")
-                    ->where("ai_provider_id", $aiProvider->id),
+                    ->where("ai_provider_id", $ai_provider->id),
             ],
             "content" => ["required", "string"],
             "model" => ["required", "string", "max:100"],

@@ -133,19 +133,19 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             ArticleSourceController::class, "test",
         ])->name("api.article-sources.test");
 
-        Route::put("/article-sources/{articleSource}", [
+        Route::put("/article-sources/{article_source}", [
             ArticleSourceController::class, "update",
         ])->name("api.article-sources.update");
 
-        Route::patch("/article-sources/{articleSource}/disable", [
+        Route::patch("/article-sources/{article_source}/disable", [
             ArticleSourceController::class, "disable",
         ])->name("api.article-sources.disable");
 
-        Route::get("/article-sources/{articleSource}/ai-prompts", [
+        Route::get("/article-sources/{article_source}/ai-prompts", [
             ArticleSourceAiPromptController::class, "index",
         ])->name("api.article-sources.ai-prompts.index");
 
-        Route::put("/article-sources/{articleSource}/ai-prompts", [
+        Route::put("/article-sources/{article_source}/ai-prompts", [
             ArticleSourceAiPromptController::class, "sync",
         ])->name("api.article-sources.ai-prompts.sync");
 
@@ -157,7 +157,7 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             AiProviderController::class, "store",
         ])->name("api.ai-providers.store");
 
-        Route::put("/ai-providers/{aiProvider}", [
+        Route::put("/ai-providers/{ai_provider}", [
             AiProviderController::class, "update",
         ])->name("api.ai-providers.update");
 
@@ -169,19 +169,19 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             AiPromptController::class, "index",
         ])->name("api.ai-prompts.index");
 
-        Route::get("/ai-providers/{aiProvider}/prompts", [
+        Route::get("/ai-providers/{ai_provider}/prompts", [
             AiPromptController::class, "forProvider",
         ])->name("api.ai-providers.prompts.index");
 
-        Route::post("/ai-providers/{aiProvider}/prompts", [
+        Route::post("/ai-providers/{ai_provider}/prompts", [
             AiPromptController::class, "store",
         ])->name("api.ai-providers.prompts.store");
 
-        Route::put("/ai-prompts/{aiPrompt}", [
+        Route::put("/ai-prompts/{ai_prompt}", [
             AiPromptController::class, "update",
         ])->name("api.ai-prompts.update");
 
-        Route::delete("/ai-prompts/{aiPrompt}", [
+        Route::delete("/ai-prompts/{ai_prompt}", [
             AiPromptController::class, "destroy",
         ])->name("api.ai-prompts.destroy");
 
@@ -193,19 +193,19 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             ScrapedArticleController::class, "scrape",
         ])->name("api.scraped-articles.scrape");
 
-        Route::get("/scraped-articles/{scrapedArticle}", [
+        Route::get("/scraped-articles/{scraped_article}", [
             ScrapedArticleController::class, "show",
         ])->name("api.scraped-articles.show");
 
-        Route::patch("/scraped-articles/{scrapedArticle}/disable", [
+        Route::patch("/scraped-articles/{scraped_article}/disable", [
             ScrapedArticleController::class, "disable",
         ])->name("api.scraped-articles.disable");
 
-        Route::patch("/scraped-articles/{scrapedArticle}/reject-translation", [
+        Route::patch("/scraped-articles/{scraped_article}/reject-translation", [
             ScrapedArticleController::class, "rejectTranslation",
         ])->name("api.scraped-articles.reject-translation");
 
-        Route::patch("/scraped-articles/{scrapedArticle}/reset-translation-attempts", [
+        Route::patch("/scraped-articles/{scraped_article}/reset-translation-attempts", [
             ScrapedArticleController::class, "resetTranslationAttempts",
         ])->name("api.scraped-articles.reset-translation-attempts");
 
@@ -217,16 +217,16 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             ScrapeHttpProfileController::class, "store",
         ])->name("api.scrape-http-profiles.store");
 
-        Route::put("/scrape-http-profiles/{scrapeHttpProfile}", [
+        Route::put("/scrape-http-profiles/{scrape_http_profile}", [
             ScrapeHttpProfileController::class, "update",
         ])->name("api.scrape-http-profiles.update");
 
-        Route::delete("/scrape-http-profiles/{scrapeHttpProfile}", [
+        Route::delete("/scrape-http-profiles/{scrape_http_profile}", [
             ScrapeHttpProfileController::class, "destroy",
         ])->name("api.scrape-http-profiles.destroy");
     });
 
-Route::get("/postal-code/{postalCode}", [
+Route::get("/postal-code/{postal_code}", [
     PostalCodeAddressController::class, "show",
 ])->name("api.postal-code.show");
 
@@ -254,15 +254,15 @@ Route::prefix("tools")->group(function() {
             SgcCompanyController::class, "store",
         ])->name("api.tools.sgc.companies.store");
 
-        Route::get("/companies/{sgcCompany}", [
+        Route::get("/companies/{sgc_company}", [
             SgcCompanyController::class, "show",
         ])->name("api.tools.sgc.companies.show");
 
-        Route::put("/companies/{sgcCompany}", [
+        Route::put("/companies/{sgc_company}", [
             SgcCompanyController::class, "update",
         ])->name("api.tools.sgc.companies.update");
 
-        Route::delete("/companies/{sgcCompany}", [
+        Route::delete("/companies/{sgc_company}", [
             SgcCompanyController::class, "destroy",
         ])->name("api.tools.sgc.companies.destroy");
 
@@ -274,15 +274,15 @@ Route::prefix("tools")->group(function() {
             SgcCustomerController::class, "store",
         ])->name("api.tools.sgc.customers.store");
 
-        Route::get("/customers/{sgcCustomer}", [
+        Route::get("/customers/{sgc_customer}", [
             SgcCustomerController::class, "show",
         ])->name("api.tools.sgc.customers.show");
 
-        Route::put("/customers/{sgcCustomer}", [
+        Route::put("/customers/{sgc_customer}", [
             SgcCustomerController::class, "update",
         ])->name("api.tools.sgc.customers.update");
 
-        Route::delete("/customers/{sgcCustomer}", [
+        Route::delete("/customers/{sgc_customer}", [
             SgcCustomerController::class, "destroy",
         ])->name("api.tools.sgc.customers.destroy");
 
@@ -294,11 +294,11 @@ Route::prefix("tools")->group(function() {
             SgcBrandController::class, "store",
         ])->name("api.tools.sgc.brands.store");
 
-        Route::put("/brands/{sgcBrand}", [
+        Route::put("/brands/{sgc_brand}", [
             SgcBrandController::class, "update",
         ])->name("api.tools.sgc.brands.update");
 
-        Route::delete("/brands/{sgcBrand}", [
+        Route::delete("/brands/{sgc_brand}", [
             SgcBrandController::class, "destroy",
         ])->name("api.tools.sgc.brands.destroy");
 
@@ -310,11 +310,11 @@ Route::prefix("tools")->group(function() {
             SgcProductCategoryController::class, "store",
         ])->name("api.tools.sgc.product-categories.store");
 
-        Route::put("/product-categories/{sgcProductCategory}", [
+        Route::put("/product-categories/{sgc_product_category}", [
             SgcProductCategoryController::class, "update",
         ])->name("api.tools.sgc.product-categories.update");
 
-        Route::delete("/product-categories/{sgcProductCategory}", [
+        Route::delete("/product-categories/{sgc_product_category}", [
             SgcProductCategoryController::class, "destroy",
         ])->name("api.tools.sgc.product-categories.destroy");
 
@@ -326,15 +326,15 @@ Route::prefix("tools")->group(function() {
             SgcProductController::class, "store",
         ])->name("api.tools.sgc.products.store");
 
-        Route::get("/products/{sgcProduct}", [
+        Route::get("/products/{sgc_product}", [
             SgcProductController::class, "show",
         ])->name("api.tools.sgc.products.show");
 
-        Route::put("/products/{sgcProduct}", [
+        Route::put("/products/{sgc_product}", [
             SgcProductController::class, "update",
         ])->name("api.tools.sgc.products.update");
 
-        Route::delete("/products/{sgcProduct}", [
+        Route::delete("/products/{sgc_product}", [
             SgcProductController::class, "destroy",
         ])->name("api.tools.sgc.products.destroy");
     });
@@ -372,7 +372,7 @@ Route::prefix("blog/posts")->group(function () {
             PostImageController::class, "associate",
         ])->name("api.blog.posts.images.associate");
 
-        Route::delete("/images/{postImage}", [
+        Route::delete("/images/{post_image}", [
             PostImageController::class, "destroy",
         ])->name("api.blog.posts.images.destroy");
 
@@ -400,11 +400,11 @@ Route::prefix("blog/posts")->group(function () {
             PostCategoryController::class, "store",
         ])->name("api.blog.posts.categories.store");
 
-        Route::put("/categories/{postCategory}", [
+        Route::put("/categories/{post_category}", [
             PostCategoryController::class, "update",
         ])->name("api.blog.posts.categories.update");
 
-        Route::delete("/categories/{postCategory}", [
+        Route::delete("/categories/{post_category}", [
             PostCategoryController::class, "destroy",
         ])->name("api.blog.posts.categories.destroy");
 
@@ -412,11 +412,11 @@ Route::prefix("blog/posts")->group(function () {
             PostTagController::class, "store",
         ])->name("api.blog.posts.tags.store");
 
-        Route::put("/tags/{postTag}", [
+        Route::put("/tags/{post_tag}", [
             PostTagController::class, "update",
         ])->name("api.blog.posts.tags.update");
 
-        Route::delete("/tags/{postTag}", [
+        Route::delete("/tags/{post_tag}", [
             PostTagController::class, "destroy",
         ])->name("api.blog.posts.tags.destroy");
     });

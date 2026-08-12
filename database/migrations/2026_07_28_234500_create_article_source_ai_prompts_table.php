@@ -29,21 +29,21 @@ return new class extends Migration
             $table->unique(["article_source_id", "ai_prompt_id"]);
         });
 
-        $aiPromptId = DB::table("ai_prompts")
+        $ai_prompt_id = DB::table("ai_prompts")
             ->where("key", "post-translation")
             ->orderBy("id")
             ->value("id");
 
-        if( !$aiPromptId ) {
+        if( !$ai_prompt_id ) {
             return;
         }
 
-        $articleSourceIds = DB::table("article_sources")->pluck("id");
+        $article_source_ids = DB::table("article_sources")->pluck("id");
         $now = now();
 
-        $rows = $articleSourceIds->map(fn ($articleSourceId) => [
-            "article_source_id" => $articleSourceId,
-            "ai_prompt_id" => $aiPromptId,
+        $rows = $article_source_ids->map(fn ($article_source_id) => [
+            "article_source_id" => $article_source_id,
+            "ai_prompt_id" => $ai_prompt_id,
             "position" => 1,
             "created_at" => $now,
             "updated_at" => $now,

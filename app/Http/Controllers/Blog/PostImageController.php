@@ -58,21 +58,21 @@ class PostImageController extends Controller
         ], 201);
     }
 
-    public function show(PostImage $postImage)
+    public function show(PostImage $post_image)
     {
         abort_unless(
-            Storage::disk("local")->exists($postImage->path),
+            Storage::disk("local")->exists($post_image->path),
             Response::HTTP_NOT_FOUND,
         );
 
-        return response()->file(Storage::disk("local")->path($postImage->path));
+        return response()->file(Storage::disk("local")->path($post_image->path));
     }
 
-    public function destroy(PostImage $postImage)
+    public function destroy(PostImage $post_image)
     {
-        Storage::disk("local")->delete($postImage->path);
+        Storage::disk("local")->delete($post_image->path);
 
-        $postImage->delete();
+        $post_image->delete();
 
         return response()->json([
             "message" => "Imagem removida com sucesso.",

@@ -140,18 +140,18 @@ class AccountController extends Controller
 
     public function sessions(Request $request)
     {
-        $currentSessionId = $request->session()->getId();
+        $current_session_id = $request->session()->getId();
 
         $sessions = DB::table("sessions")
             ->where("user_id", $request->user()->id)
             ->orderByDesc("last_activity")
             ->get()
-            ->map(function ($session) use ($currentSessionId) {
+            ->map(function ($session) use ($current_session_id) {
                 return array_merge(
                     [
                         "id" => $session->id,
                         "ip_address" => $session->ip_address,
-                        "is_current" => $session->id === $currentSessionId,
+                        "is_current" => $session->id === $current_session_id,
                         "last_activity" => date("c", $session->last_activity),
                     ],
                     UserAgent::parse($session->user_agent),

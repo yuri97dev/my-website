@@ -12,7 +12,7 @@ class AiProviderController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = min($request->integer("per_page", 15), 100);
+        $per_page = min($request->integer("per_page", 15), 100);
 
         $paginator = AiProvider::query()
             ->select([
@@ -24,7 +24,7 @@ class AiProviderController extends Controller
                 "updated_at",
             ])
             ->orderByDesc("id")
-            ->paginate($perPage);
+            ->paginate($per_page);
 
         return response()->json([
             "current_page" => $paginator->currentPage(),
@@ -37,19 +37,19 @@ class AiProviderController extends Controller
 
     public function store(StoreAiProviderRequest $request)
     {
-        $aiProvider = AiProvider::create($request->validated());
+        $ai_provider = AiProvider::create($request->validated());
 
         return response()->json([
-            "ai_provider" => $aiProvider,
+            "ai_provider" => $ai_provider,
         ], 201);
     }
 
-    public function update(UpdateAiProviderRequest $request, AiProvider $aiProvider)
+    public function update(UpdateAiProviderRequest $request, AiProvider $ai_provider)
     {
-        $aiProvider->update($request->validated());
+        $ai_provider->update($request->validated());
 
         return response()->json([
-            "ai_provider" => $aiProvider->fresh(),
+            "ai_provider" => $ai_provider->fresh(),
         ], 200);
     }
 }

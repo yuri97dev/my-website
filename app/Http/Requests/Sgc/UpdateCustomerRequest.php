@@ -63,7 +63,7 @@ class UpdateCustomerRequest extends SgcFormRequest
                 $validator->errors()->add("company_id", "Empresa inválida ou sem permissão.");
             }
 
-            $customer = $this->route("sgcCustomer");
+            $customer = $this->route("sgc_customer");
 
             if( $customer && !$customer->companies()->where("sgc_companies.id", $company_id)->exists() ) {
                 $validator->errors()->add("company_id", "Cliente não vinculado a esta empresa.");

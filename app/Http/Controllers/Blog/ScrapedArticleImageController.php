@@ -9,13 +9,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ScrapedArticleImageController extends Controller
 {
-    public function show(ScrapedArticleImage $scrapedArticleImage)
+    public function show(ScrapedArticleImage $scraped_article_image)
     {
         abort_unless(
-            Storage::disk("local")->exists($scrapedArticleImage->path),
+            Storage::disk("local")->exists($scraped_article_image->path),
             Response::HTTP_NOT_FOUND,
         );
 
-        return response()->file(Storage::disk("local")->path($scrapedArticleImage->path));
+        return response()->file(Storage::disk("local")->path($scraped_article_image->path));
     }
 }
