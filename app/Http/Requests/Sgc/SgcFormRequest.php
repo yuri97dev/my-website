@@ -36,6 +36,11 @@ abstract class SgcFormRequest extends FormRequest
 
     protected function companyCanManageNotes(int $company_id): bool
     {
+        return $this->companyCanManageEmployees($company_id);
+    }
+
+    protected function companyCanManageEmployees(int $company_id): bool
+    {
         $company = SgcCompany::query()->find($company_id);
 
         if( !$company ) {

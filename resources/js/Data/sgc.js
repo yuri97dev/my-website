@@ -12,6 +12,18 @@ export const sgcSections = [
         ],
     },
     {
+        key: "employees",
+        title: "Funcionários",
+        subtitle: "Equipe vinculada às empresas",
+        icon: "mdi-badge-account-horizontal-outline",
+        href: route("tools.sgc.employees"),
+        features: [
+            "Vínculo por empresa",
+            "Cargos",
+            "Acesso por e-mail",
+        ],
+    },
+    {
         key: "customers",
         title: "Clientes",
         subtitle: "Cadastro de clientes por empresa",

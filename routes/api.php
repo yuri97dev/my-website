@@ -26,6 +26,7 @@ use App\Http\Controllers\Sgc\CustomerAddressController as SgcCustomerAddressCont
 use App\Http\Controllers\Sgc\CustomerController as SgcCustomerController;
 use App\Http\Controllers\Sgc\ProductCategoryController as SgcProductCategoryController;
 use App\Http\Controllers\Sgc\ProductController as SgcProductController;
+use App\Http\Controllers\Sgc\EmployeeController as SgcEmployeeController;
 use App\Models\Role;
 
 Route::prefix("auth")->group(function() {
@@ -354,6 +355,26 @@ Route::prefix("tools")->group(function() {
         Route::delete("/products/{sgc_product}", [
             SgcProductController::class, "destroy",
         ])->name("api.tools.sgc.products.destroy");
+
+        Route::get("/employees", [
+            SgcEmployeeController::class, "index",
+        ])->name("api.tools.sgc.employees.index");
+
+        Route::post("/employees", [
+            SgcEmployeeController::class, "store",
+        ])->name("api.tools.sgc.employees.store");
+
+        Route::get("/employees/{sgc_company_user}", [
+            SgcEmployeeController::class, "show",
+        ])->name("api.tools.sgc.employees.show");
+
+        Route::put("/employees/{sgc_company_user}", [
+            SgcEmployeeController::class, "update",
+        ])->name("api.tools.sgc.employees.update");
+
+        Route::delete("/employees/{sgc_company_user}", [
+            SgcEmployeeController::class, "destroy",
+        ])->name("api.tools.sgc.employees.destroy");
     });
 });
 

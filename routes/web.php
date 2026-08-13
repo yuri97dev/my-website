@@ -45,6 +45,7 @@ Route::prefix("tools")->group(function () {
         Route::inertia("/companies", "Tools/Sgc/Companies")->name("tools.sgc.companies");
         Route::inertia("/customers", "Tools/Sgc/Customers")->name("tools.sgc.customers");
         Route::inertia("/products", "Tools/Sgc/Products")->name("tools.sgc.products");
+        Route::inertia("/employees", "Tools/Sgc/Employees")->name("tools.sgc.employees");
     });
 });
 

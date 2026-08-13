@@ -41,6 +41,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(Role::class)->withTimestamps();
     }
 
+    public function sgcCompanies(): BelongsToMany
+    {
+        return $this->belongsToMany(SgcCompany::class, "sgc_company_user", "user_id", "company_id")
+            ->withPivot("role")
+            ->withTimestamps();
+    }
+
     public function hasRole(string $slug): bool
     {
         return $this->roles()->where("slug", $slug)->exists();
