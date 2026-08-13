@@ -10,7 +10,7 @@
         >
             <v-icon
                 :icon="tool.icon"
-                size="48"
+                size="80"
             ></v-icon>
         </div>
 

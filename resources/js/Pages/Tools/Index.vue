@@ -1,14 +1,12 @@
 <template>
-    <Container title="Ferramentas" centered>
-        <div
-            class="w-100"
-            style="max-width: var(--center-width);"
-        >
+    <Container title="Ferramentas">
+        <div class="w-100">
             <v-row>
                 <v-col
                     v-for="tool in tools"
                     :key="tool.key"
                     cols="12"
+                    lg="4"
                 >
                     <ToolCard :tool="tool" />
                 </v-col>

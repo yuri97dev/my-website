@@ -1,18 +1,12 @@
 <template>
-    <Container title="SGC" centered>
-        <div
-            class="w-100"
-            style="max-width: var(--center-width);"
-        >
-            <p class="text-medium-emphasis mb-6">
-                Sistema de gestão comercial
-            </p>
-
+    <Container title="SGC">
+        <div class="w-100">
             <v-row>
                 <v-col
                     v-for="section in sgcSections"
                     :key="section.key"
                     cols="12"
+                    lg="4"
                 >
                     <ToolCard :tool="section" />
                 </v-col>
