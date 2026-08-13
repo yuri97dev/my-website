@@ -74,7 +74,7 @@
             <v-col cols="12">
                 <v-textarea
                     label="Especificações Técnicas"
-                    rows="3"
+                    rows="2"
                     auto-grow
                     :error-messages="errors.technical_specifications"
                     v-model="form.technical_specifications"

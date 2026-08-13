@@ -42,7 +42,15 @@
 
             <v-col cols="12">
                 <v-divider class="mb-4"></v-divider>
-                <div class="text-subtitle-2 text-medium-emphasis mb-4">Endereço</div>
+                <div class="text-subtitle-2 text-medium-emphasis">Endereço</div>
+            </v-col>
+
+            <v-col cols="12" lg="4">
+                <PostalCodeField
+                    :error-messages="errors.address_postal_code"
+                    v-model="form.address_postal_code"
+                    @address-found="fillAddressFromPostalCode"
+                ></PostalCodeField>
             </v-col>
 
             <v-col cols="12" lg="8">
@@ -75,14 +83,6 @@
                     :error-messages="errors.address_district"
                     v-model="form.address_district"
                 ></v-text-field>
-            </v-col>
-
-            <v-col cols="12" lg="4">
-                <PostalCodeField
-                    :error-messages="errors.address_postal_code"
-                    v-model="form.address_postal_code"
-                    @address-found="fillAddressFromPostalCode"
-                ></PostalCodeField>
             </v-col>
 
             <v-col cols="12" lg="4">
