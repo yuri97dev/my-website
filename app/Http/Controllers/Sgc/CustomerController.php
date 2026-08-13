@@ -17,6 +17,7 @@ class CustomerController extends Controller
     {
         $request->validate([
             "company_id" => ["nullable", "integer", "exists:sgc_companies,id"],
+            "company" => ["nullable", "string", "max:255"],
             "id" => ["nullable", "integer"],
             "name" => ["nullable", "string", "max:255"],
             "nickname" => ["nullable", "string", "max:255"],
@@ -41,6 +42,18 @@ class CustomerController extends Controller
 
                 if( $request->filled("company_id") ) {
                     $query->where("sgc_companies.id", $request->integer("company_id"));
+                }
+
+                if( $request->filled("company") ) {
+                    $company = $request->input("company");
+
+                    $query->where(function ($query) use ($company) {
+                        SearchQuery::applySubstringSearch($query, "sgc_companies.legal_name", $company);
+
+                        $query->orWhere(function ($query) use ($company) {
+                            SearchQuery::applySubstringSearch($query, "sgc_companies.trade_name", $company);
+                        });
+                    });
                 }
             })
             ->when($request->filled("id"), function ($query) use ($request) {

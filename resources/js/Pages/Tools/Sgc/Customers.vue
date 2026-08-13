@@ -68,7 +68,7 @@
             title: "ID",
         },
         {
-            key: "company_id",
+            key: "company",
             title: "Empresa",
         },
         {
