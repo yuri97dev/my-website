@@ -13,10 +13,27 @@ class CompanyController extends Controller
 {
     public function index(Request $request)
     {
+        $request->validate([
+            "search" => ["nullable", "string", "max:255"],
+            "exclude_id" => ["nullable", "integer", "exists:sgc_companies,id"],
+        ]);
+
         $per_page = min($request->integer("per_page", 15), 100);
 
         $paginator = SgcCompany::query()
             ->accessibleBy($request->user())
+            ->when($request->filled("exclude_id"), function ($query) use ($request) {
+                $query->where("id", "!=", $request->integer("exclude_id"));
+            })
+            ->when($request->filled("search"), function ($query) use ($request) {
+                $term = "%".$request->input("search")."%";
+
+                $query->where(function ($query) use ($term) {
+                    $query->where("legal_name", "ilike", $term)
+                        ->orWhere("trade_name", "ilike", $term)
+                        ->orWhere("document", "ilike", $term);
+                });
+            })
             ->orderByDesc("id")
             ->paginate($per_page);
 

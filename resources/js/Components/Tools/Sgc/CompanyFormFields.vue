@@ -31,17 +31,13 @@
             </v-col>
 
             <v-col cols="12" lg="6">
-                <v-autocomplete
+                <CompanyAutocomplete
                     label="Empresa Matriz"
-                    item-title="label"
-                    item-value="id"
                     clearable
-                    :loading="loadingCompanies"
-                    :items="companies"
-                    :return-object="false"
+                    :exclude-id="company.id"
                     :error-messages="errors.parent_id"
                     v-model="form.parent_id"
-                ></v-autocomplete>
+                ></CompanyAutocomplete>
             </v-col>
 
             <v-col cols="12">
@@ -133,6 +129,7 @@
     import api from "@/api";
 
     import BottomSheet from "@/Components/BottomSheet.vue";
+    import CompanyAutocomplete from "@/Components/Inputs/CompanyAutocomplete.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
 
@@ -142,44 +139,12 @@
 
     const isDialogOpen = ref(false);
     const loading = ref(false);
-    const loadingCompanies = ref(false);
     const errors = ref({});
 
     const company = ref({});
-    const companies = ref([]);
     const form = ref({});
 
     const isEditing = computed(() => !!company.value.id);
-
-    function companyLabel(item) {
-        return item.trade_name || item.legal_name;
-    }
-
-    async function getCompanies() {
-        loadingCompanies.value = true;
-
-        try {
-            const url = route("api.tools.sgc.companies.index");
-
-            const { data } = await api.get(url, {
-                params: {
-                    per_page: 100,
-                },
-            });
-
-            companies.value = (data.companies || [])
-                .filter(item => item.id !== company.value.id)
-                .map(item => ({
-                    ...item,
-                    label: companyLabel(item),
-                }));
-        } catch (e) {
-            const { message } = e?.response?.data || {};
-            alertError("Ooops", message || "Erro ao buscar empresas");
-        } finally {
-            loadingCompanies.value = false;
-        }
-    }
 
     function buildPayload() {
         return {
@@ -265,9 +230,6 @@
         };
 
         isDialogOpen.value = true;
-
-        await nextTick();
-        await getCompanies();
     }
 
     function reset() {

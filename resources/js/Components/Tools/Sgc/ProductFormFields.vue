@@ -7,10 +7,10 @@
     >
         <v-row>
             <v-col cols="12" lg="6">
-                <CompanySelect
+                <CompanyAutocomplete
                     :disabled="isEditing"
                     v-model="form.company_id"
-                ></CompanySelect>
+                ></CompanyAutocomplete>
             </v-col>
 
             <v-col cols="12" lg="6">
@@ -121,7 +121,7 @@
     import api from "@/api";
 
     import BottomSheet from "@/Components/BottomSheet.vue";
-    import CompanySelect from "@/Components/Inputs/CompanySelect.vue";
+    import CompanyAutocomplete from "@/Components/Inputs/CompanyAutocomplete.vue";
     import BrandManager from "@/Components/Tools/Sgc/BrandManager.vue";
     import ProductCategoryManager from "@/Components/Tools/Sgc/ProductCategoryManager.vue";
 

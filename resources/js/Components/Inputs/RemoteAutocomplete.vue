@@ -62,6 +62,10 @@
             type: String,
             default: "Failed to fetch items",
         },
+        mapItem: {
+            type: Function,
+            default: (item) => item,
+        },
     });
 
     const model = defineModel();
@@ -120,7 +124,9 @@
                 },
             });
 
-            items.value = mergeItems(data?.[props.itemsKey] || []);
+            const result = (data?.[props.itemsKey] || []).map(props.mapItem);
+
+            items.value = mergeItems(result);
         } catch(e) {
             if( e?.code === "ERR_CANCELED" ) return;
 
@@ -134,14 +140,15 @@
     function ensureItem(item) {
         if( !item || !props.itemValue ) return;
 
+        const mapped = props.mapItem(item);
         const map = {};
 
         for(const existing of items.value) {
             map[existing[props.itemValue]] = existing;
         }
 
-        if( !map[item[props.itemValue]] ) {
-            items.value = [ item, ...items.value ];
+        if( !map[mapped[props.itemValue]] ) {
+            items.value = [ mapped, ...items.value ];
         }
     }
 
