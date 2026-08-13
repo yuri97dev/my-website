@@ -16,19 +16,54 @@ class CustomerController extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            "company_id" => ["required", "integer", "exists:sgc_companies,id"],
+            "company_id" => ["nullable", "integer", "exists:sgc_companies,id"],
+            "id" => ["nullable", "integer"],
+            "name" => ["nullable", "string", "max:255"],
+            "nickname" => ["nullable", "string", "max:255"],
+            "tax_id" => ["nullable", "string", "max:255"],
+            "search" => ["nullable", "string", "max:255"],
         ]);
 
-        $company = SgcCompany::query()->findOrFail($request->integer("company_id"));
+        if( $request->filled("company_id") ) {
+            $company = SgcCompany::query()->findOrFail($request->integer("company_id"));
 
-        abort_unless(
-            $company->isAccessibleBy($request->user()),
-            Response::HTTP_FORBIDDEN
-        );
+            abort_unless(
+                $company->isAccessibleBy($request->user()),
+                Response::HTTP_FORBIDDEN
+            );
+        }
 
         $per_page = min($request->integer("per_page", 15), 100);
 
-        $paginator = $company->customers()
+        $paginator = SgcCustomer::query()
+            ->whereHas("companies", function ($query) use ($request) {
+                $query->accessibleBy($request->user());
+
+                if( $request->filled("company_id") ) {
+                    $query->where("sgc_companies.id", $request->integer("company_id"));
+                }
+            })
+            ->when($request->filled("id"), function ($query) use ($request) {
+                $query->where("sgc_customers.id", $request->integer("id"));
+            })
+            ->when($request->filled("name"), function ($query) use ($request) {
+                $query->where("name", "ilike", "%".$request->input("name")."%");
+            })
+            ->when($request->filled("nickname"), function ($query) use ($request) {
+                $query->where("nickname", "ilike", "%".$request->input("nickname")."%");
+            })
+            ->when($request->filled("tax_id"), function ($query) use ($request) {
+                $query->where("tax_id", "ilike", "%".$request->input("tax_id")."%");
+            })
+            ->when($request->filled("search"), function ($query) use ($request) {
+                $term = "%".$request->input("search")."%";
+
+                $query->where(function ($query) use ($term) {
+                    $query->where("name", "ilike", $term)
+                        ->orWhere("nickname", "ilike", $term)
+                        ->orWhere("tax_id", "ilike", $term);
+                });
+            })
             ->with("addresses")
             ->orderByDesc("sgc_customers.id")
             ->paginate($per_page);
@@ -75,7 +110,12 @@ class CustomerController extends Controller
             Response::HTTP_FORBIDDEN
         );
 
-        $sgc_customer->load("addresses");
+        $sgc_customer->load([
+            "addresses",
+            "companies" => function ($query) use ($request) {
+                $query->accessibleBy($request->user());
+            },
+        ]);
 
         return response()->json([
             "customer" => $sgc_customer,

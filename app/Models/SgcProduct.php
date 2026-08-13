@@ -30,7 +30,7 @@ class SgcProduct extends Model
 
     public function companies(): BelongsToMany
     {
-        return $this->belongsToMany(SgcCompany::class, "sgc_company_product")
+        return $this->belongsToMany(SgcCompany::class, "sgc_company_product", "product_id", "company_id")
             ->withPivot("notes")
             ->withTimestamps();
     }

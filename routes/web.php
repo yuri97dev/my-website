@@ -40,7 +40,12 @@ Route::prefix("tools")->group(function () {
         SpreadsheetFormatterController::class, "download"
     ])->name("tools.spreadsheet-formatter.download");
 
-    Route::inertia("/sgc", "Tools/Sgc/Index")->name("tools.sgc");
+    Route::middleware("auth")->prefix("sgc")->group(function () {
+        Route::inertia("/", "Tools/Sgc/Index")->name("tools.sgc");
+        Route::inertia("/companies", "Tools/Sgc/Companies")->name("tools.sgc.companies");
+        Route::inertia("/customers", "Tools/Sgc/Customers")->name("tools.sgc.customers");
+        Route::inertia("/products", "Tools/Sgc/Products")->name("tools.sgc.products");
+    });
 });
 
 Route::prefix("blog")->group(function () {

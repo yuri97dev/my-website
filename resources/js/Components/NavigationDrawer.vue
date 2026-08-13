@@ -32,6 +32,27 @@
                 color="primary"
                 @click.prevent="goTo(link.href)"
             ></v-list-item>
+
+            <v-list-group v-if="isAuthenticated" value="sgc">
+                <template v-slot:activator="{ props }">
+                    <v-list-item
+                        prepend-icon="mdi-storefront-outline"
+                        title="SGC"
+                        v-bind="props"
+                    ></v-list-item>
+                </template>
+
+                <v-list-item
+                    v-for="link in sgcLinks"
+                    :key="link.key"
+                    :prepend-icon="link.icon"
+                    :title="link.text"
+                    :href="link.href"
+                    :active="link.active"
+                    color="primary"
+                    @click.prevent="goTo(link.href)"
+                ></v-list-item>
+            </v-list-group>
         </v-list>
     </v-navigation-drawer>
 </template>
@@ -42,11 +63,15 @@
 
     import { goTo } from "@/Utils/Common";
     import { tools } from "@/Data/tools";
+    import { sgcSections, getSgcLinks } from "@/Data/sgc";
 
     const drawer = defineModel();
     const page = usePage();
 
     const isAdmin = computed(() => page.props?.auth?.isSysAdmin);
+    const isAuthenticated = computed(() => !!page.props?.auth?.user);
+
+    const sgcLinks = computed(() => getSgcLinks());
 
     const links = computed(() => [
         {
@@ -56,13 +81,15 @@
             href: route("blog.index"),
             active: route().current("blog.index"),
         },
-        ...tools.map(tool => ({
-            key: tool.key,
-            icon: tool.icon,
-            text: tool.title,
-            href: tool.href,
-            active: route().current(`tools.${tool.key}*`),
-        })),
+        ...tools
+            .filter(tool => tool.key !== "sgc")
+            .map(tool => ({
+                key: tool.key,
+                icon: tool.icon,
+                text: tool.title,
+                href: tool.href,
+                active: route().current(`tools.${tool.key}*`),
+            })),
     ]);
 
     const adminLinks = computed(() => [
@@ -125,8 +152,19 @@
     ]);
 
     const opened = computed(() => {
-        if( !isAdmin.value ) return [];
-        const isAdminGroupOpen = adminLinks.value.some(link => link.active);
-        return isAdminGroupOpen ? [ "admin" ] : [];
+        const groups = [];
+
+        if( isAdmin.value && adminLinks.value.some(link => link.active) ) {
+            groups.push("admin");
+        }
+
+        if(
+            route().current("tools.sgc") ||
+            route().current("tools.sgc.*")
+        ) {
+            groups.push("sgc");
+        }
+
+        return groups;
     });
 </script>

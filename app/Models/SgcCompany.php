@@ -49,21 +49,21 @@ class SgcCompany extends Model
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, "sgc_company_user")
+        return $this->belongsToMany(User::class, "sgc_company_user", "company_id", "user_id")
             ->withPivot("role")
             ->withTimestamps();
     }
 
     public function customers(): BelongsToMany
     {
-        return $this->belongsToMany(SgcCustomer::class, "sgc_company_customer")
+        return $this->belongsToMany(SgcCustomer::class, "sgc_company_customer", "company_id", "customer_id")
             ->withPivot("notes")
             ->withTimestamps();
     }
 
     public function products(): BelongsToMany
     {
-        return $this->belongsToMany(SgcProduct::class, "sgc_company_product")
+        return $this->belongsToMany(SgcProduct::class, "sgc_company_product", "company_id", "product_id")
             ->withPivot("notes")
             ->withTimestamps();
     }
