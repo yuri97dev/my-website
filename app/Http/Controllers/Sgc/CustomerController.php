@@ -7,7 +7,6 @@ use App\Http\Requests\Sgc\StoreCustomerRequest;
 use App\Http\Requests\Sgc\UpdateCustomerRequest;
 use App\Models\SgcCompany;
 use App\Models\SgcCustomer;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -85,18 +84,11 @@ class CustomerController extends Controller
         $customer = SgcCustomer::create(collect($validated)->except([
             "company_id",
             "notes",
-            "addresses",
         ])->all());
 
         $customer->companies()->attach($company_id, [
             "notes" => $validated["notes"] ?? null,
         ]);
-
-        if( !empty($validated["addresses"]) ) {
-            $customer->addresses()->createMany($validated["addresses"]);
-        }
-
-        $customer->load("addresses");
 
         return response()->json([
             "customer" => $customer,
@@ -106,7 +98,7 @@ class CustomerController extends Controller
     public function show(Request $request, SgcCustomer $sgc_customer)
     {
         abort_unless(
-            $this->customerAccessibleByUser($sgc_customer, $request->user()),
+            $sgc_customer->isAccessibleBy($request->user()),
             Response::HTTP_FORBIDDEN
         );
 
@@ -129,7 +121,6 @@ class CustomerController extends Controller
 
         $sgc_customer->update(collect($validated)->except([
             "notes",
-            "addresses",
             "company_id",
         ])->all());
 
@@ -139,12 +130,6 @@ class CustomerController extends Controller
             ]);
         }
 
-        if( array_key_exists("addresses", $validated) ) {
-            $this->syncAddresses($sgc_customer, $validated["addresses"] ?? []);
-        }
-
-        $sgc_customer->load("addresses");
-
         return response()->json([
             "customer" => $sgc_customer,
         ], 200);
@@ -153,7 +138,7 @@ class CustomerController extends Controller
     public function destroy(Request $request, SgcCustomer $sgc_customer)
     {
         abort_unless(
-            $this->customerAccessibleByUser($sgc_customer, $request->user()),
+            $sgc_customer->isAccessibleBy($request->user()),
             Response::HTTP_FORBIDDEN
         );
 
@@ -164,32 +149,4 @@ class CustomerController extends Controller
         ], 200);
     }
 
-    private function customerAccessibleByUser(SgcCustomer $customer, User $user): bool
-    {
-        return $customer->companies()
-            ->accessibleBy($user)
-            ->exists();
-    }
-
-    private function syncAddresses(SgcCustomer $customer, array $addresses): void
-    {
-        $ids = [];
-
-        foreach( $addresses as $address ) {
-            if( isset($address["id"]) ) {
-                $customer->addresses()
-                    ->where("id", $address["id"])
-                    ->update(collect($address)->except("id")->all());
-
-                $ids[] = $address["id"];
-            } else {
-                $created = $customer->addresses()->create($address);
-                $ids[] = $created->id;
-            }
-        }
-
-        $customer->addresses()
-            ->whereNotIn("id", $ids)
-            ->delete();
-    }
 }

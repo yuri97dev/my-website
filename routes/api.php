@@ -22,6 +22,7 @@ use App\Http\Controllers\SpreadsheetFormatterController;
 use App\Http\Controllers\PostalCodeAddressController;
 use App\Http\Controllers\Sgc\BrandController as SgcBrandController;
 use App\Http\Controllers\Sgc\CompanyController as SgcCompanyController;
+use App\Http\Controllers\Sgc\CustomerAddressController as SgcCustomerAddressController;
 use App\Http\Controllers\Sgc\CustomerController as SgcCustomerController;
 use App\Http\Controllers\Sgc\ProductCategoryController as SgcProductCategoryController;
 use App\Http\Controllers\Sgc\ProductController as SgcProductController;
@@ -285,6 +286,22 @@ Route::prefix("tools")->group(function() {
         Route::delete("/customers/{sgc_customer}", [
             SgcCustomerController::class, "destroy",
         ])->name("api.tools.sgc.customers.destroy");
+
+        Route::get("/customers/{sgc_customer}/addresses", [
+            SgcCustomerAddressController::class, "index",
+        ])->name("api.tools.sgc.customers.addresses.index");
+
+        Route::post("/customers/{sgc_customer}/addresses", [
+            SgcCustomerAddressController::class, "store",
+        ])->name("api.tools.sgc.customers.addresses.store");
+
+        Route::put("/customers/{sgc_customer}/addresses/{sgc_customer_address}", [
+            SgcCustomerAddressController::class, "update",
+        ])->name("api.tools.sgc.customers.addresses.update");
+
+        Route::delete("/customers/{sgc_customer}/addresses/{sgc_customer_address}", [
+            SgcCustomerAddressController::class, "destroy",
+        ])->name("api.tools.sgc.customers.addresses.destroy");
 
         Route::get("/brands", [
             SgcBrandController::class, "index",

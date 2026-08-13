@@ -42,11 +42,11 @@
     }
 
     function openAddressManager() {
-        addressManagerRef.value?.open({
-            getAddresses: () => customerFormFieldsRef.value?.getAddresses() || [],
-            setAddresses: (addresses) => customerFormFieldsRef.value?.setAddresses(addresses),
-            reloadAddresses: () => customerFormFieldsRef.value?.reloadAddresses(),
-        });
+        const customer = customerFormFieldsRef.value?.getCustomer();
+
+        if( !customer?.id ) return;
+
+        addressManagerRef.value?.open(customer.id);
     }
 
     function handleFormClosed() {

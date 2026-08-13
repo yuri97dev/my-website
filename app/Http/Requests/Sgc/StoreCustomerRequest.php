@@ -41,15 +41,6 @@ class StoreCustomerRequest extends SgcFormRequest
             "tax_id" => ["nullable", "string", "max:255"],
             "birth_date" => ["nullable", "date"],
             "notes" => ["nullable", "string"],
-            "addresses" => ["nullable", "array"],
-            "addresses.*.address_street" => ["nullable", "string", "max:255"],
-            "addresses.*.address_number" => ["nullable", "string", "max:255"],
-            "addresses.*.address_complement" => ["nullable", "string", "max:255"],
-            "addresses.*.address_district" => ["nullable", "string", "max:255"],
-            "addresses.*.address_city" => ["nullable", "string", "max:255"],
-            "addresses.*.address_state" => ["nullable", "string", "max:255"],
-            "addresses.*.address_postal_code" => ["nullable", "string", "max:255"],
-            "addresses.*.address_country" => ["nullable", "string", "max:255"],
         ];
     }
 
@@ -70,23 +61,6 @@ class StoreCustomerRequest extends SgcFormRequest
             "tax_id.max" => "O CPF/CNPJ não pode ter mais de 255 caracteres.",
             "birth_date.date" => "A data de nascimento deve ser uma data válida.",
             "notes.string" => "As observações devem ser um texto válido.",
-            "addresses.array" => "Os endereços devem ser uma lista válida.",
-            "addresses.*.address_street.string" => "O logradouro deve ser um texto válido.",
-            "addresses.*.address_street.max" => "O logradouro não pode ter mais de 255 caracteres.",
-            "addresses.*.address_number.string" => "O número deve ser um texto válido.",
-            "addresses.*.address_number.max" => "O número não pode ter mais de 255 caracteres.",
-            "addresses.*.address_complement.string" => "O complemento deve ser um texto válido.",
-            "addresses.*.address_complement.max" => "O complemento não pode ter mais de 255 caracteres.",
-            "addresses.*.address_district.string" => "O bairro deve ser um texto válido.",
-            "addresses.*.address_district.max" => "O bairro não pode ter mais de 255 caracteres.",
-            "addresses.*.address_city.string" => "A cidade deve ser um texto válido.",
-            "addresses.*.address_city.max" => "A cidade não pode ter mais de 255 caracteres.",
-            "addresses.*.address_state.string" => "O estado deve ser um texto válido.",
-            "addresses.*.address_state.max" => "O estado não pode ter mais de 255 caracteres.",
-            "addresses.*.address_postal_code.string" => "O CEP deve ser um texto válido.",
-            "addresses.*.address_postal_code.max" => "O CEP não pode ter mais de 255 caracteres.",
-            "addresses.*.address_country.string" => "O país deve ser um texto válido.",
-            "addresses.*.address_country.max" => "O país não pode ter mais de 255 caracteres.",
         ];
     }
 

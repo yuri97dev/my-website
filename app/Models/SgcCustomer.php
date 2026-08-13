@@ -37,4 +37,11 @@ class SgcCustomer extends Model
             ->withPivot("notes")
             ->withTimestamps();
     }
+
+    public function isAccessibleBy(User $user): bool
+    {
+        return $this->companies()
+            ->accessibleBy($user)
+            ->exists();
+    }
 }

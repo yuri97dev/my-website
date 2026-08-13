@@ -113,24 +113,6 @@
 
     const isEditing = computed(() => !!customer.value.id);
 
-    function getAddresses() {
-        return form.value.addresses || [];
-    }
-
-    function setAddresses(addresses) {
-        form.value.addresses = addresses;
-    }
-
-    async function reloadAddresses() {
-        if( !customer.value.id ) {
-            return getAddresses();
-        }
-
-        await loadCustomer(customer.value.id);
-
-        return getAddresses();
-    }
-
     function buildPayload() {
         return {
             company_id: form.value.company_id,
@@ -140,7 +122,6 @@
             tax_id: form.value.tax_id,
             birth_date: form.value.birth_date || null,
             notes: form.value.notes,
-            addresses: form.value.addresses,
         };
     }
 
@@ -171,9 +152,6 @@
                 tax_id: data.customer.tax_id,
                 birth_date: data.customer.birth_date,
                 notes: resolveNotes(data.customer),
-                addresses: data.customer.addresses?.length
-                    ? data.customer.addresses
-                    : [],
             };
         } catch (e) {
             const { message } = e?.response?.data || {};
@@ -198,7 +176,6 @@
             form.value = {
                 ...form.value,
                 ...data.customer,
-                addresses: data.customer.addresses || [],
             };
         } catch (e) {
             const { message, errors: responseErrors } = e?.response?.data || {};
@@ -224,7 +201,6 @@
             form.value = {
                 ...form.value,
                 ...data.customer,
-                addresses: data.customer.addresses || [],
             };
         } catch (e) {
             const { message, errors: responseErrors } = e?.response?.data || {};
@@ -274,7 +250,6 @@
             tax_id: data.tax_id ?? null,
             birth_date: data.birth_date ?? null,
             notes: data.notes ?? null,
-            addresses: data.addresses?.length ? data.addresses : [],
         };
 
         isDialogOpen.value = true;
@@ -292,7 +267,6 @@
             tax_id: null,
             birth_date: null,
             notes: null,
-            addresses: [],
         };
     }
 
@@ -309,8 +283,5 @@
     defineExpose({
         open,
         getCustomer: () => customer.value,
-        getAddresses,
-        setAddresses,
-        reloadAddresses,
     });
 </script>

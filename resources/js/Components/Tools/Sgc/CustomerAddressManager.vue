@@ -19,8 +19,8 @@
 
         <v-row v-else>
             <v-col
-                v-for="(address, index) in addresses"
-                :key="address.id ?? `address-${index}`"
+                v-for="address in addresses"
+                :key="address.id"
                 cols="12"
                 xl="4"
                 lg="6"
@@ -30,7 +30,7 @@
                     hover
                     class="d-flex flex-column h-100"
                     variant="tonal"
-                    @click="openAddressDialog(address, index)"
+                    @click="openAddressDialog(address)"
                 >
                     <v-card-title class="text-wrap">
                         <div class="lines-2">
@@ -57,7 +57,7 @@
                 prepend-icon="mdi-refresh"
                 text="Atualizar"
                 :disabled="loading"
-                @click="handleRefresh"
+                @click="loadAddresses"
             ></v-btn>
 
             <v-btn
@@ -152,6 +152,7 @@
                 variant="tonal"
                 color="primary"
                 prepend-icon="mdi-content-save"
+                :loading="saving"
                 :text="isEditingAddress ? 'Salvar' : 'Adicionar'"
                 @click="handleSaveAddress"
             ></v-btn>
@@ -164,13 +165,14 @@
         max-width="500"
         v-model="isConfirmRemoveDialogOpen"
     >
-        O endereço será removido. Essa ação não pode ser desfeita até salvar o cliente.
+        O endereço será removido permanentemente. Essa ação não pode ser desfeita.
 
         <template #actions>
             <v-btn
                 variant="tonal"
                 color="error"
                 prepend-icon="mdi-delete"
+                :loading="saving"
                 text="Excluir"
                 @click="handleRemoveAddress"
             ></v-btn>
@@ -181,28 +183,25 @@
 <script setup>
     import { ref, reactive, computed } from "vue";
 
+    import api from "@/api";
+
     import BottomSheet from "@/Components/BottomSheet.vue";
     import Dialog from "@/Components/Dialog.vue";
 
-    import { alertError } from "@/Utils/Alert";
+    import { alertError, toastSuccess } from "@/Utils/Alert";
 
     const isOpen = ref(false);
     const isAddressDialogOpen = ref(false);
     const isConfirmRemoveDialogOpen = ref(false);
 
+    const customerId = ref(null);
     const addresses = ref([]);
     const loading = ref(false);
-    const selectedAddressIndex = ref(null);
-
-    const handlers = reactive({
-        getAddresses: null,
-        setAddresses: null,
-        reloadAddresses: null,
-    });
+    const saving = ref(false);
 
     const addressForm = reactive(emptyAddress());
 
-    const isEditingAddress = computed(() => selectedAddressIndex.value !== null);
+    const isEditingAddress = computed(() => !!addressForm.id);
 
     function emptyAddress() {
         return {
@@ -237,84 +236,122 @@
         return parts.join(" · ") || "Sem cidade informada";
     }
 
-    function syncAddresses() {
-        handlers.setAddresses?.(addresses.value.map(address => ({ ...address })));
+    function buildAddressPayload() {
+        return {
+            address_street: addressForm.address_street,
+            address_number: addressForm.address_number,
+            address_complement: addressForm.address_complement,
+            address_district: addressForm.address_district,
+            address_city: addressForm.address_city,
+            address_state: addressForm.address_state,
+            address_postal_code: addressForm.address_postal_code,
+            address_country: addressForm.address_country,
+        };
     }
 
-    function loadAddressesFromForm() {
-        addresses.value = (handlers.getAddresses?.() || []).map(address => ({ ...address }));
-    }
-
-    async function handleRefresh() {
-        if( !handlers.reloadAddresses ) {
-            loadAddressesFromForm();
-            return;
-        }
+    async function loadAddresses() {
+        if( !customerId.value ) return;
 
         loading.value = true;
 
         try {
-            const refreshed = await handlers.reloadAddresses();
-            addresses.value = (refreshed || []).map(address => ({ ...address }));
+            const url = route("api.tools.sgc.customers.addresses.index", customerId.value);
+            const { data } = await api.get(url);
+
+            addresses.value = data.addresses || [];
         } catch (e) {
             const { message } = e?.response?.data || {};
-            alertError("Ooops", message || "Erro ao atualizar endereços");
+            alertError("Ooops", message || "Erro ao buscar endereços");
         } finally {
             loading.value = false;
         }
     }
 
-    function openAddressDialog(address = null, index = null) {
-        selectedAddressIndex.value = index;
-
+    function openAddressDialog(address = null) {
         Object.assign(addressForm, emptyAddress(), address || {});
-
         isAddressDialogOpen.value = true;
     }
 
     function resetAddressForm() {
-        selectedAddressIndex.value = null;
         Object.assign(addressForm, emptyAddress());
     }
 
-    function handleSaveAddress() {
-        const payload = { ...addressForm };
+    async function handleSaveAddress() {
+        if( !customerId.value ) return;
 
-        if( selectedAddressIndex.value !== null ) {
-            addresses.value.splice(selectedAddressIndex.value, 1, payload);
-        } else {
-            addresses.value.push(payload);
+        saving.value = true;
+
+        try {
+            if( addressForm.id ) {
+                const url = route("api.tools.sgc.customers.addresses.update", {
+                    sgc_customer: customerId.value,
+                    sgc_customer_address: addressForm.id,
+                });
+
+                await api.put(url, buildAddressPayload());
+
+                toastSuccess("Ok", "Endereço atualizado com sucesso");
+            } else {
+                const url = route("api.tools.sgc.customers.addresses.store", customerId.value);
+
+                await api.post(url, buildAddressPayload());
+
+                toastSuccess("Ok", "Endereço adicionado com sucesso");
+            }
+
+            isAddressDialogOpen.value = false;
+            resetAddressForm();
+
+            await loadAddresses();
+        } catch (e) {
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao salvar endereço");
+        } finally {
+            saving.value = false;
         }
-
-        syncAddresses();
-        isAddressDialogOpen.value = false;
-        resetAddressForm();
     }
 
-    function handleRemoveAddress() {
-        if( selectedAddressIndex.value === null ) return;
+    async function handleRemoveAddress() {
+        if( !customerId.value || !addressForm.id ) return;
 
-        addresses.value.splice(selectedAddressIndex.value, 1);
-        syncAddresses();
+        saving.value = true;
 
-        isConfirmRemoveDialogOpen.value = false;
-        isAddressDialogOpen.value = false;
-        resetAddressForm();
+        try {
+            const url = route("api.tools.sgc.customers.addresses.destroy", {
+                sgc_customer: customerId.value,
+                sgc_customer_address: addressForm.id,
+            });
+
+            await api.delete(url);
+
+            toastSuccess("Ok", "Endereço removido com sucesso");
+
+            isConfirmRemoveDialogOpen.value = false;
+            isAddressDialogOpen.value = false;
+
+            resetAddressForm();
+
+            await loadAddresses();
+        } catch (e) {
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao remover endereço");
+        } finally {
+            saving.value = false;
+        }
     }
 
-    function open(options = {}) {
-        handlers.getAddresses = options.getAddresses ?? null;
-        handlers.setAddresses = options.setAddresses ?? null;
-        handlers.reloadAddresses = options.reloadAddresses ?? null;
-
-        loadAddressesFromForm();
-
+    function open(id) {
+        customerId.value = id;
         isOpen.value = true;
+
+        loadAddresses();
     }
 
     function close() {
         isAddressDialogOpen.value = false;
         isOpen.value = false;
+        customerId.value = null;
+        addresses.value = [];
     }
 
     defineExpose({
