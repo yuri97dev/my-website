@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,6 +12,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        DB::statement("CREATE EXTENSION IF NOT EXISTS pg_trgm");
+
         Schema::create("sgc_companies", function (Blueprint $table) {
             $table->id();
 
@@ -110,7 +113,7 @@ return new class extends Migration
         Schema::create("sgc_brands", function (Blueprint $table) {
             $table->id();
 
-            $table->string("name");
+            $table->string("name")->unique();
             $table->text("description")->nullable();
 
             $table->timestamps();
@@ -119,7 +122,7 @@ return new class extends Migration
         Schema::create("sgc_product_categories", function (Blueprint $table) {
             $table->id();
 
-            $table->string("name");
+            $table->string("name")->unique();
             $table->text("description")->nullable();
 
             $table->timestamps();
@@ -166,6 +169,23 @@ return new class extends Migration
 
             $table->unique(["company_id", "product_id"]);
         });
+
+        DB::statement(
+            "CREATE INDEX sgc_customers_name_trgm_idx ON sgc_customers USING gin (name gin_trgm_ops)"
+        );
+        DB::statement(
+            "CREATE INDEX sgc_customers_nickname_trgm_idx ON sgc_customers USING gin (nickname gin_trgm_ops)"
+        );
+        DB::statement(
+            "CREATE INDEX sgc_products_name_trgm_idx ON sgc_products USING gin (name gin_trgm_ops)"
+        );
+
+        DB::statement(
+            "CREATE INDEX sgc_company_product_product_id_idx ON sgc_company_product (product_id)"
+        );
+        DB::statement(
+            "CREATE INDEX sgc_company_customer_customer_id_idx ON sgc_company_customer (customer_id)"
+        );
     }
 
     /**
@@ -173,6 +193,12 @@ return new class extends Migration
      */
     public function down(): void
     {
+        DB::statement("DROP INDEX IF EXISTS sgc_company_customer_customer_id_idx");
+        DB::statement("DROP INDEX IF EXISTS sgc_company_product_product_id_idx");
+        DB::statement("DROP INDEX IF EXISTS sgc_products_name_trgm_idx");
+        DB::statement("DROP INDEX IF EXISTS sgc_customers_nickname_trgm_idx");
+        DB::statement("DROP INDEX IF EXISTS sgc_customers_name_trgm_idx");
+
         Schema::dropIfExists("sgc_company_product");
         Schema::dropIfExists("sgc_products");
         Schema::dropIfExists("sgc_product_categories");

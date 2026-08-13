@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Sgc;
 
+use App\Helpers\SearchQuery;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sgc\StoreCustomerRequest;
 use App\Http\Requests\Sgc\UpdateCustomerRequest;
@@ -46,22 +47,32 @@ class CustomerController extends Controller
                 $query->where("sgc_customers.id", $request->integer("id"));
             })
             ->when($request->filled("name"), function ($query) use ($request) {
-                $query->where("name", "ilike", "%".$request->input("name")."%");
+                SearchQuery::applySubstringSearch(
+                    $query,
+                    "sgc_customers.name",
+                    $request->input("name")
+                );
             })
             ->when($request->filled("nickname"), function ($query) use ($request) {
-                $query->where("nickname", "ilike", "%".$request->input("nickname")."%");
+                SearchQuery::applySubstringSearch(
+                    $query,
+                    "sgc_customers.nickname",
+                    $request->input("nickname")
+                );
             })
             ->when($request->filled("tax_id"), function ($query) use ($request) {
-                $query->where("tax_id", "ilike", "%".$request->input("tax_id")."%");
+                SearchQuery::applySubstringSearch(
+                    $query,
+                    "sgc_customers.tax_id",
+                    $request->input("tax_id")
+                );
             })
             ->when($request->filled("search"), function ($query) use ($request) {
-                $term = "%".$request->input("search")."%";
-
-                $query->where(function ($query) use ($term) {
-                    $query->where("name", "ilike", $term)
-                        ->orWhere("nickname", "ilike", $term)
-                        ->orWhere("tax_id", "ilike", $term);
-                });
+                SearchQuery::applyWordSearch(
+                    $query,
+                    "concat_ws(' ', sgc_customers.name, sgc_customers.nickname, sgc_customers.tax_id)",
+                    $request->input("search")
+                );
             })
             ->with("addresses")
             ->orderByDesc("sgc_customers.id")

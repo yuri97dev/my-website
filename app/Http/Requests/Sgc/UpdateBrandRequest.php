@@ -4,6 +4,7 @@ namespace App\Http\Requests\Sgc;
 
 use App\Helpers\TextFormatter;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Validation\Rule;
 
 class UpdateBrandRequest extends SgcFormRequest
 {
@@ -22,7 +23,13 @@ class UpdateBrandRequest extends SgcFormRequest
     public function rules(): array
     {
         return [
-            "name" => ["sometimes", "required", "string", "max:255"],
+            "name" => [
+                "sometimes",
+                "required",
+                "string",
+                "max:255",
+                Rule::unique("sgc_brands", "name")->ignore($this->route("sgc_brand")),
+            ],
             "description" => ["nullable", "string"],
         ];
     }
@@ -33,6 +40,7 @@ class UpdateBrandRequest extends SgcFormRequest
             "name.required" => "O nome é obrigatório.",
             "name.string" => "O nome deve ser um texto válido.",
             "name.max" => "O nome não pode ter mais de 255 caracteres.",
+            "name.unique" => "Já existe uma marca com este nome.",
             "description.string" => "A descrição deve ser um texto válido.",
         ];
     }

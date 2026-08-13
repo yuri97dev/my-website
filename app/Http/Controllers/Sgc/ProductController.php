@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers\Sgc;
 
+use App\Helpers\SearchQuery;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sgc\StoreProductRequest;
 use App\Http\Requests\Sgc\UpdateProductRequest;
+use App\Models\SgcBrand;
 use App\Models\SgcCompany;
 use App\Models\SgcProduct;
+use App\Models\SgcProductCategory;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends Controller
@@ -41,6 +45,23 @@ class ProductController extends Controller
         $per_page = min($request->integer("per_page", 15), 100);
 
         $paginator = SgcProduct::query()
+            ->leftJoin(
+                "sgc_brands",
+                "sgc_products.brand_id",
+                "=",
+                "sgc_brands.id"
+            )
+            ->leftJoin(
+                "sgc_product_categories",
+                "sgc_products.product_category_id",
+                "=",
+                "sgc_product_categories.id"
+            )
+            ->select([
+                "sgc_products.*",
+                "sgc_brands.name as brand_name",
+                "sgc_product_categories.name as category_name",
+            ])
             ->whereHas("companies", function ($query) use ($request) {
                 $query->accessibleBy($request->user());
 
@@ -52,16 +73,20 @@ class ProductController extends Controller
                 $query->where("sgc_products.id", $request->integer("id"));
             })
             ->when($request->filled("name"), function ($query) use ($request) {
-                $query->where("name", "ilike", "%".$request->input("name")."%");
+                SearchQuery::applySubstringSearch(
+                    $query,
+                    "sgc_products.name",
+                    $request->input("name")
+                );
             })
             ->when($request->filled("search"), function ($query) use ($request) {
-                $term = "%".$request->input("search")."%";
-
-                $query->where("name", "ilike", $term);
+                SearchQuery::applyWordSearch(
+                    $query,
+                    "concat_ws(' ', sgc_products.name, sgc_brands.name, sgc_product_categories.name)",
+                    $request->input("search")
+                );
             })
             ->with([
-                "brand",
-                "category",
                 "companies" => function ($query) use ($request) {
                     $query->accessibleBy($request->user());
 
@@ -72,6 +97,8 @@ class ProductController extends Controller
             ])
             ->orderByDesc("sgc_products.id")
             ->paginate($per_page);
+
+        $this->hydrateBrandAndCategory($paginator->getCollection());
 
         return response()->json([
             "current_page" => $paginator->currentPage(),
@@ -163,6 +190,34 @@ class ProductController extends Controller
         return $product->companies()
             ->accessibleBy($user)
             ->exists();
+    }
+
+    private function hydrateBrandAndCategory(Collection $products): void
+    {
+        $products->each(function (SgcProduct $product) {
+            $product->setRelation(
+                "brand",
+                $product->brand_id
+                    ? new SgcBrand([
+                        "id" => $product->brand_id,
+                        "name" => $product->brand_name,
+                    ])
+                    : null
+            );
+
+            $product->setRelation(
+                "category",
+                $product->product_category_id
+                    ? new SgcProductCategory([
+                        "id" => $product->product_category_id,
+                        "name" => $product->category_name,
+                    ])
+                    : null
+            );
+
+            $product->offsetUnset("brand_name");
+            $product->offsetUnset("category_name");
+        });
     }
 
     /**
