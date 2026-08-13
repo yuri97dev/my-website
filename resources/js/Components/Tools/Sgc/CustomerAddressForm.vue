@@ -3,67 +3,71 @@
         overlay-id="sgc-customer-address-form"
         :title="isEditing ? 'Editar Endereço' : 'Novo Endereço'"
         max-width="700"
+        no-body
+        scrollable
         @close="resetForm"
         v-model="isOpen"
     >
-        <v-row>
-            <v-col cols="12" lg="8">
-                <v-text-field
-                    label="Logradouro"
-                    autofocus
-                    v-model="form.address_street"
-                ></v-text-field>
-            </v-col>
+        <v-card-text>
+            <v-row>
+                <v-col cols="12" lg="4">
+                    <PostalCodeField
+                        @address-found="fillAddressFromPostalCode"
+                        v-model="form.address_postal_code"
+                    ></PostalCodeField>
+                </v-col>
 
-            <v-col cols="12" lg="4">
-                <v-text-field
-                    label="Número"
-                    v-model="form.address_number"
-                ></v-text-field>
-            </v-col>
+                <v-col cols="12" lg="8">
+                    <v-text-field
+                        label="Logradouro"
+                        autofocus
+                        v-model="form.address_street"
+                    ></v-text-field>
+                </v-col>
 
-            <v-col cols="12" lg="4">
-                <v-text-field
-                    label="Complemento"
-                    v-model="form.address_complement"
-                ></v-text-field>
-            </v-col>
+                <v-col cols="12" lg="4">
+                    <v-text-field
+                        label="Número"
+                        v-model="form.address_number"
+                    ></v-text-field>
+                </v-col>
 
-            <v-col cols="12" lg="4">
-                <v-text-field
-                    label="Bairro"
-                    v-model="form.address_district"
-                ></v-text-field>
-            </v-col>
+                <v-col cols="12" lg="4">
+                    <v-text-field
+                        label="Bairro"
+                        v-model="form.address_district"
+                    ></v-text-field>
+                </v-col>
 
-            <v-col cols="12" lg="4">
-                <PostalCodeField
-                    @address-found="fillAddressFromPostalCode"
-                    v-model="form.address_postal_code"
-                ></PostalCodeField>
-            </v-col>
+                <v-col cols="12" lg="4">
+                    <v-text-field
+                        label="Complemento"
+                        v-model="form.address_complement"
+                    ></v-text-field>
+                </v-col>
 
-            <v-col cols="12" lg="4">
-                <v-text-field
-                    label="Cidade"
-                    v-model="form.address_city"
-                ></v-text-field>
-            </v-col>
+                <v-col cols="12" lg="4">
+                    <v-text-field
+                        label="Cidade"
+                        v-model="form.address_city"
+                    ></v-text-field>
+                </v-col>
 
-            <v-col cols="12" lg="4">
-                <v-text-field
-                    label="Estado"
-                    v-model="form.address_state"
-                ></v-text-field>
-            </v-col>
+                <v-col cols="12" lg="4">
+                    <v-text-field
+                        label="Estado"
+                        v-model="form.address_state"
+                    ></v-text-field>
+                </v-col>
 
-            <v-col cols="12" lg="4">
-                <v-text-field
-                    label="País"
-                    v-model="form.address_country"
-                ></v-text-field>
-            </v-col>
-        </v-row>
+                <v-col cols="12" lg="4">
+                    <v-text-field
+                        label="País"
+                        v-model="form.address_country"
+                    ></v-text-field>
+                </v-col>
+            </v-row>
+        </v-card-text>
 
         <template #actions>
             <v-btn
