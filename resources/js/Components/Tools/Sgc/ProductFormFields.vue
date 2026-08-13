@@ -71,6 +71,30 @@
                 </v-autocomplete>
             </v-col>
 
+            <v-col cols="12" lg="6">
+                <v-text-field
+                    label="Preço de Venda"
+                    prefix="R$"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    :error-messages="errors.sale_price"
+                    v-model="form.sale_price"
+                ></v-text-field>
+            </v-col>
+
+            <v-col cols="12" lg="6">
+                <v-text-field
+                    label="Preço de Custo"
+                    prefix="R$"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    :error-messages="errors.cost_price"
+                    v-model="form.cost_price"
+                ></v-text-field>
+            </v-col>
+
             <v-col cols="12">
                 <v-textarea
                     label="Especificações Técnicas"
@@ -205,7 +229,18 @@
             name: form.value.name,
             technical_specifications: form.value.technical_specifications,
             notes: form.value.notes,
+            sale_price: normalizePrice(form.value.sale_price),
+            cost_price: normalizePrice(form.value.cost_price),
+            currency: "BRL",
         };
+    }
+
+    function normalizePrice(value) {
+        if( value === null || value === "" ) {
+            return null;
+        }
+
+        return Number(value);
     }
 
     function resolveCompanyId(product, fallback = null) {
@@ -214,8 +249,12 @@
         return id != null ? Number(id) : null;
     }
 
+    function resolvePivotField(product, field, fallback = null) {
+        return product?.companies?.[0]?.pivot?.[field] ?? fallback;
+    }
+
     function resolveNotes(product, fallback = null) {
-        return product?.companies?.[0]?.pivot?.notes ?? fallback;
+        return resolvePivotField(product, "notes", fallback);
     }
 
     async function loadProduct(id) {
@@ -234,6 +273,8 @@
                 name: data.product.name,
                 technical_specifications: data.product.technical_specifications,
                 notes: resolveNotes(data.product),
+                sale_price: resolvePivotField(data.product, "sale_price"),
+                cost_price: resolvePivotField(data.product, "cost_price"),
             };
         } catch (e) {
             const { message } = e?.response?.data || {};
@@ -330,6 +371,18 @@
                 form.value.notes = initialNotes;
             }
 
+            const initialSalePrice = data.pivot?.sale_price ?? data.sale_price;
+
+            if( initialSalePrice != null ) {
+                form.value.sale_price = initialSalePrice;
+            }
+
+            const initialCostPrice = data.pivot?.cost_price ?? data.cost_price;
+
+            if( initialCostPrice != null ) {
+                form.value.cost_price = initialCostPrice;
+            }
+
             return;
         }
 
@@ -342,6 +395,8 @@
             name: data.name ?? null,
             technical_specifications: data.technical_specifications ?? null,
             notes: data.notes ?? null,
+            sale_price: data.pivot?.sale_price ?? data.sale_price ?? null,
+            cost_price: data.pivot?.cost_price ?? data.cost_price ?? null,
         };
 
         isDialogOpen.value = true;
@@ -365,6 +420,8 @@
             name: null,
             technical_specifications: null,
             notes: null,
+            sale_price: null,
+            cost_price: null,
         };
     }
 

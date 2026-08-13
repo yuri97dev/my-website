@@ -89,9 +89,9 @@
                 <tr
                     v-show="!loading"
                     ref="sentinelRef"
-                    class="sentinel bg-primary"
+                    class="sentinel bg-transparent border-0"
                 >
-                    <td :colspan="columnCount"></td>
+                    <td class="border-0" :colspan="columnCount"></td>
                 </tr>
             </template>
         </v-data-table-virtual>

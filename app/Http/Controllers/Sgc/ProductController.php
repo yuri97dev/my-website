@@ -13,6 +13,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends Controller
 {
+    private const PIVOT_FIELDS = [
+        "notes",
+        "sale_price",
+        "cost_price",
+        "currency",
+    ];
+
     public function index(Request $request)
     {
         $request->validate([
@@ -52,7 +59,17 @@ class ProductController extends Controller
 
                 $query->where("name", "ilike", $term);
             })
-            ->with(["brand", "category"])
+            ->with([
+                "brand",
+                "category",
+                "companies" => function ($query) use ($request) {
+                    $query->accessibleBy($request->user());
+
+                    if( $request->filled("company_id") ) {
+                        $query->where("sgc_companies.id", $request->integer("company_id"));
+                    }
+                },
+            ])
             ->orderByDesc("sgc_products.id")
             ->paginate($per_page);
 
@@ -72,12 +89,10 @@ class ProductController extends Controller
 
         $product = SgcProduct::create(collect($validated)->except([
             "company_id",
-            "notes",
+            ...self::PIVOT_FIELDS,
         ])->all());
 
-        $product->companies()->attach($company_id, [
-            "notes" => $validated["notes"] ?? null,
-        ]);
+        $product->companies()->attach($company_id, $this->pivotPayload($validated));
 
         $product->load(["brand", "category"]);
 
@@ -112,14 +127,14 @@ class ProductController extends Controller
         $company_id = $validated["company_id"];
 
         $sgc_product->update(collect($validated)->except([
-            "notes",
             "company_id",
+            ...self::PIVOT_FIELDS,
         ])->all());
 
-        if( array_key_exists("notes", $validated) ) {
-            $sgc_product->companies()->updateExistingPivot($company_id, [
-                "notes" => $validated["notes"],
-            ]);
+        $pivot_data = $this->pivotPayload($validated);
+
+        if( !empty($pivot_data) ) {
+            $sgc_product->companies()->updateExistingPivot($company_id, $pivot_data);
         }
 
         $sgc_product->load(["brand", "category"]);
@@ -148,5 +163,20 @@ class ProductController extends Controller
         return $product->companies()
             ->accessibleBy($user)
             ->exists();
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private function pivotPayload(array $validated): array
+    {
+        $payload = collect($validated)->only(self::PIVOT_FIELDS)->all();
+
+        if( !array_key_exists("currency", $payload) || $payload["currency"] === null ) {
+            $payload["currency"] = "BRL";
+        }
+
+        return $payload;
     }
 }

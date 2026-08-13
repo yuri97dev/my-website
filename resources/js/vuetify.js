@@ -60,10 +60,19 @@ export default createVuetify({
             crossfade: true,
             class: "overflow-visible",
         },
+        VDataTable: {
+            noDataText: "Nenhum resultado encontrado",
+            loadingText: "Carregando",
+        },
+        VDataTableVirtual: {
+            noDataText: "Nenhum resultado encontrado",
+            loadingText: "Carregando",
+        },
         VDataTableServer: {
             itemsPerPageOptions: [10, 25, 50, 100, 200],
             noDataText: "Nenhum resultado encontrado",
             itemsPerPageText: "Itens por página",
+            loadingText: "Carregando",
         },
         Dialog: {
             closeOnBack: false,

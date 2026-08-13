@@ -42,6 +42,9 @@ class StoreProductRequest extends SgcFormRequest
             "name" => ["required", "string", "max:255"],
             "technical_specifications" => ["nullable", "string"],
             "notes" => ["nullable", "string"],
+            "sale_price" => ["nullable", "numeric", "min:0", "decimal:0,2"],
+            "cost_price" => ["nullable", "numeric", "min:0", "decimal:0,2"],
+            "currency" => ["nullable", "string", "size:3", Rule::in(["BRL"])],
         ];
     }
 
@@ -60,6 +63,15 @@ class StoreProductRequest extends SgcFormRequest
             "name.max" => "O nome não pode ter mais de 255 caracteres.",
             "technical_specifications.string" => "As especificações técnicas devem ser um texto válido.",
             "notes.string" => "As observações devem ser um texto válido.",
+            "sale_price.numeric" => "O preço de venda deve ser um número válido.",
+            "sale_price.min" => "O preço de venda não pode ser negativo.",
+            "sale_price.decimal" => "O preço de venda deve ter no máximo 2 casas decimais.",
+            "cost_price.numeric" => "O preço de custo deve ser um número válido.",
+            "cost_price.min" => "O preço de custo não pode ser negativo.",
+            "cost_price.decimal" => "O preço de custo deve ter no máximo 2 casas decimais.",
+            "currency.string" => "A moeda deve ser um texto válido.",
+            "currency.size" => "A moeda deve ter exatamente 3 caracteres.",
+            "currency.in" => "A moeda selecionada é inválida.",
         ];
     }
 

@@ -31,7 +31,12 @@ class SgcProduct extends Model
     public function companies(): BelongsToMany
     {
         return $this->belongsToMany(SgcCompany::class, "sgc_company_product", "product_id", "company_id")
-            ->withPivot("notes")
+            ->withPivot([
+                "notes",
+                "sale_price",
+                "cost_price",
+                "currency",
+            ])
             ->withTimestamps();
     }
 }

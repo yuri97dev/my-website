@@ -156,6 +156,10 @@ return new class extends Migration
                 ->constrained("sgc_products")
                 ->cascadeOnDelete();
 
+            $table->decimal("sale_price", 12, 2)->nullable();
+            $table->decimal("cost_price", 12, 2)->nullable();
+            $table->char("currency", 3)->default("BRL");
+
             $table->text("notes")->nullable();
 
             $table->timestamps();

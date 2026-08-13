@@ -78,3 +78,17 @@ a {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+table:has(.v-data-table-rows-no-data),
+table:has(.v-data-table-rows-loading),
+table tr.v-data-table-rows-no-data,
+table tr.v-data-table-rows-loading {
+    height: 100% !important;
+}
+
+table tr.v-data-table-rows-no-data,
+table tr.v-data-table-rows-loading,
+table tr.v-data-table-rows-no-data td,
+table tr.v-data-table-rows-loading td {
+    border: none !important;
+}

@@ -15,6 +15,18 @@
             :row-props="rowProps"
             :prepare-item="prepareItem"
         >
+            <template #item.sale_price="{ item }">
+                <span v-if="item.sale_price != null">
+                    R$ {{ formatNumber(item.sale_price, 2) }}
+                </span>
+            </template>
+
+            <template #item.cost_price="{ item }">
+                <span v-if="item.cost_price != null">
+                    R$ {{ formatNumber(item.cost_price, 2) }}
+                </span>
+            </template>
+
             <template #item.created_at="{ item }">
                 <span v-if="!!item.created_at">
                     {{ formatDate(item.created_at, "dd/MM/yyyy HH:mm") }}
@@ -51,7 +63,7 @@
     import ProductForm from "@/Components/Tools/Sgc/ProductForm.vue";
     import VirtualRemoteTable from "@/Components/VirtualRemoteTable.vue";
 
-    import { formatDate } from "@/Utils/Common";
+    import { formatDate, formatNumber } from "@/Utils/Common";
 
     const productFormRef = ref(null);
     const tableRef = ref(null);
@@ -90,6 +102,14 @@
             title: "Categoria",
         },
         {
+            key: "sale_price",
+            title: "Preço de Venda",
+        },
+        {
+            key: "cost_price",
+            title: "Preço de Custo",
+        },
+        {
             key: "created_at",
             title: "Criado Em",
         },
@@ -109,11 +129,17 @@
         };
     });
 
+    function resolvePivotField(item, field) {
+        return item.companies?.[0]?.pivot?.[field] ?? null;
+    }
+
     function prepareItem(item) {
         return {
             ...item,
             brand_name: item.brand?.name,
             category_name: item.category?.name,
+            sale_price: resolvePivotField(item, "sale_price"),
+            cost_price: resolvePivotField(item, "cost_price"),
         };
     }
 
