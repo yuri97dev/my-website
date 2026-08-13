@@ -78,11 +78,11 @@
             </v-col>
 
             <v-col cols="12" lg="4">
-                <v-text-field
-                    label="CEP"
+                <PostalCodeField
                     :error-messages="errors.address_postal_code"
                     v-model="form.address_postal_code"
-                ></v-text-field>
+                    @address-found="fillAddressFromPostalCode"
+                ></PostalCodeField>
             </v-col>
 
             <v-col cols="12" lg="4">
@@ -130,6 +130,7 @@
 
     import BottomSheet from "@/Components/BottomSheet.vue";
     import CompanyAutocomplete from "@/Components/Inputs/CompanyAutocomplete.vue";
+    import PostalCodeField from "@/Components/PostalCodeField.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
 
@@ -145,6 +146,14 @@
     const form = ref({});
 
     const isEditing = computed(() => !!company.value.id);
+
+    function fillAddressFromPostalCode(address) {
+        form.value.address_street = address.address_street ?? form.value.address_street;
+        form.value.address_district = address.address_district ?? form.value.address_district;
+        form.value.address_city = address.address_city ?? form.value.address_city;
+        form.value.address_state = address.address_state ?? form.value.address_state;
+        form.value.address_country = address.address_country ?? form.value.address_country;
+    }
 
     function buildPayload() {
         return {

@@ -37,10 +37,10 @@
             </v-col>
 
             <v-col cols="12" lg="4">
-                <v-text-field
-                    label="CEP"
+                <PostalCodeField
+                    @address-found="fillAddressFromPostalCode"
                     v-model="form.address_postal_code"
-                ></v-text-field>
+                ></PostalCodeField>
             </v-col>
 
             <v-col cols="12" lg="4">
@@ -115,6 +115,7 @@
     import api from "@/api";
 
     import Dialog from "@/Components/Dialog.vue";
+    import PostalCodeField from "@/Components/PostalCodeField.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
 
@@ -161,6 +162,14 @@
 
     function resetForm() {
         Object.assign(form, emptyAddress());
+    }
+
+    function fillAddressFromPostalCode(address) {
+        form.address_street = address.address_street ?? form.address_street;
+        form.address_district = address.address_district ?? form.address_district;
+        form.address_city = address.address_city ?? form.address_city;
+        form.address_state = address.address_state ?? form.address_state;
+        form.address_country = address.address_country ?? form.address_country;
     }
 
     async function handleSave() {
