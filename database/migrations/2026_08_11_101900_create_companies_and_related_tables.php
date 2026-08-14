@@ -148,6 +148,15 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create("sgc_units_of_measure", function (Blueprint $table) {
+            $table->id();
+
+            $table->string("abbreviation", 8)->unique();
+            $table->string("name")->unique();
+
+            $table->timestamps();
+        });
+
         Schema::create("sgc_company_product", function (Blueprint $table) {
             $table->id();
 
@@ -159,8 +168,14 @@ return new class extends Migration
                 ->constrained("sgc_products")
                 ->cascadeOnDelete();
 
+            $table->foreignId("unit_of_measure_id")
+                ->nullable()
+                ->constrained("sgc_units_of_measure")
+                ->nullOnDelete();
+
             $table->decimal("sale_price", 12, 2)->nullable();
             $table->decimal("cost_price", 12, 2)->nullable();
+            $table->decimal("stock_quantity", 12, 3)->default(0);
             $table->char("currency", 3)->default("BRL");
 
             $table->text("notes")->nullable();
@@ -200,6 +215,7 @@ return new class extends Migration
         DB::statement("DROP INDEX IF EXISTS sgc_customers_name_trgm_idx");
 
         Schema::dropIfExists("sgc_company_product");
+        Schema::dropIfExists("sgc_units_of_measure");
         Schema::dropIfExists("sgc_products");
         Schema::dropIfExists("sgc_product_categories");
         Schema::dropIfExists("sgc_brands");
