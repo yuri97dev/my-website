@@ -55,6 +55,9 @@ class HandleInertiaRequests extends Middleware
                 "accepts_marketing",
             ]) ?? null,
             "auth.isSysAdmin" => fn () => $request->user()?->isSystemAdmin(),
+            "auth.sgc" => fn () => $request->user()
+                ? ["companies" => $request->user()->sgcCompaniesForAuth()]
+                : null,
         ]);
     }
 }

@@ -58,6 +58,41 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasRole(Role::SYSTEM_ADMIN);
     }
 
+    /**
+     * @return array<int, array{
+     *     id: int,
+     *     legal_name: string,
+     *     trade_name: string|null,
+     *     document: string|null,
+     *     role: string|null,
+     *     is_owner: bool,
+     * }>
+     */
+    public function sgcCompaniesForAuth(): array
+    {
+        return $this->sgcCompanies()
+            ->orderBy("sgc_companies.trade_name")
+            ->orderBy("sgc_companies.legal_name")
+            ->get([
+                "sgc_companies.id",
+                "sgc_companies.legal_name",
+                "sgc_companies.trade_name",
+                "sgc_companies.document",
+                "sgc_companies.owner_id",
+                "sgc_company_user.role",
+            ])
+            ->map(fn (SgcCompany $company) => [
+                "id" => $company->id,
+                "legal_name" => $company->legal_name,
+                "trade_name" => $company->trade_name,
+                "document" => $company->document,
+                "role" => $company->pivot->role,
+                "is_owner" => $company->owner_id === $this->id,
+            ])
+            ->values()
+            ->all();
+    }
+
     public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
     {
         $this->notify(new ResetPasswordNotification($token));
