@@ -16,6 +16,14 @@ class StoreProductRequest extends SgcFormRequest
                 "name" => TextFormatter::all($this->input("name")),
             ]);
         }
+
+        if( $this->has("serial_number") ) {
+            $serial_number = trim($this->input("serial_number"));
+
+            $this->merge([
+                "serial_number" => $serial_number === "" ? null : $serial_number,
+            ]);
+        }
     }
 
     /**
@@ -44,6 +52,13 @@ class StoreProductRequest extends SgcFormRequest
             "notes" => ["nullable", "string"],
             "sale_price" => ["nullable", "numeric", "min:0", "decimal:0,2"],
             "cost_price" => ["nullable", "numeric", "min:0", "decimal:0,2"],
+            "stock_quantity" => ["nullable", "numeric", "min:0", "decimal:0,3"],
+            "unit_of_measure_id" => [
+                "nullable",
+                "integer",
+                Rule::exists("sgc_units_of_measure", "id"),
+            ],
+            "serial_number" => ["nullable", "string", "max:64"],
             "currency" => ["nullable", "string", "size:3", Rule::in(["BRL"])],
         ];
     }
@@ -69,6 +84,13 @@ class StoreProductRequest extends SgcFormRequest
             "cost_price.numeric" => "O preço de custo deve ser um número válido.",
             "cost_price.min" => "O preço de custo não pode ser negativo.",
             "cost_price.decimal" => "O preço de custo deve ter no máximo 2 casas decimais.",
+            "stock_quantity.numeric" => "A quantidade em estoque deve ser um número válido.",
+            "stock_quantity.min" => "A quantidade em estoque não pode ser negativa.",
+            "stock_quantity.decimal" => "A quantidade em estoque deve ter no máximo 3 casas decimais.",
+            "unit_of_measure_id.integer" => "A unidade de medida deve ser um número inteiro.",
+            "unit_of_measure_id.exists" => "A unidade de medida selecionada é inválida.",
+            "serial_number.string" => "O número de série deve ser um texto válido.",
+            "serial_number.max" => "O número de série não pode ter mais de 64 caracteres.",
             "currency.string" => "A moeda deve ser um texto válido.",
             "currency.size" => "A moeda deve ter exatamente 3 caracteres.",
             "currency.in" => "A moeda selecionada é inválida.",

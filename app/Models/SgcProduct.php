@@ -37,6 +37,7 @@ class SgcProduct extends Model
                 "sale_price",
                 "cost_price",
                 "stock_quantity",
+                "serial_number",
                 "currency",
             ])
             ->withTimestamps();

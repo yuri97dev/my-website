@@ -13,7 +13,6 @@
             :headers="headers"
             :filters="filters"
             :row-props="rowProps"
-            :prepare-item="prepareItem"
         >
             <template #item.sale_price="{ item }">
                 <span v-if="item.sale_price != null">
@@ -24,6 +23,12 @@
             <template #item.cost_price="{ item }">
                 <span v-if="item.cost_price != null">
                     R$ {{ formatNumber(item.cost_price, 2) }}
+                </span>
+            </template>
+
+            <template #item.stock_quantity="{ item }">
+                <span v-if="item.stock_quantity != null">
+                    {{ formatNumber(item.stock_quantity, 3) }}
                 </span>
             </template>
 
@@ -102,6 +107,18 @@
             title: "Categoria",
         },
         {
+            key: "serial_number",
+            title: "Número de Série",
+        },
+        {
+            key: "stock_quantity",
+            title: "Estoque",
+        },
+        {
+            key: "unit_of_measure",
+            title: "Unidade",
+        },
+        {
             key: "sale_price",
             title: "Preço de Venda",
         },
@@ -128,20 +145,6 @@
             [key]: searchValue,
         };
     });
-
-    function resolvePivotField(item, field) {
-        return item.companies?.[0]?.pivot?.[field] ?? null;
-    }
-
-    function prepareItem(item) {
-        return {
-            ...item,
-            brand_name: item.brand?.name,
-            category_name: item.category?.name,
-            sale_price: resolvePivotField(item, "sale_price"),
-            cost_price: resolvePivotField(item, "cost_price"),
-        };
-    }
 
     function rowProps({ item }) {
         return {

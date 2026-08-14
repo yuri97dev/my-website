@@ -95,6 +95,52 @@
                 ></v-text-field>
             </v-col>
 
+            <v-col cols="12" lg="6">
+                <v-text-field
+                    label="Quantidade em Estoque"
+                    type="number"
+                    min="0"
+                    step="0.001"
+                    :error-messages="errors.stock_quantity"
+                    v-model="form.stock_quantity"
+                ></v-text-field>
+            </v-col>
+
+            <v-col cols="12" lg="6">
+                <v-autocomplete
+                    label="Unidade de Medida"
+                    item-title="name"
+                    item-value="id"
+                    clearable
+                    :loading="loading.unitsOfMeasure"
+                    :items="unitsOfMeasure"
+                    :return-object="false"
+                    :error-messages="errors.unit_of_measure_id"
+                    v-model="form.unit_of_measure_id"
+                >
+                    <template #append-inner>
+                        <v-btn
+                            size="small"
+                            icon="mdi-playlist-edit"
+                            variant="tonal"
+                            color="primary"
+                            class="rounded"
+                            @click.prevent="openUnitOfMeasureManager"
+                        ></v-btn>
+                    </template>
+                </v-autocomplete>
+            </v-col>
+
+            <v-col cols="12" lg="6">
+                <v-text-field
+                    label="Número de Série"
+                    hint="Ex.: IMEI do celular"
+                    persistent-hint
+                    :error-messages="errors.serial_number"
+                    v-model="form.serial_number"
+                ></v-text-field>
+            </v-col>
+
             <v-col cols="12">
                 <v-textarea
                     label="Especificações Técnicas"
@@ -170,6 +216,11 @@
         ref="categoryManagerRef"
         @update="getCategories"
     />
+
+    <UnitOfMeasureManager
+        ref="unitOfMeasureManagerRef"
+        @update="getUnitsOfMeasure"
+    />
 </template>
 
 <script setup>
@@ -182,6 +233,7 @@
     import CompanyAutocomplete from "@/Components/Inputs/CompanyAutocomplete.vue";
     import BrandManager from "@/Components/Tools/Sgc/BrandManager.vue";
     import ProductCategoryManager from "@/Components/Tools/Sgc/ProductCategoryManager.vue";
+    import UnitOfMeasureManager from "@/Components/Tools/Sgc/UnitOfMeasureManager.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
     import { useSgcAuth } from "@/Composables/useSgcAuth";
@@ -206,16 +258,19 @@
         delete: false,
         brands: false,
         categories: false,
+        unitsOfMeasure: false,
     });
     const errors = ref({});
 
     const product = ref({});
     const brands = ref([]);
     const categories = ref([]);
+    const unitsOfMeasure = ref([]);
     const form = ref({});
 
     const brandManagerRef = ref(null);
     const categoryManagerRef = ref(null);
+    const unitOfMeasureManagerRef = ref(null);
 
     const isEditing = computed(() => !!product.value.id);
 
@@ -260,6 +315,27 @@
         }
     }
 
+    async function getUnitsOfMeasure() {
+        loading.unitsOfMeasure = true;
+
+        try {
+            const url = route("api.tools.sgc.units-of-measure.index");
+
+            const { data } = await api.get(url, {
+                params: {
+                    per_page: 100,
+                },
+            });
+
+            unitsOfMeasure.value = data.units_of_measure;
+        } catch (e) {
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao buscar unidades de medida");
+        } finally {
+            loading.unitsOfMeasure = false;
+        }
+    }
+
     function buildPayload() {
         return {
             company_id: form.value.company_id,
@@ -270,6 +346,9 @@
             notes: form.value.notes,
             sale_price: normalizePrice(form.value.sale_price),
             cost_price: normalizePrice(form.value.cost_price),
+            stock_quantity: normalizeStockQuantity(form.value.stock_quantity),
+            unit_of_measure_id: form.value.unit_of_measure_id || null,
+            serial_number: normalizeSerialNumber(form.value.serial_number),
             currency: "BRL",
         };
     }
@@ -280,6 +359,24 @@
         }
 
         return Number(value);
+    }
+
+    function normalizeStockQuantity(value) {
+        if( value === null || value === "" ) {
+            return null;
+        }
+
+        return Number(value);
+    }
+
+    function normalizeSerialNumber(value) {
+        if( value === null || value === "" ) {
+            return null;
+        }
+
+        const serial = String(value).trim();
+
+        return serial === "" ? null : serial;
     }
 
     function resolveCompanyId(product, fallback = null) {
@@ -314,6 +411,9 @@
                 notes: resolveNotes(data.product),
                 sale_price: resolvePivotField(data.product, "sale_price"),
                 cost_price: resolvePivotField(data.product, "cost_price"),
+                stock_quantity: resolvePivotField(data.product, "stock_quantity"),
+                unit_of_measure_id: resolvePivotField(data.product, "unit_of_measure_id"),
+                serial_number: resolvePivotField(data.product, "serial_number"),
             };
         } catch (e) {
             const { message } = e?.response?.data || {};
@@ -414,6 +514,10 @@
         categoryManagerRef.value?.openList();
     }
 
+    function openUnitOfMeasureManager() {
+        unitOfMeasureManagerRef.value?.openList();
+    }
+
     async function open(data = {}) {
         if( data.id ) {
             isDialogOpen.value = true;
@@ -421,6 +525,7 @@
             await Promise.all([
                 getBrands(),
                 getCategories(),
+                getUnitsOfMeasure(),
                 loadProduct(data.id),
             ]);
 
@@ -448,6 +553,24 @@
                 form.value.cost_price = initialCostPrice;
             }
 
+            const initialStockQuantity = data.pivot?.stock_quantity ?? data.stock_quantity;
+
+            if( initialStockQuantity != null ) {
+                form.value.stock_quantity = initialStockQuantity;
+            }
+
+            const initialUnitOfMeasureId = data.pivot?.unit_of_measure_id ?? data.unit_of_measure_id;
+
+            if( initialUnitOfMeasureId != null ) {
+                form.value.unit_of_measure_id = initialUnitOfMeasureId;
+            }
+
+            const initialSerialNumber = data.pivot?.serial_number ?? data.serial_number;
+
+            if( initialSerialNumber != null ) {
+                form.value.serial_number = initialSerialNumber;
+            }
+
             return;
         }
 
@@ -462,6 +585,9 @@
             notes: data.notes ?? null,
             sale_price: data.pivot?.sale_price ?? data.sale_price ?? null,
             cost_price: data.pivot?.cost_price ?? data.cost_price ?? null,
+            stock_quantity: data.pivot?.stock_quantity ?? data.stock_quantity ?? null,
+            unit_of_measure_id: data.pivot?.unit_of_measure_id ?? data.unit_of_measure_id ?? null,
+            serial_number: data.pivot?.serial_number ?? data.serial_number ?? null,
         };
 
         isDialogOpen.value = true;
@@ -471,6 +597,7 @@
         await Promise.all([
             getBrands(),
             getCategories(),
+            getUnitsOfMeasure(),
         ]);
     }
 
@@ -487,6 +614,9 @@
             notes: null,
             sale_price: null,
             cost_price: null,
+            stock_quantity: null,
+            unit_of_measure_id: null,
+            serial_number: null,
         };
     }
 

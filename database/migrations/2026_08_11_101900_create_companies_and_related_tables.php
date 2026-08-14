@@ -176,6 +176,7 @@ return new class extends Migration
             $table->decimal("sale_price", 12, 2)->nullable();
             $table->decimal("cost_price", 12, 2)->nullable();
             $table->decimal("stock_quantity", 12, 3)->default(0);
+            $table->string("serial_number")->nullable();
             $table->char("currency", 3)->default("BRL");
 
             $table->text("notes")->nullable();
@@ -183,6 +184,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(["company_id", "product_id"]);
+            $table->unique(["product_id", "serial_number"]);
         });
 
         DB::statement(

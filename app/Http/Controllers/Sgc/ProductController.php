@@ -6,21 +6,21 @@ use App\Helpers\SearchQuery;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sgc\StoreProductRequest;
 use App\Http\Requests\Sgc\UpdateProductRequest;
-use App\Models\SgcBrand;
 use App\Models\SgcCompany;
 use App\Models\SgcProduct;
-use App\Models\SgcProductCategory;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends Controller
 {
     private const PIVOT_FIELDS = [
+        "unit_of_measure_id",
         "notes",
         "sale_price",
         "cost_price",
+        "stock_quantity",
+        "serial_number",
         "currency",
     ];
 
@@ -58,11 +58,34 @@ class ProductController extends Controller
                 "=",
                 "sgc_product_categories.id"
             )
+            ->leftJoin(
+                "sgc_company_product",
+                "sgc_products.id",
+                "=",
+                "sgc_company_product.product_id"
+            )
+            ->leftJoin(
+                "sgc_units_of_measure",
+                "sgc_company_product.unit_of_measure_id",
+                "=",
+                "sgc_units_of_measure.id"
+            )
             ->select([
                 "sgc_products.*",
                 "sgc_brands.name as brand_name",
                 "sgc_product_categories.name as category_name",
+                "sgc_company_product.sale_price",
+                "sgc_company_product.cost_price",
+                "sgc_company_product.stock_quantity",
+                "sgc_company_product.serial_number",
+                "sgc_units_of_measure.abbreviation as unit_of_measure",
             ])
+            ->when($request->filled("company_id"), function ($query) use ($request) {
+                $query->where(
+                    "sgc_company_product.company_id",
+                    $request->integer("company_id")
+                );
+            })
             ->whereHas("companies", function ($query) use ($request) {
                 $query->accessibleBy($request->user());
 
@@ -110,8 +133,6 @@ class ProductController extends Controller
             ])
             ->orderByDesc("sgc_products.id")
             ->paginate($per_page);
-
-        $this->hydrateBrandAndCategory($paginator->getCollection());
 
         return response()->json([
             "current_page" => $paginator->currentPage(),
@@ -218,34 +239,6 @@ class ProductController extends Controller
         return $product->companies()
             ->accessibleBy($user)
             ->exists();
-    }
-
-    private function hydrateBrandAndCategory(Collection $products): void
-    {
-        $products->each(function (SgcProduct $product) {
-            $product->setRelation(
-                "brand",
-                $product->brand_id
-                    ? new SgcBrand([
-                        "id" => $product->brand_id,
-                        "name" => $product->brand_name,
-                    ])
-                    : null
-            );
-
-            $product->setRelation(
-                "category",
-                $product->product_category_id
-                    ? new SgcProductCategory([
-                        "id" => $product->product_category_id,
-                        "name" => $product->category_name,
-                    ])
-                    : null
-            );
-
-            $product->offsetUnset("brand_name");
-            $product->offsetUnset("category_name");
-        });
     }
 
     /**

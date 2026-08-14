@@ -26,6 +26,7 @@ use App\Http\Controllers\Sgc\CustomerAddressController as SgcCustomerAddressCont
 use App\Http\Controllers\Sgc\CustomerController as SgcCustomerController;
 use App\Http\Controllers\Sgc\ProductCategoryController as SgcProductCategoryController;
 use App\Http\Controllers\Sgc\ProductController as SgcProductController;
+use App\Http\Controllers\Sgc\UnitOfMeasureController as SgcUnitOfMeasureController;
 use App\Http\Controllers\Sgc\EmployeeController as SgcEmployeeController;
 use App\Models\Role;
 
@@ -319,6 +320,22 @@ Route::prefix("tools")->group(function() {
         Route::delete("/brands/{sgc_brand}", [
             SgcBrandController::class, "destroy",
         ])->name("api.tools.sgc.brands.destroy");
+
+        Route::get("/units-of-measure", [
+            SgcUnitOfMeasureController::class, "index",
+        ])->name("api.tools.sgc.units-of-measure.index");
+
+        Route::post("/units-of-measure", [
+            SgcUnitOfMeasureController::class, "store",
+        ])->name("api.tools.sgc.units-of-measure.store");
+
+        Route::put("/units-of-measure/{sgc_unit_of_measure}", [
+            SgcUnitOfMeasureController::class, "update",
+        ])->name("api.tools.sgc.units-of-measure.update");
+
+        Route::delete("/units-of-measure/{sgc_unit_of_measure}", [
+            SgcUnitOfMeasureController::class, "destroy",
+        ])->name("api.tools.sgc.units-of-measure.destroy");
 
         Route::get("/product-categories", [
             SgcProductCategoryController::class, "index",
