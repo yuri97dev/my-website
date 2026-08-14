@@ -112,6 +112,18 @@
 
         <template #actions>
             <v-btn
+                v-if="isEditing && isCompanyOwner(company.id)"
+                color="error"
+                variant="tonal"
+                prepend-icon="mdi-delete"
+                :loading="deleting"
+                text="Remover"
+                @click="isConfirmRemoveDialogOpen = true"
+            ></v-btn>
+
+            <v-spacer></v-spacer>
+
+            <v-btn
                 variant="tonal"
                 color="primary"
                 prepend-icon="mdi-content-save"
@@ -121,6 +133,27 @@
             ></v-btn>
         </template>
     </BottomSheet>
+
+    <Dialog
+        overlay-id="sgc-company-confirm-remove"
+        title="Excluir Empresa"
+        max-width="500"
+        v-model="isConfirmRemoveDialogOpen"
+    >
+        A empresa <strong class="text-primary">{{ form.trade_name || form.legal_name || "" }}</strong>
+        será removida permanentemente. Essa ação não pode ser desfeita.
+
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="error"
+                prepend-icon="mdi-delete"
+                :loading="deleting"
+                text="Excluir"
+                @click="handleDelete"
+            ></v-btn>
+        </template>
+    </Dialog>
 </template>
 
 <script setup>
@@ -129,17 +162,23 @@
     import api from "@/api";
 
     import BottomSheet from "@/Components/BottomSheet.vue";
+    import Dialog from "@/Components/Dialog.vue";
     import CompanyAutocomplete from "@/Components/Inputs/CompanyAutocomplete.vue";
     import PostalCodeField from "@/Components/PostalCodeField.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { useSgcAuth } from "@/Composables/useSgcAuth";
 
     const emit = defineEmits([
         "close",
     ]);
 
+    const { isCompanyOwner } = useSgcAuth();
+
     const isDialogOpen = ref(false);
+    const isConfirmRemoveDialogOpen = ref(false);
     const loading = ref(false);
+    const deleting = ref(false);
     const errors = ref({});
 
     const company = ref({});
@@ -222,6 +261,28 @@
         }
     }
 
+    async function handleDelete() {
+        deleting.value = true;
+
+        try {
+            const url = route("api.tools.sgc.companies.destroy", company.value.id);
+
+            await api.delete(url);
+
+            toastSuccess("Ok", "Empresa removida com sucesso");
+
+            isConfirmRemoveDialogOpen.value = false;
+            isDialogOpen.value = false;
+
+            handleClose();
+        } catch (e) {
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao remover empresa");
+        } finally {
+            deleting.value = false;
+        }
+    }
+
     async function handleSave() {
         if( isEditing.value ) {
             await updateCompany();
@@ -262,6 +323,8 @@
     }
 
     function handleClose() {
+        isConfirmRemoveDialogOpen.value = false;
+
         reset();
 
         nextTick(() => {

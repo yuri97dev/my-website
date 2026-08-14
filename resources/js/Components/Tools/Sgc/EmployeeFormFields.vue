@@ -46,13 +46,13 @@
 
         <template #actions>
             <v-btn
-                v-if="isEditing && !isOwner"
+                v-if="isEditing && !isOwner && canManageCompany(form.company_id)"
                 color="error"
                 variant="tonal"
                 prepend-icon="mdi-delete"
                 :loading="deleting"
                 text="Remover"
-                @click="handleDelete"
+                @click="isConfirmRemoveDialogOpen = true"
             ></v-btn>
 
             <v-spacer></v-spacer>
@@ -68,6 +68,27 @@
             ></v-btn>
         </template>
     </BottomSheet>
+
+    <Dialog
+        overlay-id="sgc-employee-confirm-remove"
+        title="Excluir Funcionário"
+        max-width="500"
+        v-model="isConfirmRemoveDialogOpen"
+    >
+        O funcionário <strong class="text-primary">{{ employee.user?.name ?? employee.user?.email ?? "" }}</strong>
+        será removido desta empresa. Essa ação não pode ser desfeita.
+
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="error"
+                prepend-icon="mdi-delete"
+                :loading="deleting"
+                text="Excluir"
+                @click="handleDelete"
+            ></v-btn>
+        </template>
+    </Dialog>
 </template>
 
 <script setup>
@@ -76,9 +97,11 @@
     import api from "@/api";
 
     import BottomSheet from "@/Components/BottomSheet.vue";
+    import Dialog from "@/Components/Dialog.vue";
     import CompanyAutocomplete from "@/Components/Inputs/CompanyAutocomplete.vue";
 
-    import { alertError, toastSuccess, Swal } from "@/Utils/Alert";
+    import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { useSgcAuth } from "@/Composables/useSgcAuth";
 
     const props = defineProps({
         defaultCompanyId: {
@@ -90,6 +113,8 @@
     const emit = defineEmits([
         "close",
     ]);
+
+    const { canManageCompany } = useSgcAuth();
 
     const roleOptions = [
         {
@@ -103,6 +128,7 @@
     ];
 
     const isDialogOpen = ref(false);
+    const isConfirmRemoveDialogOpen = ref(false);
     const loading = ref(false);
     const deleting = ref(false);
     const errors = ref({});
@@ -211,26 +237,18 @@
     }
 
     async function handleDelete() {
-        const { isConfirmed } = await Swal.fire({
-            icon: "warning",
-            title: "Remover funcionário",
-            text: "Deseja remover este funcionário da empresa?",
-            showCancelButton: true,
-            confirmButtonText: "Remover",
-            cancelButtonText: "Cancelar",
-        });
-
-        if( !isConfirmed ) return;
-
         deleting.value = true;
 
         try {
             const url = route("api.tools.sgc.employees.destroy", employee.value.id);
+
             await api.delete(url);
 
             toastSuccess("Ok", "Funcionário removido com sucesso");
 
+            isConfirmRemoveDialogOpen.value = false;
             isDialogOpen.value = false;
+
             handleClose();
         } catch (e) {
             const { message } = e?.response?.data || {};
@@ -286,6 +304,8 @@
     }
 
     function handleClose() {
+        isConfirmRemoveDialogOpen.value = false;
+
         reset();
 
         nextTick(() => {

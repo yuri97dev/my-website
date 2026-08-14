@@ -118,6 +118,18 @@
 
         <template #actions>
             <v-btn
+                v-if="isEditing && canManageCompany(form.company_id)"
+                color="error"
+                variant="tonal"
+                prepend-icon="mdi-delete"
+                :loading="loading.delete"
+                text="Remover"
+                @click="isConfirmRemoveDialogOpen = true"
+            ></v-btn>
+
+            <v-spacer></v-spacer>
+
+            <v-btn
                 variant="tonal"
                 color="primary"
                 prepend-icon="mdi-content-save"
@@ -127,6 +139,27 @@
             ></v-btn>
         </template>
     </BottomSheet>
+
+    <Dialog
+        overlay-id="sgc-product-confirm-remove"
+        title="Excluir Produto"
+        max-width="500"
+        v-model="isConfirmRemoveDialogOpen"
+    >
+        O produto <strong class="text-primary">{{ form.name ?? "" }}</strong>
+        será removido desta empresa. Essa ação não pode ser desfeita.
+
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="error"
+                prepend-icon="mdi-delete"
+                :loading="loading.delete"
+                text="Excluir"
+                @click="handleDelete"
+            ></v-btn>
+        </template>
+    </Dialog>
 
     <BrandManager
         ref="brandManagerRef"
@@ -145,11 +178,13 @@
     import api from "@/api";
 
     import BottomSheet from "@/Components/BottomSheet.vue";
+    import Dialog from "@/Components/Dialog.vue";
     import CompanyAutocomplete from "@/Components/Inputs/CompanyAutocomplete.vue";
     import BrandManager from "@/Components/Tools/Sgc/BrandManager.vue";
     import ProductCategoryManager from "@/Components/Tools/Sgc/ProductCategoryManager.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { useSgcAuth } from "@/Composables/useSgcAuth";
 
     const props = defineProps({
         defaultCompanyId: {
@@ -162,9 +197,13 @@
         "close",
     ]);
 
+    const { canManageCompany } = useSgcAuth();
+
     const isDialogOpen = ref(false);
+    const isConfirmRemoveDialogOpen = ref(false);
     const loading = reactive({
         save: false,
+        delete: false,
         brands: false,
         categories: false,
     });
@@ -333,6 +372,32 @@
         }
     }
 
+    async function handleDelete() {
+        loading.delete = true;
+
+        try {
+            const url = route("api.tools.sgc.products.destroy", product.value.id);
+
+            await api.delete(url, {
+                params: {
+                    company_id: form.value.company_id,
+                },
+            });
+
+            toastSuccess("Ok", "Produto removido com sucesso");
+
+            isConfirmRemoveDialogOpen.value = false;
+            isDialogOpen.value = false;
+
+            handleClose();
+        } catch (e) {
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao remover produto");
+        } finally {
+            loading.delete = false;
+        }
+    }
+
     async function handleSave() {
         if( isEditing.value ) {
             await updateProduct();
@@ -426,6 +491,8 @@
     }
 
     function handleClose() {
+        isConfirmRemoveDialogOpen.value = false;
+
         reset();
 
         nextTick(() => {

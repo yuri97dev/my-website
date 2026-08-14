@@ -91,4 +91,16 @@ class SgcCompany extends Model
 
         return $this->users()->where("users.id", $user->id)->exists();
     }
+
+    public function canBeManagedBy(User $user): bool
+    {
+        if( $this->owner_id === $user->id ) {
+            return true;
+        }
+
+        return $this->users()
+            ->where("users.id", $user->id)
+            ->wherePivot("role", self::ROLE_ADMIN)
+            ->exists();
+    }
 }

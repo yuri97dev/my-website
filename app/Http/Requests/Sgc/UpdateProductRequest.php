@@ -63,7 +63,7 @@ class UpdateProductRequest extends SgcFormRequest
                 $validator->errors()->add("company_id", "Produto não vinculado a esta empresa.");
             }
 
-            if( $this->filled("notes") && !$this->companyCanManageNotes($company_id) ) {
+            if( $this->filled("notes") && !$this->companyCanBeManagedBy($company_id) ) {
                 $validator->errors()->add("notes", "Apenas o proprietário ou administradores da empresa podem alterar observações.");
             }
         });

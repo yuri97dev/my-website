@@ -186,12 +186,27 @@ class ProductController extends Controller
 
     public function destroy(Request $request, SgcProduct $sgc_product)
     {
+        $request->validate([
+            "company_id" => ["required", "integer", "exists:sgc_companies,id"],
+        ]);
+
+        $company = SgcCompany::query()->findOrFail($request->integer("company_id"));
+
         abort_unless(
-            $this->productAccessibleByUser($sgc_product, $request->user()),
+            $company->canBeManagedBy($request->user()),
             Response::HTTP_FORBIDDEN
         );
 
-        $sgc_product->delete();
+        abort_unless(
+            $sgc_product->companies()->where("sgc_companies.id", $company->id)->exists(),
+            Response::HTTP_NOT_FOUND
+        );
+
+        $sgc_product->companies()->detach($company->id);
+
+        if( $sgc_product->companies()->count() === 0 ) {
+            $sgc_product->delete();
+        }
 
         return response()->json([
             "message" => "Produto removido com sucesso.",

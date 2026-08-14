@@ -64,7 +64,7 @@ class StoreEmployeeRequest extends SgcFormRequest
                 return;
             }
 
-            if( !$this->companyCanManageEmployees($company_id) ) {
+            if( !$this->companyCanBeManagedBy($company_id) ) {
                 $validator->errors()->add("company_id", "Apenas o proprietário ou administradores da empresa podem adicionar funcionários.");
 
                 return;

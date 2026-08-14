@@ -34,12 +34,7 @@ abstract class SgcFormRequest extends FormRequest
         return $company->owner_id === $this->user()->id;
     }
 
-    protected function companyCanManageNotes(int $company_id): bool
-    {
-        return $this->companyCanManageEmployees($company_id);
-    }
-
-    protected function companyCanManageEmployees(int $company_id): bool
+    protected function companyCanBeManagedBy(int $company_id): bool
     {
         $company = SgcCompany::query()->find($company_id);
 
@@ -47,13 +42,6 @@ abstract class SgcFormRequest extends FormRequest
             return false;
         }
 
-        if( $company->owner_id === $this->user()->id ) {
-            return true;
-        }
-
-        return $company->users()
-            ->where("users.id", $this->user()->id)
-            ->wherePivot("role", SgcCompany::ROLE_ADMIN)
-            ->exists();
+        return $company->canBeManagedBy($this->user());
     }
 }

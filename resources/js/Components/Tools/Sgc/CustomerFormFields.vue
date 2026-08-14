@@ -66,6 +66,18 @@
         </v-row>
 
         <template #actions>
+            <v-btn
+                v-if="isEditing && canManageCompany(form.company_id)"
+                color="error"
+                variant="tonal"
+                prepend-icon="mdi-delete"
+                :loading="deleting"
+                text="Remover"
+                @click="isConfirmRemoveDialogOpen = true"
+            ></v-btn>
+
+            <v-spacer></v-spacer>
+
             <slot
                 name="action-buttons"
                 :can-manage-addresses="isEditing"
@@ -81,6 +93,27 @@
             ></v-btn>
         </template>
     </BottomSheet>
+
+    <Dialog
+        overlay-id="sgc-customer-confirm-remove"
+        title="Excluir Cliente"
+        max-width="500"
+        v-model="isConfirmRemoveDialogOpen"
+    >
+        O cliente <strong class="text-primary">{{ form.name ?? "" }}</strong>
+        será removido desta empresa. Essa ação não pode ser desfeita.
+
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="error"
+                prepend-icon="mdi-delete"
+                :loading="deleting"
+                text="Excluir"
+                @click="handleDelete"
+            ></v-btn>
+        </template>
+    </Dialog>
 </template>
 
 <script setup>
@@ -89,9 +122,11 @@
     import api from "@/api";
 
     import BottomSheet from "@/Components/BottomSheet.vue";
+    import Dialog from "@/Components/Dialog.vue";
     import CompanyAutocomplete from "@/Components/Inputs/CompanyAutocomplete.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { useSgcAuth } from "@/Composables/useSgcAuth";
 
     const props = defineProps({
         defaultCompanyId: {
@@ -104,8 +139,12 @@
         "close",
     ]);
 
+    const { canManageCompany } = useSgcAuth();
+
     const isDialogOpen = ref(false);
+    const isConfirmRemoveDialogOpen = ref(false);
     const loading = ref(false);
+    const deleting = ref(false);
     const errors = ref({});
 
     const customer = ref({});
@@ -211,6 +250,32 @@
         }
     }
 
+    async function handleDelete() {
+        deleting.value = true;
+
+        try {
+            const url = route("api.tools.sgc.customers.destroy", customer.value.id);
+
+            await api.delete(url, {
+                params: {
+                    company_id: form.value.company_id,
+                },
+            });
+
+            toastSuccess("Ok", "Cliente removido com sucesso");
+
+            isConfirmRemoveDialogOpen.value = false;
+            isDialogOpen.value = false;
+
+            handleClose();
+        } catch (e) {
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao remover cliente");
+        } finally {
+            deleting.value = false;
+        }
+    }
+
     async function handleSave() {
         if( isEditing.value ) {
             await updateCustomer();
@@ -271,6 +336,8 @@
     }
 
     function handleClose() {
+        isConfirmRemoveDialogOpen.value = false;
+
         reset();
 
         nextTick(() => {

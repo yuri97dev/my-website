@@ -161,12 +161,27 @@ class CustomerController extends Controller
 
     public function destroy(Request $request, SgcCustomer $sgc_customer)
     {
+        $request->validate([
+            "company_id" => ["required", "integer", "exists:sgc_companies,id"],
+        ]);
+
+        $company = SgcCompany::query()->findOrFail($request->integer("company_id"));
+
         abort_unless(
-            $sgc_customer->isAccessibleBy($request->user()),
+            $company->canBeManagedBy($request->user()),
             Response::HTTP_FORBIDDEN
         );
 
-        $sgc_customer->delete();
+        abort_unless(
+            $sgc_customer->companies()->where("sgc_companies.id", $company->id)->exists(),
+            Response::HTTP_NOT_FOUND
+        );
+
+        $sgc_customer->companies()->detach($company->id);
+
+        if( $sgc_customer->companies()->count() === 0 ) {
+            $sgc_customer->delete();
+        }
 
         return response()->json([
             "message" => "Cliente removido com sucesso.",

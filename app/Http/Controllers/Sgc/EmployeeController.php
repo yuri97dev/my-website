@@ -147,27 +147,14 @@ class EmployeeController extends Controller
 
     public function destroy(Request $request, SgcCompanyUser $sgc_company_user)
     {
-        abort_unless(
-            $sgc_company_user->company?->isAccessibleBy($request->user()),
-            Response::HTTP_FORBIDDEN
-        );
-
         abort_if(
             $sgc_company_user->isOwner(),
             Response::HTTP_FORBIDDEN,
             "O proprietário da empresa não pode ser removido."
         );
 
-        $company = $sgc_company_user->company;
-
         abort_unless(
-            $company && (
-                $company->owner_id === $request->user()->id
-                || $company->users()
-                    ->where("users.id", $request->user()->id)
-                    ->wherePivot("role", SgcCompany::ROLE_ADMIN)
-                    ->exists()
-            ),
+            $sgc_company_user->company?->canBeManagedBy($request->user()),
             Response::HTTP_FORBIDDEN
         );
 
