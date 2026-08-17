@@ -19,6 +19,7 @@
         "@vitejs/plugin-vue": "^6.0.7",
         "axios": "^1.17.0",
         "date-fns": "^4.4.0",
+        "decimal.js": "^10.6.0",
         "emmet-monaco-es": "^5.7.0",
         "monaco-editor": "^0.55.1",
         "splitpanes": "^4.1.2",
