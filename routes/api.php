@@ -29,6 +29,7 @@ use App\Http\Controllers\Sgc\ProductController as SgcProductController;
 use App\Http\Controllers\Sgc\UnitOfMeasureController as SgcUnitOfMeasureController;
 use App\Http\Controllers\Sgc\EmployeeController as SgcEmployeeController;
 use App\Http\Controllers\Sgc\OrderController as SgcOrderController;
+use App\Http\Controllers\Sgc\PaymentMethodController as SgcPaymentMethodController;
 use App\Models\Role;
 
 Route::prefix("auth")->group(function() {
@@ -393,6 +394,10 @@ Route::prefix("tools")->group(function() {
         Route::delete("/employees/{sgc_company_user}", [
             SgcEmployeeController::class, "destroy",
         ])->name("api.tools.sgc.employees.destroy");
+
+        Route::get("/payment-methods", [
+            SgcPaymentMethodController::class, "index",
+        ])->name("api.tools.sgc.payment-methods.index");
 
         Route::get("/orders", [
             SgcOrderController::class, "index",

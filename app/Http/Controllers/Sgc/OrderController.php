@@ -125,6 +125,7 @@ class OrderController extends Controller
                 "customer_id" => $validated["customer_id"] ?? null,
                 "created_by_id" => $request->user()->id,
                 "customer_address_id" => $validated["customer_address_id"] ?? null,
+                "payment_method_id" => $validated["payment_method_id"] ?? null,
                 "uuid" => (string) Str::uuid(),
                 "status" => $validated["status"] ?? SgcOrder::STATUS_DRAFT,
                 "discount_amount" => $validated["discount_amount"] ?? 0,
@@ -135,6 +136,8 @@ class OrderController extends Controller
             ]);
 
             $order->items()->createMany($this->itemsPayload($items));
+
+            $this->syncInstallments($order, $validated);
 
             return $order;
         });
@@ -169,6 +172,7 @@ class OrderController extends Controller
             $sgc_order->update([
                 "customer_id" => $validated["customer_id"] ?? null,
                 "customer_address_id" => $validated["customer_address_id"] ?? null,
+                "payment_method_id" => $validated["payment_method_id"] ?? null,
                 "status" => $validated["status"] ?? $sgc_order->status,
                 "discount_amount" => $validated["discount_amount"] ?? 0,
                 "total" => $this->calculateTotal($items, $validated["discount_amount"] ?? 0),
@@ -179,6 +183,8 @@ class OrderController extends Controller
 
             $sgc_order->items()->delete();
             $sgc_order->items()->createMany($this->itemsPayload($items));
+
+            $this->syncInstallments($sgc_order, $validated);
         });
 
         $this->loadOrder($sgc_order);
@@ -216,8 +222,10 @@ class OrderController extends Controller
             "customer:id,name,nickname",
             "customerAddress",
             "createdBy:id,name,email",
+            "paymentMethod:id,slug,name,surcharge_percentage",
             "items.product:id,name",
             "items.unitOfMeasure:id,name,abbreviation",
+            "installments",
         ]);
     }
 
@@ -272,5 +280,37 @@ class OrderController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function syncInstallments(SgcOrder $order, array $validated): void
+    {
+        $order->installments()->delete();
+
+        $count = (int) ($validated["installments_count"] ?? 1);
+
+        if( $count < 1 ) {
+            return;
+        }
+
+        $total = (float) $order->total;
+        $base_amount = floor(($total / $count) * 100) / 100;
+        $remaining = $total;
+
+        for( $i = 1; $i <= $count; $i++ ) {
+            $amount = $i === $count
+                ? round($remaining, 2)
+                : $base_amount;
+
+            $remaining -= $amount;
+
+            $order->installments()->create([
+                "installment_number" => $i,
+                "due_date" => now()->addMonths($i)->toDateString(),
+                "amount" => $amount,
+            ]);
+        }
     }
 }

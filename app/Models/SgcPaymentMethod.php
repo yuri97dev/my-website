@@ -15,6 +15,13 @@ class SgcPaymentMethod extends Model
 
     public const CREDIT_CARD = "credit_card";
 
+    public const STORE_CREDIT = "store_credit";
+
+    public const INSTALLMENT_SLUGS = [
+        self::CREDIT_CARD,
+        self::STORE_CREDIT,
+    ];
+
     protected $fillable = [
         "slug",
         "name",
@@ -26,6 +33,15 @@ class SgcPaymentMethod extends Model
         return [
             "surcharge_percentage" => "decimal:2",
         ];
+    }
+
+    protected $appends = [
+        "supports_installments",
+    ];
+
+    public function getSupportsInstallmentsAttribute(): bool
+    {
+        return in_array($this->slug, self::INSTALLMENT_SLUGS, true);
     }
 
     public function orders(): HasMany

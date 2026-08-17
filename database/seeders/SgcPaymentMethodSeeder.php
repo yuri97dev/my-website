@@ -32,6 +32,10 @@ class SgcPaymentMethodSeeder extends Seeder
                 "slug" => SgcPaymentMethod::CREDIT_CARD,
                 "name" => "Cartão de crédito",
             ],
+            [
+                "slug" => SgcPaymentMethod::STORE_CREDIT,
+                "name" => "Crediário",
+            ],
         ];
 
         foreach ($payment_methods as $payment_method) {
