@@ -76,6 +76,11 @@ class SgcCompany extends Model
             ->withTimestamps();
     }
 
+    public function orders(): HasMany
+    {
+        return $this->hasMany(SgcOrder::class, "company_id");
+    }
+
     public function scopeAccessibleBy(Builder $query, User $user): Builder
     {
         return $query->where(function (Builder $query) use ($user) {

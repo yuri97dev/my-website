@@ -28,6 +28,7 @@ use App\Http\Controllers\Sgc\ProductCategoryController as SgcProductCategoryCont
 use App\Http\Controllers\Sgc\ProductController as SgcProductController;
 use App\Http\Controllers\Sgc\UnitOfMeasureController as SgcUnitOfMeasureController;
 use App\Http\Controllers\Sgc\EmployeeController as SgcEmployeeController;
+use App\Http\Controllers\Sgc\OrderController as SgcOrderController;
 use App\Models\Role;
 
 Route::prefix("auth")->group(function() {
@@ -392,6 +393,26 @@ Route::prefix("tools")->group(function() {
         Route::delete("/employees/{sgc_company_user}", [
             SgcEmployeeController::class, "destroy",
         ])->name("api.tools.sgc.employees.destroy");
+
+        Route::get("/orders", [
+            SgcOrderController::class, "index",
+        ])->name("api.tools.sgc.orders.index");
+
+        Route::post("/orders", [
+            SgcOrderController::class, "store",
+        ])->name("api.tools.sgc.orders.store");
+
+        Route::get("/orders/{sgc_order}", [
+            SgcOrderController::class, "show",
+        ])->name("api.tools.sgc.orders.show");
+
+        Route::put("/orders/{sgc_order}", [
+            SgcOrderController::class, "update",
+        ])->name("api.tools.sgc.orders.update");
+
+        Route::delete("/orders/{sgc_order}", [
+            SgcOrderController::class, "destroy",
+        ])->name("api.tools.sgc.orders.destroy");
     });
 });
 

@@ -9,8 +9,8 @@ return [
     ],
     "tools.sgc" => [
         "title" => "SGC",
-        "description" => "Sistema de gestão comercial para empresas, clientes e produtos.",
+        "description" => "Painel de gestão comercial para sua empresa. Cadastre clientes, produtos e pedidos, com controle por filial e equipe.",
         "og_title" => "SGC",
-        "og_description" => "Sistema de gestão comercial para empresas, clientes e produtos.",
+        "og_description" => "Centralize clientes, catálogo de produtos e pedidos da sua operação comercial. Ferramenta pensada para equipes que organizam vendas e cadastros por empresa.",
     ],
 ];

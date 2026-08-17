@@ -38,6 +38,11 @@ class SgcCustomer extends Model
             ->withTimestamps();
     }
 
+    public function orders(): HasMany
+    {
+        return $this->hasMany(SgcOrder::class, "customer_id");
+    }
+
     public function isAccessibleBy(User $user): bool
     {
         return $this->companies()

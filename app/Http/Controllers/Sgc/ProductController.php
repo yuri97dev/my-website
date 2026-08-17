@@ -78,6 +78,7 @@ class ProductController extends Controller
                 "sgc_company_product.cost_price",
                 "sgc_company_product.stock_quantity",
                 "sgc_company_product.serial_number",
+                "sgc_company_product.unit_of_measure_id",
                 "sgc_units_of_measure.abbreviation as unit_of_measure",
             ])
             ->when($request->filled("company_id"), function ($query) use ($request) {
