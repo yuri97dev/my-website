@@ -28,6 +28,7 @@ class SgcOrder extends Model
         "customer_id",
         "created_by_id",
         "customer_address_id",
+        "payment_method_id",
         "uuid",
         "status",
         "discount_amount",
@@ -66,9 +67,19 @@ class SgcOrder extends Model
         return $this->belongsTo(SgcCustomerAddress::class, "customer_address_id");
     }
 
+    public function paymentMethod(): BelongsTo
+    {
+        return $this->belongsTo(SgcPaymentMethod::class, "payment_method_id");
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(SgcOrderItem::class, "order_id");
+    }
+
+    public function installments(): HasMany
+    {
+        return $this->hasMany(SgcOrderInstallment::class, "order_id");
     }
 
     public function isAccessibleBy(User $user): bool

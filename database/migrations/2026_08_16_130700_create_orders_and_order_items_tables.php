@@ -11,6 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::create("sgc_payment_methods", function (Blueprint $table) {
+            $table->id();
+
+            $table->string("slug")->unique();
+            $table->string("name")->unique();
+            $table->decimal("surcharge_percentage", 5, 2)->default(0);
+
+            $table->timestamps();
+        });
+
         Schema::create("sgc_orders", function (Blueprint $table) {
             $table->id();
 
@@ -32,6 +42,11 @@ return new class extends Migration
             $table->foreignId("customer_address_id")
                 ->nullable()
                 ->constrained("sgc_customer_addresses")
+                ->nullOnDelete();
+
+            $table->foreignId("payment_method_id")
+                ->nullable()
+                ->constrained("sgc_payment_methods")
                 ->nullOnDelete();
 
             $table->uuid("uuid")->unique();
@@ -71,6 +86,23 @@ return new class extends Migration
 
             $table->timestamps();
         });
+
+        Schema::create("sgc_order_installments", function (Blueprint $table) {
+            $table->id();
+
+            $table->foreignId("order_id")
+                ->constrained("sgc_orders")
+                ->cascadeOnDelete();
+
+            $table->unsignedSmallInteger("installment_number");
+            $table->date("due_date")->nullable();
+            $table->decimal("amount", 12, 2);
+            $table->timestamp("paid_at")->nullable();
+
+            $table->timestamps();
+
+            $table->unique(["order_id", "installment_number"]);
+        });
     }
 
     /**
@@ -78,6 +110,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists("sgc_order_installments");
+        Schema::dropIfExists("sgc_payment_methods");
         Schema::dropIfExists("sgc_order_items");
         Schema::dropIfExists("sgc_orders");
     }

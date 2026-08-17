@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             SystemAdminUserSeeder::class,
             ScrapeHttpProfileSeeder::class,
+            SgcPaymentMethodSeeder::class,
         ]);
     }
 }
