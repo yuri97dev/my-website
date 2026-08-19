@@ -1,32 +1,36 @@
 <template>
-    <v-list density="compact" class="pa-0">
-        <v-list-item title="Empresa" :subtitle="companyName"></v-list-item>
-        <v-list-item title="Cliente" :subtitle="customerName"></v-list-item>
-        <v-list-item title="Pagamento" :subtitle="paymentName"></v-list-item>
+    <v-list lines="two">
+        <v-list-item
+            prepend-icon="mdi-domain"
+            title="Empresa"
+            :subtitle="companyName"
+        ></v-list-item>
 
-        <template v-if="showInstallments">
-            <v-list-item
-                title="Parcelas"
-                :subtitle="`${installmentsCount}x`"
-            ></v-list-item>
+        <v-list-item
+            prepend-icon="mdi-account-outline"
+            title="Cliente"
+            :subtitle="customerName"
+        ></v-list-item>
 
-            <v-list-item
-                v-for="installment in installments"
-                :key="`summary-installment-${installment.installment_number}`"
-                :title="`${installment.installment_number}ª parcela`"
-                :subtitle="formatDueDate(installment.due_date)"
-            >
-                <template #append>
-                    <span>R$ {{ formatMoney(installment.amount) }}</span>
-                </template>
-            </v-list-item>
-        </template>
+        <v-list-item
+            prepend-icon="mdi-credit-card-outline"
+            title="Pagamento"
+            :subtitle="paymentName"
+        ></v-list-item>
+
+        <v-list-item
+            v-if="showInstallments"
+            prepend-icon="mdi-calendar-multiple"
+            title="Parcelas"
+            :subtitle="`${installmentsCount}x`"
+        ></v-list-item>
 
         <v-divider class="my-2"></v-divider>
 
         <v-list-item
             v-for="item in cartItems"
             :key="`summary-${item.product_id}`"
+            prepend-icon="mdi-package-variant"
             :title="item.name"
             :subtitle="itemSummary(item)"
         >
@@ -37,43 +41,42 @@
 
         <v-divider class="my-2"></v-divider>
 
-        <v-list-item title="Total dos itens">
-            <template #append>
-                <span>R$ {{ formatMoney(subtotal) }}</span>
-            </template>
-        </v-list-item>
-
         <v-list-item
             v-if="orderDiscountAmount > 0"
-            title="Desconto do pedido"
+            prepend-icon="mdi-sale-outline"
+            title="Desconto"
         >
             <template #append>
                 <span>- R$ {{ formatMoney(orderDiscountAmount) }}</span>
             </template>
         </v-list-item>
 
-        <v-list-item title="Total do pedido" class="font-weight-bold">
+        <v-list-item
+            prepend-icon="mdi-receipt-text-outline"
+            title="Total do pedido"
+            class="font-weight-bold"
+        >
             <template #append>
                 <span class="text-primary text-h6">
                     R$ {{ formatMoney(orderTotal) }}
                 </span>
             </template>
         </v-list-item>
-
-        <v-col cols="12" class="px-0 pt-2">
-            <v-textarea
-                label="Observações"
-                rows="2"
-                auto-grow
-                :error-messages="errors.notes"
-                v-model="notes"
-            ></v-textarea>
-        </v-col>
     </v-list>
+
+    <v-textarea
+        class="mt-2"
+        label="Observações"
+        rows="2"
+        auto-grow
+        prepend-inner-icon="mdi-note-text-outline"
+        :error-messages="errors.notes"
+        v-model="notes"
+    ></v-textarea>
 </template>
 
 <script setup>
-    import { formatDate, formatNumber } from "@/Utils/Common";
+    import { formatNumber } from "@/Utils/Common";
     import { formatMoney, lineItemTotal, toMoney } from "@/Utils/Money";
 
     defineProps({
@@ -93,10 +96,6 @@
             type: Array,
             default: () => [],
         },
-        subtotal: {
-            type: Number,
-            default: 0,
-        },
         orderTotal: {
             type: Number,
             default: 0,
@@ -104,10 +103,6 @@
         orderDiscountAmount: {
             type: Number,
             default: 0,
-        },
-        installments: {
-            type: Array,
-            default: () => [],
         },
         installmentsCount: {
             type: Number,
@@ -143,11 +138,5 @@
         }
 
         return parts.join(" · ");
-    }
-
-    function formatDueDate(value) {
-        if( !value ) return "Sem vencimento";
-
-        return formatDate(value, "dd/MM/yyyy");
     }
 </script>
