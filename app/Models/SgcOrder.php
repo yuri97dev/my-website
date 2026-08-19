@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SgcOrder extends Model
@@ -80,6 +81,11 @@ class SgcOrder extends Model
     public function installments(): HasMany
     {
         return $this->hasMany(SgcOrderInstallment::class, "order_id");
+    }
+
+    public function stockMovements(): MorphMany
+    {
+        return $this->morphMany(SgcCompanyProductStockMovement::class, "reference");
     }
 
     public function isAccessibleBy(User $user): bool

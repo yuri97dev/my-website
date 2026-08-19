@@ -45,6 +45,16 @@ class SgcProduct extends Model
             ->withTimestamps();
     }
 
+    public function companyProducts(): HasMany
+    {
+        return $this->hasMany(SgcCompanyProduct::class, "product_id");
+    }
+
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(SgcCompanyProductStockMovement::class, "product_id");
+    }
+
     public function orderItems(): HasMany
     {
         return $this->hasMany(SgcOrderItem::class, "product_id");

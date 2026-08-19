@@ -81,6 +81,16 @@ class SgcCompany extends Model
         return $this->hasMany(SgcOrder::class, "company_id");
     }
 
+    public function companyProducts(): HasMany
+    {
+        return $this->hasMany(SgcCompanyProduct::class, "company_id");
+    }
+
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(SgcCompanyProductStockMovement::class, "company_id");
+    }
+
     public function scopeAccessibleBy(Builder $query, User $user): Builder
     {
         return $query->where(function (Builder $query) use ($user) {

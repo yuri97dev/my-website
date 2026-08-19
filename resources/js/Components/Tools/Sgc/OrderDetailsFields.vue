@@ -197,7 +197,7 @@
                 prepend-icon="mdi-cancel"
                 :loading="cancelling"
                 text="Cancelar pedido"
-                @click="isConfirmCancelDialogOpen = true"
+                @click="openCancelDialog"
             ></v-btn>
         </template>
     </BottomSheet>
@@ -211,6 +211,15 @@
         O pedido <strong class="text-primary">#{{ order.id ?? "" }}</strong>
         será cancelado. As baixas das parcelas serão zeradas, como se o valor
         tivesse sido devolvido ao cliente.
+
+        <v-textarea
+            class="mt-4"
+            label="Motivo do cancelamento"
+            rows="2"
+            auto-grow
+            :error-messages="cancelErrors.stock_movement_reason"
+            v-model="cancelReason"
+        ></v-textarea>
 
         <template #actions>
             <v-btn
@@ -328,6 +337,8 @@
     const paying = ref(false);
     const payAmount = ref(0);
     const payErrors = ref({});
+    const cancelReason = ref("");
+    const cancelErrors = ref({});
     const order = ref({});
     const selectedInstallment = ref(null);
 
@@ -569,23 +580,43 @@
     }
 
     async function handleCancel() {
+        if( !String(cancelReason.value || "").trim() ) {
+            cancelErrors.value = {
+                stock_movement_reason: "Informe o motivo do cancelamento.",
+            };
+
+            return;
+        }
+
         cancelling.value = true;
+        cancelErrors.value = {};
 
         try {
             const url = route("api.tools.sgc.orders.cancel", order.value.id);
-            const { data } = await api.post(url);
+
+            const { data } = await api.post(url, {
+                stock_movement_reason: cancelReason.value,
+            });
 
             order.value = data.order;
             isConfirmCancelDialogOpen.value = false;
+            cancelReason.value = "";
 
             toastSuccess("Ok", "Pedido cancelado com sucesso");
             emit("updated");
         } catch (e) {
-            const { message } = e?.response?.data || {};
+            const { message, errors } = e?.response?.data || {};
+            cancelErrors.value = errors || {};
             alertError("Ooops", message || "Erro ao cancelar pedido");
         } finally {
             cancelling.value = false;
         }
+    }
+
+    function openCancelDialog() {
+        cancelReason.value = "";
+        cancelErrors.value = {};
+        isConfirmCancelDialogOpen.value = true;
     }
 
     async function open(data = {}) {
@@ -609,6 +640,8 @@
         selectedInstallment.value = null;
         payAmount.value = 0;
         payErrors.value = {};
+        cancelReason.value = "";
+        cancelErrors.value = {};
         isConfirmCancelDialogOpen.value = false;
         isPayDialogOpen.value = false;
     }

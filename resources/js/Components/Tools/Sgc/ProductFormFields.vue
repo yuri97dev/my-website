@@ -178,10 +178,18 @@
                 prepend-icon="mdi-delete"
                 :loading="loading.delete"
                 text="Remover"
-                @click="isConfirmRemoveDialogOpen = true"
+                @click="openDeleteDialog"
             ></v-btn>
 
             <v-spacer></v-spacer>
+
+            <v-btn
+                v-if="isEditing"
+                variant="tonal"
+                prepend-icon="mdi-history"
+                text="Movimentações"
+                @click="openStockMovements"
+            ></v-btn>
 
             <v-btn
                 variant="tonal"
@@ -203,6 +211,15 @@
         O produto <strong class="text-primary">{{ form.name ?? "" }}</strong>
         será removido desta empresa. Essa ação não pode ser desfeita.
 
+        <v-textarea
+            class="mt-4"
+            label="Motivo da exclusão"
+            rows="2"
+            auto-grow
+            :error-messages="errors.stock_movement_reason"
+            v-model="deleteReason"
+        ></v-textarea>
+
         <template #actions>
             <v-btn
                 variant="tonal"
@@ -211,6 +228,39 @@
                 :loading="loading.delete"
                 text="Excluir"
                 @click="handleDelete"
+            ></v-btn>
+        </template>
+    </Dialog>
+
+    <Dialog
+        overlay-id="sgc-product-stock-reason"
+        title="Alteração de estoque"
+        max-width="500"
+        v-model="isStockReasonDialogOpen"
+    >
+        A quantidade em estoque será alterada de
+        <strong class="text-primary">{{ originalStockQuantity }}</strong>
+        para
+        <strong class="text-primary">{{ normalizeStockQuantity(form.stock_quantity) }}</strong>.
+        Informe o motivo dessa alteração.
+
+        <v-textarea
+            class="mt-4"
+            label="Motivo da alteração"
+            rows="2"
+            auto-grow
+            :error-messages="errors.stock_movement_reason"
+            v-model="stockMovementReason"
+        ></v-textarea>
+
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="primary"
+                prepend-icon="mdi-content-save"
+                :loading="loading.save"
+                text="Confirmar e salvar"
+                @click="confirmStockReasonAndSave"
             ></v-btn>
         </template>
     </Dialog>
@@ -229,6 +279,10 @@
         ref="unitOfMeasureManagerRef"
         @update="getUnitsOfMeasure"
     />
+
+    <ProductStockMovementList
+        ref="stockMovementListRef"
+    />
 </template>
 
 <script setup>
@@ -242,6 +296,7 @@
     import ProductCombobox from "@/Components/Inputs/ProductCombobox.vue";
     import BrandManager from "@/Components/Tools/Sgc/BrandManager.vue";
     import ProductCategoryManager from "@/Components/Tools/Sgc/ProductCategoryManager.vue";
+    import ProductStockMovementList from "@/Components/Tools/Sgc/ProductStockMovementList.vue";
     import UnitOfMeasureManager from "@/Components/Tools/Sgc/UnitOfMeasureManager.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
@@ -263,6 +318,10 @@
 
     const isDialogOpen = ref(false);
     const isConfirmRemoveDialogOpen = ref(false);
+    const isStockReasonDialogOpen = ref(false);
+    const originalStockQuantity = ref(0);
+    const stockMovementReason = ref("");
+    const deleteReason = ref("");
     const loading = reactive({
         save: false,
         delete: false,
@@ -282,6 +341,7 @@
     const brandManagerRef = ref(null);
     const categoryManagerRef = ref(null);
     const unitOfMeasureManagerRef = ref(null);
+    const stockMovementListRef = ref(null);
 
     const isEditing = computed(() => !!product.value.id);
 
@@ -371,6 +431,9 @@
             unit_of_measure_id: form.value.unit_of_measure_id || null,
             serial_number: normalizeSerialNumber(form.value.serial_number),
             currency: "BRL",
+            ...(isEditing.value && hasStockQuantityChanged()
+                ? { stock_movement_reason: stockMovementReason.value || null }
+                : {}),
         };
     }
 
@@ -380,6 +443,11 @@
         }
 
         return Number(value);
+    }
+
+    function hasStockQuantityChanged() {
+        return Number(normalizeStockQuantity(form.value.stock_quantity)).toFixed(3)
+            !== Number(originalStockQuantity.value).toFixed(3);
     }
 
     function normalizeSerialNumber(value) {
@@ -429,6 +497,8 @@
                 unit_of_measure_id: resolvePivotField(data.product, "unit_of_measure_id"),
                 serial_number: resolvePivotField(data.product, "serial_number"),
             };
+
+            originalStockQuantity.value = normalizeStockQuantity(form.value.stock_quantity);
         } catch (e) {
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao buscar produto");
@@ -442,8 +512,9 @@
         loading.save = true;
 
         try {
+            const payload = buildPayload();
             const url = route("api.tools.sgc.products.update", product.value.id);
-            const { data } = await api.put(url, buildPayload());
+            const { data } = await api.put(url, payload);
 
             toastSuccess("Ok", "Produto atualizado com sucesso");
 
@@ -451,7 +522,12 @@
             form.value = {
                 ...form.value,
                 ...data.product,
+                stock_quantity: payload.stock_quantity,
             };
+
+            originalStockQuantity.value = payload.stock_quantity;
+            stockMovementReason.value = "";
+            isStockReasonDialogOpen.value = false;
         } catch (e) {
             const { message, errors: responseErrors } = e?.response?.data || {};
             errors.value = responseErrors || {};
@@ -496,6 +572,7 @@
                 params: {
                     company_id: form.value.company_id,
                     company_product_id: form.value.company_product_id || undefined,
+                    stock_movement_reason: deleteReason.value || undefined,
                 },
             });
 
@@ -506,7 +583,8 @@
 
             handleClose();
         } catch (e) {
-            const { message } = e?.response?.data || {};
+            const { message, errors: responseErrors } = e?.response?.data || {};
+            errors.value = responseErrors || {};
             alertError("Ooops", message || "Erro ao remover produto");
         } finally {
             loading.delete = false;
@@ -514,11 +592,53 @@
     }
 
     async function handleSave() {
+        if( isEditing.value && hasStockQuantityChanged() ) {
+            errors.value = {
+                ...errors.value,
+                stock_movement_reason: undefined,
+            };
+            isStockReasonDialogOpen.value = true;
+            return;
+        }
+
+        await persistProduct();
+    }
+
+    async function confirmStockReasonAndSave() {
+        if( !String(stockMovementReason.value || "").trim() ) {
+            errors.value = {
+                ...errors.value,
+                stock_movement_reason: "Informe o motivo da alteração de estoque.",
+            };
+            return;
+        }
+
+        await persistProduct();
+    }
+
+    async function persistProduct() {
         if( isEditing.value ) {
             await updateProduct();
         } else {
             await createProduct();
         }
+    }
+
+    function openDeleteDialog() {
+        deleteReason.value = "";
+        errors.value = {
+            ...errors.value,
+            stock_movement_reason: undefined,
+        };
+        isConfirmRemoveDialogOpen.value = true;
+    }
+
+    function openStockMovements() {
+        stockMovementListRef.value?.open({
+            productId: product.value.id,
+            companyId: form.value.company_id,
+            companyProductId: form.value.company_product_id,
+        });
     }
 
     function openBrandManager() {
@@ -578,6 +698,7 @@
 
             if( initialStockQuantity != null ) {
                 form.value.stock_quantity = initialStockQuantity;
+                originalStockQuantity.value = normalizeStockQuantity(initialStockQuantity);
             }
 
             const initialUnitOfMeasureId = data.pivot?.unit_of_measure_id ?? data.unit_of_measure_id;
@@ -629,6 +750,10 @@
     function reset() {
         errors.value = {};
         product.value = {};
+        originalStockQuantity.value = 0;
+        stockMovementReason.value = "";
+        deleteReason.value = "";
+        isStockReasonDialogOpen.value = false;
 
         form.value = {
             company_id: props.defaultCompanyId,

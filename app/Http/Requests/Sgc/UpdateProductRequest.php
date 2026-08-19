@@ -80,6 +80,7 @@ class UpdateProductRequest extends SgcFormRequest
             "sale_price" => ["nullable", "numeric", "min:0", "decimal:0,2"],
             "cost_price" => ["nullable", "numeric", "min:0", "decimal:0,2"],
             "stock_quantity" => ["sometimes", "required", "numeric", "min:0", "decimal:0,3"],
+            "stock_movement_reason" => ["nullable", "string", "min:3", "max:500"],
             "unit_of_measure_id" => [
                 "nullable",
                 "integer",
@@ -117,7 +118,47 @@ class UpdateProductRequest extends SgcFormRequest
             if( $this->filled("notes") && !$this->companyCanBeManagedBy($company_id) ) {
                 $validator->errors()->add("notes", "Apenas o proprietário ou administradores da empresa podem alterar observações.");
             }
+
+            $this->validateStockMovementReason($validator, $company_id);
         });
+    }
+
+    private function validateStockMovementReason(Validator $validator, int $company_id): void
+    {
+        if( !$this->has("stock_quantity") ) {
+            return;
+        }
+
+        $product = $this->route("sgc_product");
+
+        if( !$product ) {
+            return;
+        }
+
+        $pivot_query = DB::table("sgc_company_product")
+            ->where("company_id", $company_id)
+            ->where("product_id", $product->id);
+
+        if( $this->filled("company_product_id") ) {
+            $pivot_query->where("id", $this->integer("company_product_id"));
+        }
+
+        $current_quantity = $pivot_query->value("stock_quantity");
+
+        if( $current_quantity === null ) {
+            return;
+        }
+
+        if( round((float) $current_quantity, 3) === round((float) $this->input("stock_quantity"), 3) ) {
+            return;
+        }
+
+        if( !$this->filled("stock_movement_reason") ) {
+            $validator->errors()->add(
+                "stock_movement_reason",
+                "Informe o motivo da alteração de estoque."
+            );
+        }
     }
 
     public function messages(): array
@@ -145,6 +186,9 @@ class UpdateProductRequest extends SgcFormRequest
             "stock_quantity.numeric" => "A quantidade em estoque deve ser um número válido.",
             "stock_quantity.min" => "A quantidade em estoque não pode ser negativa.",
             "stock_quantity.decimal" => "A quantidade em estoque deve ter no máximo 3 casas decimais.",
+            "stock_movement_reason.string" => "O motivo da alteração de estoque deve ser um texto válido.",
+            "stock_movement_reason.min" => "O motivo da alteração de estoque deve ter pelo menos 3 caracteres.",
+            "stock_movement_reason.max" => "O motivo da alteração de estoque não pode ter mais de 500 caracteres.",
             "unit_of_measure_id.integer" => "A unidade de medida deve ser um número inteiro.",
             "unit_of_measure_id.exists" => "A unidade de medida selecionada é inválida.",
             "serial_number.string" => "O número de série deve ser um texto válido.",
