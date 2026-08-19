@@ -10,6 +10,7 @@ use App\Models\SgcCompany;
 use App\Models\SgcProduct;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends Controller
@@ -74,6 +75,7 @@ class ProductController extends Controller
                 "sgc_products.*",
                 "sgc_brands.name as brand_name",
                 "sgc_product_categories.name as category_name",
+                "sgc_company_product.id as company_product_id",
                 "sgc_company_product.sale_price",
                 "sgc_company_product.cost_price",
                 "sgc_company_product.stock_quantity",
@@ -149,10 +151,15 @@ class ProductController extends Controller
         $validated = $request->validated();
         $company_id = $validated["company_id"];
 
-        $product = SgcProduct::create(collect($validated)->except([
-            "company_id",
-            ...self::PIVOT_FIELDS,
-        ])->all());
+        if( !empty($validated["product_id"]) ) {
+            $product = SgcProduct::query()->findOrFail($validated["product_id"]);
+        } else {
+            $product = SgcProduct::create(collect($validated)->except([
+                "company_id",
+                "product_id",
+                ...self::PIVOT_FIELDS,
+            ])->all());
+        }
 
         $product->companies()->attach($company_id, $this->pivotPayload($validated));
 
@@ -190,13 +197,28 @@ class ProductController extends Controller
 
         $sgc_product->update(collect($validated)->except([
             "company_id",
+            "company_product_id",
+            "product_id",
             ...self::PIVOT_FIELDS,
         ])->all());
 
         $pivot_data = $this->pivotPayload($validated);
 
         if( !empty($pivot_data) ) {
-            $sgc_product->companies()->updateExistingPivot($company_id, $pivot_data);
+            $pivot = DB::table("sgc_company_product")
+                ->where("product_id", $sgc_product->id)
+                ->where("company_id", $company_id)
+                ->when(
+                    !empty($validated["company_product_id"]),
+                    fn ($query) => $query->where("id", $validated["company_product_id"])
+                )
+                ->first();
+
+            abort_unless($pivot, Response::HTTP_NOT_FOUND);
+
+            DB::table("sgc_company_product")
+                ->where("id", $pivot->id)
+                ->update($pivot_data);
         }
 
         $sgc_product->load(["brand", "category"]);
@@ -210,6 +232,7 @@ class ProductController extends Controller
     {
         $request->validate([
             "company_id" => ["required", "integer", "exists:sgc_companies,id"],
+            "company_product_id" => ["nullable", "integer", "exists:sgc_company_product,id"],
         ]);
 
         $company = SgcCompany::query()->findOrFail($request->integer("company_id"));
@@ -219,12 +242,18 @@ class ProductController extends Controller
             Response::HTTP_FORBIDDEN
         );
 
-        abort_unless(
-            $sgc_product->companies()->where("sgc_companies.id", $company->id)->exists(),
-            Response::HTTP_NOT_FOUND
-        );
+        $pivot = DB::table("sgc_company_product")
+            ->where("product_id", $sgc_product->id)
+            ->where("company_id", $company->id)
+            ->when(
+                $request->filled("company_product_id"),
+                fn ($query) => $query->where("id", $request->integer("company_product_id"))
+            )
+            ->first();
 
-        $sgc_product->companies()->detach($company->id);
+        abort_unless($pivot, Response::HTTP_NOT_FOUND);
+
+        DB::table("sgc_company_product")->where("id", $pivot->id)->delete();
 
         if( $sgc_product->companies()->count() === 0 ) {
             $sgc_product->delete();

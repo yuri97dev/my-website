@@ -183,8 +183,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->unique(["company_id", "product_id"]);
-            $table->unique(["product_id", "serial_number"]);
+            $table->unique(["company_id", "product_id", "serial_number"]);
         });
 
         DB::statement(

@@ -14,7 +14,14 @@
             </v-col>
 
             <v-col cols="12" lg="6">
+                <ProductCombobox
+                    v-if="!isEditing"
+                    :error-messages="errors.name || errors.product_id"
+                    v-model="nameInput"
+                ></ProductCombobox>
+
                 <v-text-field
+                    v-else
                     label="Nome"
                     :error-messages="errors.name"
                     v-model="form.name"
@@ -101,6 +108,7 @@
                     type="number"
                     min="0"
                     step="0.001"
+                    :disabled="hasSerialNumber"
                     :error-messages="errors.stock_quantity"
                     v-model="form.stock_quantity"
                 ></v-text-field>
@@ -224,13 +232,14 @@
 </template>
 
 <script setup>
-    import { ref, computed, nextTick, reactive } from "vue";
+    import { ref, computed, nextTick, reactive, watch } from "vue";
 
     import api from "@/api";
 
     import BottomSheet from "@/Components/BottomSheet.vue";
     import Dialog from "@/Components/Dialog.vue";
     import CompanyAutocomplete from "@/Components/Inputs/CompanyAutocomplete.vue";
+    import ProductCombobox from "@/Components/Inputs/ProductCombobox.vue";
     import BrandManager from "@/Components/Tools/Sgc/BrandManager.vue";
     import ProductCategoryManager from "@/Components/Tools/Sgc/ProductCategoryManager.vue";
     import UnitOfMeasureManager from "@/Components/Tools/Sgc/UnitOfMeasureManager.vue";
@@ -267,6 +276,7 @@
     const brands = ref([]);
     const categories = ref([]);
     const unitsOfMeasure = ref([]);
+    const nameInput = ref(null);
     const form = ref({});
 
     const brandManagerRef = ref(null);
@@ -274,6 +284,12 @@
     const unitOfMeasureManagerRef = ref(null);
 
     const isEditing = computed(() => !!product.value.id);
+
+    const hasSerialNumber = computed(() => {
+        const serial = form.value.serial_number;
+
+        return serial != null && String(serial).trim() !== "";
+    });
 
     async function getBrands() {
         loading.brands = true;
@@ -340,9 +356,13 @@
     function buildPayload() {
         return {
             company_id: form.value.company_id,
+            company_product_id: form.value.company_product_id || null,
+            product_id: isEditing.value ? null : (form.value.product_id || null),
             brand_id: form.value.brand_id || null,
             product_category_id: form.value.product_category_id || null,
-            name: form.value.name,
+            name: typeof nameInput.value === "object" && nameInput.value?.name
+                ? nameInput.value.name
+                : form.value.name,
             technical_specifications: form.value.technical_specifications,
             notes: form.value.notes,
             sale_price: normalizeMoneyInput(form.value.sale_price),
@@ -397,6 +417,7 @@
 
             form.value = {
                 company_id: resolveCompanyId(data.product, props.defaultCompanyId),
+                company_product_id: data.product.companies?.[0]?.pivot?.id ?? null,
                 brand_id: data.product.brand_id,
                 product_category_id: data.product.product_category_id,
                 name: data.product.name,
@@ -474,6 +495,7 @@
             await api.delete(url, {
                 params: {
                     company_id: form.value.company_id,
+                    company_product_id: form.value.company_product_id || undefined,
                 },
             });
 
@@ -521,6 +543,12 @@
                 getUnitsOfMeasure(),
                 loadProduct(data.id),
             ]);
+
+            const companyProductId = data.company_product_id ?? data.pivot?.id;
+
+            if( companyProductId != null ) {
+                form.value.company_product_id = companyProductId;
+            }
 
             const companyId = data.company_id ?? props.defaultCompanyId;
 
@@ -571,6 +599,7 @@
 
         form.value = {
             company_id: data.company_id ?? props.defaultCompanyId,
+            company_product_id: null,
             brand_id: data.brand_id ?? null,
             product_category_id: data.product_category_id ?? null,
             name: data.name ?? null,
@@ -581,7 +610,10 @@
             stock_quantity: data.pivot?.stock_quantity ?? data.stock_quantity ?? 0,
             unit_of_measure_id: data.pivot?.unit_of_measure_id ?? data.unit_of_measure_id ?? null,
             serial_number: data.pivot?.serial_number ?? data.serial_number ?? null,
+            product_id: null,
         };
+
+        nameInput.value = data.name ?? null;
 
         isDialogOpen.value = true;
 
@@ -600,6 +632,7 @@
 
         form.value = {
             company_id: props.defaultCompanyId,
+            company_product_id: null,
             brand_id: null,
             product_category_id: null,
             name: null,
@@ -610,7 +643,10 @@
             stock_quantity: 0,
             unit_of_measure_id: null,
             serial_number: null,
+            product_id: null,
         };
+
+        nameInput.value = null;
     }
 
     function handleClose() {
@@ -624,6 +660,38 @@
     }
 
     reset();
+
+    watch(nameInput, (value) => {
+        if( isEditing.value ) {
+            return;
+        }
+
+        if( typeof value === "object" && value?.id ) {
+            applySelectedProduct(value);
+            return;
+        }
+
+        form.value.product_id = null;
+        form.value.name = typeof value === "string" ? value : null;
+    });
+
+    watch(hasSerialNumber, (hasSerial) => {
+        if( hasSerial ) {
+            form.value.stock_quantity = 1;
+        }
+    });
+
+    function applySelectedProduct(selected) {
+        form.value.product_id = selected.id;
+        form.value.name = selected.name;
+        form.value.brand_id = selected.brand_id ?? null;
+        form.value.product_category_id = selected.product_category_id ?? null;
+        form.value.technical_specifications = selected.technical_specifications ?? null;
+        form.value.sale_price = selected.sale_price ?? selected.pivot?.sale_price ?? null;
+        form.value.cost_price = selected.cost_price ?? selected.pivot?.cost_price ?? null;
+        form.value.unit_of_measure_id = selected.unit_of_measure_id ?? selected.pivot?.unit_of_measure_id ?? null;
+        form.value.notes = selected.notes ?? selected.pivot?.notes ?? null;
+    }
 
     defineExpose({
         open,

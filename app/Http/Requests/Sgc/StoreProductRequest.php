@@ -53,6 +53,11 @@ class StoreProductRequest extends SgcFormRequest
                 "integer",
                 Rule::exists("sgc_product_categories", "id"),
             ],
+            "product_id" => [
+                "nullable",
+                "integer",
+                Rule::exists("sgc_products", "id"),
+            ],
             "name" => ["required", "string", "max:255"],
             "technical_specifications" => ["nullable", "string"],
             "notes" => ["nullable", "string"],
@@ -64,7 +69,15 @@ class StoreProductRequest extends SgcFormRequest
                 "integer",
                 Rule::exists("sgc_units_of_measure", "id"),
             ],
-            "serial_number" => ["nullable", "string", "max:64"],
+            "serial_number" => [
+                "nullable",
+                "string",
+                "max:64",
+                Rule::unique("sgc_company_product", "serial_number")
+                    ->where(fn ($query) => $query
+                        ->where("company_id", $this->integer("company_id"))
+                        ->where("product_id", $this->integer("product_id"))),
+            ],
             "currency" => ["nullable", "string", "size:3", Rule::in(["BRL"])],
         ];
     }
@@ -79,6 +92,8 @@ class StoreProductRequest extends SgcFormRequest
             "brand_id.exists" => "A marca selecionada é inválida.",
             "product_category_id.integer" => "A categoria deve ser um número inteiro.",
             "product_category_id.exists" => "A categoria selecionada é inválida.",
+            "product_id.integer" => "O produto deve ser um número inteiro.",
+            "product_id.exists" => "O produto selecionado é inválido.",
             "name.required" => "O nome é obrigatório.",
             "name.string" => "O nome deve ser um texto válido.",
             "name.max" => "O nome não pode ter mais de 255 caracteres.",
@@ -98,6 +113,7 @@ class StoreProductRequest extends SgcFormRequest
             "unit_of_measure_id.exists" => "A unidade de medida selecionada é inválida.",
             "serial_number.string" => "O número de série deve ser um texto válido.",
             "serial_number.max" => "O número de série não pode ter mais de 64 caracteres.",
+            "serial_number.unique" => "Este número de série já está em uso para este produto nesta empresa.",
             "currency.string" => "A moeda deve ser um texto válido.",
             "currency.size" => "A moeda deve ter exatamente 3 caracteres.",
             "currency.in" => "A moeda selecionada é inválida.",

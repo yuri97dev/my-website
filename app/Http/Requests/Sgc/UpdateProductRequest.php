@@ -41,12 +41,17 @@ class UpdateProductRequest extends SgcFormRequest
         $product = $this->route("sgc_product");
         $company_id = $this->integer("company_id");
 
-        $pivot_id = $product
+        $pivot_query = $product
             ? DB::table("sgc_company_product")
                 ->where("company_id", $company_id)
                 ->where("product_id", $product->id)
-                ->value("id")
             : null;
+
+        if( $pivot_query && $this->filled("company_product_id") ) {
+            $pivot_query->where("id", $this->integer("company_product_id"));
+        }
+
+        $pivot_id = $pivot_query?->value("id");
 
         return [
             "brand_id" => [
@@ -65,6 +70,11 @@ class UpdateProductRequest extends SgcFormRequest
                 "integer",
                 Rule::exists("sgc_companies", "id"),
             ],
+            "company_product_id" => [
+                "nullable",
+                "integer",
+                Rule::exists("sgc_company_product", "id"),
+            ],
             "technical_specifications" => ["nullable", "string"],
             "notes" => ["nullable", "string"],
             "sale_price" => ["nullable", "numeric", "min:0", "decimal:0,2"],
@@ -80,7 +90,9 @@ class UpdateProductRequest extends SgcFormRequest
                 "string",
                 "max:64",
                 Rule::unique("sgc_company_product", "serial_number")
-                    ->where(fn ($query) => $query->where("product_id", $product->id))
+                    ->where(fn ($query) => $query
+                        ->where("company_id", $company_id)
+                        ->where("product_id", $product->id))
                     ->ignore($pivot_id, "id"),
             ],
             "currency" => ["nullable", "string", "size:3", Rule::in(["BRL"])],
@@ -137,7 +149,7 @@ class UpdateProductRequest extends SgcFormRequest
             "unit_of_measure_id.exists" => "A unidade de medida selecionada é inválida.",
             "serial_number.string" => "O número de série deve ser um texto válido.",
             "serial_number.max" => "O número de série não pode ter mais de 64 caracteres.",
-            "serial_number.unique" => "Este número de série já está em uso para este produto.",
+            "serial_number.unique" => "Este número de série já está em uso para este produto nesta empresa.",
             "currency.string" => "A moeda deve ser um texto válido.",
             "currency.size" => "A moeda deve ter exatamente 3 caracteres.",
             "currency.in" => "A moeda selecionada é inválida.",

@@ -33,6 +33,7 @@ class SgcProduct extends Model
     {
         return $this->belongsToMany(SgcCompany::class, "sgc_company_product", "product_id", "company_id")
             ->withPivot([
+                "id",
                 "unit_of_measure_id",
                 "notes",
                 "sale_price",

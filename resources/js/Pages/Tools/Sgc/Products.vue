@@ -9,6 +9,7 @@
         <VirtualRemoteTable
             ref="tableRef"
             items-key="products"
+            item-value="company_product_id"
             :href="route('api.tools.sgc.products.index')"
             :headers="headers"
             :filters="filters"
