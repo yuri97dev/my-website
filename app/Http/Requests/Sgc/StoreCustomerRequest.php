@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Sgc;
 
 use App\Helpers\TextFormatter;
+use App\Models\SgcCustomer;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -22,6 +23,20 @@ class StoreCustomerRequest extends SgcFormRequest
                 "nickname" => TextFormatter::all($this->input("nickname")),
             ]);
         }
+
+        if( $this->has("identity_document") ) {
+            $this->merge([
+                "identity_document" => SgcCustomer::normalizeIdentityDocument(
+                    $this->input("identity_document")
+                ),
+            ]);
+        }
+
+        if( $this->has("tax_id") ) {
+            $this->merge([
+                "tax_id" => SgcCustomer::normalizeTaxId($this->input("tax_id")),
+            ]);
+        }
     }
 
     /**
@@ -34,6 +49,11 @@ class StoreCustomerRequest extends SgcFormRequest
                 "required",
                 "integer",
                 Rule::exists("sgc_companies", "id"),
+            ],
+            "customer_id" => [
+                "nullable",
+                "integer",
+                Rule::exists("sgc_customers", "id"),
             ],
             "name" => ["required", "string", "max:255"],
             "nickname" => ["nullable", "string", "max:255"],
@@ -50,6 +70,8 @@ class StoreCustomerRequest extends SgcFormRequest
             "company_id.required" => "A empresa é obrigatória.",
             "company_id.integer" => "A empresa deve ser um número inteiro.",
             "company_id.exists" => "A empresa selecionada é inválida.",
+            "customer_id.integer" => "O cliente deve ser um número inteiro.",
+            "customer_id.exists" => "O cliente selecionado é inválido.",
             "name.required" => "O nome é obrigatório.",
             "name.string" => "O nome deve ser um texto válido.",
             "name.max" => "O nome não pode ter mais de 255 caracteres.",
@@ -67,6 +89,18 @@ class StoreCustomerRequest extends SgcFormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function ($validator) {
+            $matches = SgcCustomer::findByDocuments(
+                $this->input("identity_document"),
+                $this->input("tax_id")
+            );
+
+            if( $matches->pluck("id")->unique()->count() > 1 ) {
+                $message = "O RG e o CPF/CNPJ pertencem a clientes diferentes.";
+
+                $validator->errors()->add("identity_document", $message);
+                $validator->errors()->add("tax_id", $message);
+            }
+
             if( !$this->filled("company_id") ) {
                 return;
             }

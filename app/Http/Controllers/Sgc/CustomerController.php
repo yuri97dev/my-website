@@ -100,19 +100,80 @@ class CustomerController extends Controller
         ], 200);
     }
 
+    public function lookup(Request $request)
+    {
+        $validated = $request->validate([
+            "identity_document" => ["nullable", "string", "max:255"],
+            "tax_id" => ["nullable", "string", "max:255"],
+        ]);
+
+        $matches = SgcCustomer::findByDocuments(
+            $validated["identity_document"] ?? null,
+            $validated["tax_id"] ?? null
+        );
+
+        if( $matches->isEmpty() ) {
+            return response()->json([
+                "customer" => null,
+            ], 200);
+        }
+
+        if( $matches->pluck("id")->unique()->count() > 1 ) {
+            $message = "O RG e o CPF/CNPJ pertencem a clientes diferentes.";
+
+            return response()->json([
+                "message" => $message,
+                "errors" => [
+                    "identity_document" => [ $message ],
+                    "tax_id" => [ $message ],
+                ],
+            ], 422);
+        }
+
+        $customer = $matches->first();
+
+        $customer->load([
+            "addresses",
+            "companies" => function ($query) use ($request) {
+                $query->accessibleBy($request->user());
+            },
+        ]);
+
+        return response()->json([
+            "customer" => $customer,
+        ], 200);
+    }
+
     public function store(StoreCustomerRequest $request)
     {
         $validated = $request->validated();
         $company_id = $validated["company_id"];
 
-        $customer = SgcCustomer::create(collect($validated)->except([
+        $customer = $this->resolveCustomerForStore($validated);
+
+        $customer->fill(collect($validated)->except([
             "company_id",
             "notes",
+            "customer_id",
         ])->all());
 
-        $customer->companies()->attach($company_id, [
-            "notes" => $validated["notes"] ?? null,
-        ]);
+        $customer->save();
+
+        $already_attached = $customer->companies()
+            ->where("sgc_companies.id", $company_id)
+            ->exists();
+
+        if( $already_attached ) {
+            if( array_key_exists("notes", $validated) ) {
+                $customer->companies()->updateExistingPivot($company_id, [
+                    "notes" => $validated["notes"] ?? null,
+                ]);
+            }
+        } else {
+            $customer->companies()->attach($company_id, [
+                "notes" => $validated["notes"] ?? null,
+            ]);
+        }
 
         return response()->json([
             "customer" => $customer,
@@ -186,6 +247,27 @@ class CustomerController extends Controller
         return response()->json([
             "message" => "Cliente removido com sucesso.",
         ], 200);
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function resolveCustomerForStore(array $validated): SgcCustomer
+    {
+        $matches = SgcCustomer::findByDocuments(
+            $validated["identity_document"] ?? null,
+            $validated["tax_id"] ?? null
+        );
+
+        if( $matches->count() === 1 ) {
+            return $matches->first();
+        }
+
+        if( !empty($validated["customer_id"]) ) {
+            return SgcCustomer::query()->findOrFail($validated["customer_id"]);
+        }
+
+        return new SgcCustomer();
     }
 
 }

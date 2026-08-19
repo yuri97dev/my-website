@@ -275,6 +275,10 @@ Route::prefix("tools")->group(function() {
             SgcCustomerController::class, "index",
         ])->name("api.tools.sgc.customers.index");
 
+        Route::get("/customers/lookup", [
+            SgcCustomerController::class, "lookup",
+        ])->name("api.tools.sgc.customers.lookup");
+
         Route::post("/customers", [
             SgcCustomerController::class, "store",
         ])->name("api.tools.sgc.customers.store");

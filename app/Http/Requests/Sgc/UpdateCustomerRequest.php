@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Sgc;
 
 use App\Helpers\TextFormatter;
+use App\Models\SgcCustomer;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -19,6 +20,16 @@ class UpdateCustomerRequest extends SgcFormRequest
 
         if( $this->has("nickname") ) {
             $merge["nickname"] = TextFormatter::all($this->input("nickname"));
+        }
+
+        if( $this->has("identity_document") ) {
+            $merge["identity_document"] = SgcCustomer::normalizeIdentityDocument(
+                $this->input("identity_document")
+            );
+        }
+
+        if( $this->has("tax_id") ) {
+            $merge["tax_id"] = SgcCustomer::normalizeTaxId($this->input("tax_id"));
         }
 
         $this->merge($merge);
