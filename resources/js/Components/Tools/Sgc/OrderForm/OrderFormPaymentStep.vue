@@ -13,7 +13,6 @@
         </v-col>
 
         <v-col
-            v-if="supportsInstallments"
             cols="12"
             xl="4"
         >
@@ -21,6 +20,7 @@
                 label="Número de parcelas"
                 :items="installmentOptions"
                 :error-messages="errors.installments_count"
+                :disabled="!supportsInstallments"
                 v-model="installmentsCount"
             ></v-select>
         </v-col>

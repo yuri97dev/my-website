@@ -71,7 +71,7 @@
                 </v-autocomplete>
             </v-col>
 
-            <v-col cols="12" lg="6">
+            <v-col cols="12" lg="6" xl="4">
                 <v-text-field
                     label="Preço de Venda"
                     prefix="R$"
@@ -83,7 +83,7 @@
                 ></v-text-field>
             </v-col>
 
-            <v-col cols="12" lg="6">
+            <v-col cols="12" lg="6" xl="4">
                 <v-text-field
                     label="Preço de Custo"
                     prefix="R$"
@@ -95,7 +95,7 @@
                 ></v-text-field>
             </v-col>
 
-            <v-col cols="12" lg="6">
+            <v-col cols="12" lg="6" xl="4">
                 <v-text-field
                     label="Quantidade em Estoque"
                     type="number"

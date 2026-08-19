@@ -79,24 +79,15 @@
             </v-col>
         </v-row>
 
-        <div
-            v-else
-            class="d-flex align-center justify-center"
-            style="min-height: 40dvh"
-        >
-            <v-empty-state
-                v-if="!hasFetched"
-                icon="mdi-magnify"
-                title="Buscar produtos"
-                text="Digite na busca e pressione Enter, ou altere o filtro de estoque para listar produtos."
-            ></v-empty-state>
+        <div v-else>
+            <v-alert v-if="!hasFetched" type="info" variant="tonal">
+                Digite na busca e pressione Enter, ou altere o filtro de estoque para listar produtos.
+            </v-alert>
 
-            <v-empty-state
-                v-else
-                icon="mdi-package-variant"
-                title="Nenhum produto encontrado"
-                text="Tente outro termo de busca ou altere o filtro de estoque."
-            ></v-empty-state>
+            <v-alert v-else type="warning" variant="tonal">
+                Nenhum resultado encontrado.
+                Tente outro termo de busca ou altere o filtro de estoque.
+            </v-alert>
         </div>
     </template>
 </template>

@@ -62,7 +62,7 @@ class OrderController extends Controller
             )
             ->select([
                 "sgc_orders.*",
-                DB::raw("coalesce(sgc_companies.trade_name, sgc_companies.legal_name) as company_name"),
+                DB::raw("coalesce(nullif(sgc_companies.trade_name, ''), sgc_companies.legal_name) as company_name"),
                 "sgc_customers.name as customer_name",
                 "users.name as created_by_name",
             ])
