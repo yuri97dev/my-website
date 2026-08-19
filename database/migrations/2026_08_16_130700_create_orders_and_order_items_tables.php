@@ -97,6 +97,7 @@ return new class extends Migration
             $table->unsignedSmallInteger("installment_number");
             $table->date("due_date")->nullable();
             $table->decimal("amount", 12, 2);
+            $table->decimal("paid_amount", 12, 2)->default(0);
             $table->timestamp("paid_at")->nullable();
 
             $table->timestamps();

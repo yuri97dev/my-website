@@ -48,6 +48,12 @@
             @form-closed="refresh"
         ></OrderForm>
 
+        <OrderDetails
+            ref="orderDetailsRef"
+            @form-closed="refresh"
+            @updated="refresh"
+        ></OrderDetails>
+
         <v-fab
             app
             icon="mdi-plus"
@@ -63,6 +69,7 @@
 
     import Container from "@/Components/Container.vue";
     import SearchField from "@/Components/SearchField.vue";
+    import OrderDetails from "@/Components/Tools/Sgc/OrderDetails.vue";
     import OrderForm from "@/Components/Tools/Sgc/OrderForm.vue";
     import VirtualRemoteTable from "@/Components/VirtualRemoteTable.vue";
 
@@ -70,6 +77,7 @@
     import { formatMoney } from "@/Utils/Money";
 
     const orderFormRef = ref(null);
+    const orderDetailsRef = ref(null);
     const tableRef = ref(null);
     const search = ref(null);
 
@@ -160,7 +168,7 @@
     function rowProps({ item }) {
         return {
             style: { cursor: "pointer" },
-            onDblclick: () => orderFormRef.value.open(item),
+            onDblclick: () => orderDetailsRef.value.open(item),
         };
     }
 

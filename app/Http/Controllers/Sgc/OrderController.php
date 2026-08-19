@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Sgc;
 
 use App\Helpers\SearchQuery;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Sgc\PayOrderInstallmentRequest;
 use App\Http\Requests\Sgc\StoreOrderRequest;
 use App\Http\Requests\Sgc\UpdateOrderRequest;
 use App\Models\SgcCompany;
 use App\Models\SgcOrder;
+use App\Models\SgcOrderInstallment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 
 class OrderController extends Controller
@@ -165,6 +168,10 @@ class OrderController extends Controller
 
     public function update(UpdateOrderRequest $request, SgcOrder $sgc_order)
     {
+        if( !$sgc_order->canBeEdited() ) return response()->json([
+            "message" => "Pedidos confirmados ou cancelados não podem ser alterados.",
+        ], 422);
+
         $validated = $request->validated();
         $items = $validated["items"] ?? [];
 
@@ -215,6 +222,69 @@ class OrderController extends Controller
         ], 200);
     }
 
+    public function cancel(Request $request, SgcOrder $sgc_order)
+    {
+        abort_unless(
+            $sgc_order->isAccessibleBy($request->user()),
+            Response::HTTP_FORBIDDEN
+        );
+
+        $company = SgcCompany::query()->findOrFail($sgc_order->company_id);
+
+        abort_unless(
+            $company->canBeManagedBy($request->user()),
+            Response::HTTP_FORBIDDEN
+        );
+
+        if( $sgc_order->isCancelled() ) return response()->json([
+            "message" => "Este pedido já está cancelado.",
+        ], 422);
+
+        $sgc_order->update([
+            "status" => SgcOrder::STATUS_CANCELLED,
+        ]);
+
+        $this->loadOrder($sgc_order);
+
+        return response()->json([
+            "order" => $sgc_order,
+            "message" => "Pedido cancelado com sucesso.",
+        ], 200);
+    }
+
+    public function payInstallment(
+        PayOrderInstallmentRequest $request,
+        SgcOrder $sgc_order,
+        SgcOrderInstallment $sgc_order_installment,
+    ) {
+        $validated = $request->validated();
+
+        DB::transaction(function () use ($sgc_order, $sgc_order_installment, $validated) {
+            $installment = SgcOrderInstallment::query()
+                ->whereKey($sgc_order_installment->id)
+                ->where("order_id", $sgc_order->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $amount = round((float) $validated["amount"], 2);
+            $remaining = $installment->remainingAmount();
+
+            if( $amount > $remaining ) {
+                throw ValidationException::withMessages([
+                    "amount" => "O valor da baixa não pode ser maior que o restante da parcela.",
+                ]);
+            }
+
+            $installment->applyPayment($amount);
+        });
+
+        $this->loadOrder($sgc_order);
+
+        return response()->json([
+            "order" => $sgc_order,
+        ], 200);
+    }
+
     private function loadOrder(SgcOrder $order): void
     {
         $order->load([
@@ -225,7 +295,9 @@ class OrderController extends Controller
             "paymentMethod:id,slug,name,surcharge_percentage",
             "items.product:id,name",
             "items.unitOfMeasure:id,name,abbreviation",
-            "installments",
+            "installments" => function ($query) {
+                $query->orderBy("installment_number");
+            },
         ]);
     }
 
@@ -297,6 +369,7 @@ class OrderController extends Controller
                     "installment_number" => $installment["installment_number"],
                     "due_date" => $installment["due_date"] ?? null,
                     "amount" => $installment["amount"],
+                    "paid_amount" => 0,
                 ]);
             }
 
@@ -324,6 +397,7 @@ class OrderController extends Controller
                 "installment_number" => $i,
                 "due_date" => now()->addMonths($i)->toDateString(),
                 "amount" => $amount,
+                "paid_amount" => 0,
             ]);
         }
     }

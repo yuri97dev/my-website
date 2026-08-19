@@ -3,7 +3,7 @@
         overlay-id="sgc-order-form"
         height="80dvh"
         max-width="960"
-        :title="isEditing ? `Pedido #${order.id}` : 'Novo Pedido'"
+        title="Novo Pedido"
         @close="handleClose"
         v-model="isDialogOpen"
     >
@@ -28,7 +28,6 @@
             <v-tabs-window-item value="company">
                 <OrderFormCompanyStep
                     ref="companyStepRef"
-                    :is-editing="isEditing"
                     :errors="errors"
                     v-model:company-id="form.company_id"
                     v-model:customer-id="form.customer_id"
@@ -81,16 +80,6 @@
             <div class="d-flex align-center w-100 ga-2">
                 <div class="d-flex align-center ga-2">
                     <v-btn
-                        v-if="isEditing && canManageCompany(form.company_id)"
-                        color="error"
-                        variant="tonal"
-                        prepend-icon="mdi-delete"
-                        :loading="deleting"
-                        text="Remover"
-                        @click="isConfirmRemoveDialogOpen = true"
-                    ></v-btn>
-
-                    <v-btn
                         v-if="currentStepIndex > 0"
                         variant="text"
                         prepend-icon="mdi-chevron-left"
@@ -125,27 +114,6 @@
             </div>
         </template>
     </BottomSheet>
-
-    <Dialog
-        overlay-id="sgc-order-confirm-remove"
-        title="Excluir Pedido"
-        max-width="500"
-        v-model="isConfirmRemoveDialogOpen"
-    >
-        O pedido <strong class="text-primary">#{{ order.id ?? "" }}</strong>
-        será removido. Essa ação não pode ser desfeita.
-
-        <template #actions>
-            <v-btn
-                variant="tonal"
-                color="error"
-                prepend-icon="mdi-delete"
-                :loading="deleting"
-                text="Excluir"
-                @click="handleDelete"
-            ></v-btn>
-        </template>
-    </Dialog>
 </template>
 
 <script setup>
@@ -154,29 +122,27 @@
     import api from "@/api";
 
     import BottomSheet from "@/Components/BottomSheet.vue";
-    import Dialog from "@/Components/Dialog.vue";
     import OrderFormCompanyStep from "@/Components/Tools/Sgc/OrderForm/OrderFormCompanyStep.vue";
     import OrderFormPaymentStep from "@/Components/Tools/Sgc/OrderForm/OrderFormPaymentStep.vue";
     import OrderFormProductsStep from "@/Components/Tools/Sgc/OrderForm/OrderFormProductsStep.vue";
     import OrderFormSummaryStep from "@/Components/Tools/Sgc/OrderForm/OrderFormSummaryStep.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
+
     import {
         buildDefaultInstallments,
         installmentsTotalMatches,
     } from "@/Utils/Installments";
+
     import {
         orderTotalAfterDiscount,
         sumOrderLines,
         toMoney,
     } from "@/Utils/Money";
-    import { useSgcAuth } from "@/Composables/useSgcAuth";
 
     const emit = defineEmits([
         "close",
     ]);
-
-    const { canManageCompany } = useSgcAuth();
 
     const steps = [
         { value: "company", title: "Empresa", icon: "mdi-domain" },
@@ -186,9 +152,7 @@
     ];
 
     const isDialogOpen = ref(false);
-    const isConfirmRemoveDialogOpen = ref(false);
     const loading = ref(false);
-    const deleting = ref(false);
     const loadingPaymentMethods = ref(false);
     const errors = ref({});
 
@@ -201,8 +165,6 @@
     const installmentsCustomized = ref(false);
 
     const companyStepRef = ref(null);
-
-    const isEditing = computed(() => !!order.value.id);
 
     const currentStepIndex = computed(() => {
         return steps.findIndex(step => step.value === currentStep.value);
@@ -456,54 +418,6 @@
         }
     }
 
-    async function loadOrder(id) {
-        loading.value = true;
-
-        try {
-            const url = route("api.tools.sgc.orders.show", id);
-            const { data } = await api.get(url);
-
-            order.value = data.order;
-
-            form.value = {
-                company_id: data.order.company_id,
-                customer_id: data.order.customer_id,
-                payment_method_id: data.order.payment_method_id,
-                installments_count: data.order.installments?.length || 1,
-                discount_amount: toMoney(data.order.discount_amount || 0),
-                notes: data.order.notes,
-            };
-
-            installments.value = (data.order.installments || []).map(installment => ({
-                installment_number: installment.installment_number,
-                due_date: installment.due_date?.slice?.(0, 10) ?? installment.due_date,
-                amount: toMoney(installment.amount),
-            }));
-
-            installmentsCustomized.value = installments.value.length > 1;
-
-            cart.value = {};
-
-            for( const item of data.order.items || [] ) {
-                cart.value[item.product_id] = {
-                    product_id: item.product_id,
-                    name: item.product?.name ?? `Produto #${item.product_id}`,
-                    quantity: Number(item.quantity),
-                    unit_price: toMoney(item.unit_price),
-                    unit_of_measure_id: item.unit_of_measure_id,
-                    unit_of_measure: item.unit_of_measure?.abbreviation ?? null,
-                    stock_quantity: Number(item.quantity),
-                    discount_amount: toMoney(item.discount_amount || 0),
-                };
-            }
-        } catch (e) {
-            const { message } = e?.response?.data || {};
-            alertError("Ooops", message || "Erro ao buscar pedido");
-        } finally {
-            loading.value = false;
-        }
-    }
-
     async function createOrder() {
         if( !validateBeforeSubmit() ) return;
 
@@ -528,73 +442,13 @@
         }
     }
 
-    async function updateOrder() {
-        if( !validateBeforeSubmit() ) return;
-
-        errors.value = {};
-        loading.value = true;
-
-        try {
-            const url = route("api.tools.sgc.orders.update", order.value.id);
-            const { data } = await api.put(url, buildPayload());
-
-            toastSuccess("Ok", "Pedido atualizado com sucesso");
-
-            order.value = data.order;
-            isDialogOpen.value = false;
-
-            handleClose();
-        } catch (e) {
-            const { message, errors: responseErrors } = e?.response?.data || {};
-            errors.value = responseErrors || {};
-            alertError("Ooops", message || "Erro ao atualizar pedido");
-        } finally {
-            loading.value = false;
-        }
-    }
-
     async function handleFinalize() {
         syncInstallmentsFromTotal();
-
-        if( isEditing.value ) {
-            await updateOrder();
-        } else {
-            await createOrder();
-        }
+        await createOrder();
     }
 
-    async function handleDelete() {
-        deleting.value = true;
-
-        try {
-            const url = route("api.tools.sgc.orders.destroy", order.value.id);
-
-            await api.delete(url);
-
-            toastSuccess("Ok", "Pedido removido com sucesso");
-
-            isConfirmRemoveDialogOpen.value = false;
-            isDialogOpen.value = false;
-
-            handleClose();
-        } catch (e) {
-            const { message } = e?.response?.data || {};
-            alertError("Ooops", message || "Erro ao remover pedido");
-        } finally {
-            deleting.value = false;
-        }
-    }
-
-    async function open(data = {}) {
+    async function open() {
         await loadPaymentMethods();
-
-        currentStep.value = "company";
-
-        if( data.id ) {
-            isDialogOpen.value = true;
-            await loadOrder(data.id);
-            return;
-        }
 
         reset();
 
@@ -620,8 +474,6 @@
     }
 
     function handleClose() {
-        isConfirmRemoveDialogOpen.value = false;
-
         reset();
         emit("close");
     }

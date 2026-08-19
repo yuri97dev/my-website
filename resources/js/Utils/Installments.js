@@ -46,3 +46,25 @@ export function sumInstallmentAmounts(installments) {
 export function installmentsTotalMatches(installments, expectedTotal) {
     return sumInstallmentAmounts(installments) === toMoney(expectedTotal);
 }
+
+export function installmentPaidAmount(installment) {
+    return toMoney(installment?.paid_amount || 0);
+}
+
+export function installmentRemainingAmount(installment) {
+    const remaining = money(installment?.amount).minus(money(installment?.paid_amount || 0));
+    return toMoney(Decimal.max(remaining, 0));
+}
+
+export function isInstallmentPaid(installment) {
+    return installmentRemainingAmount(installment) <= 0;
+}
+
+export function sumInstallmentPaidAmounts(installments) {
+    return toMoney(
+        (installments || []).reduce(
+            (total, installment) => total.plus(money(installmentPaidAmount(installment))),
+            money(0),
+        ),
+    );
+}

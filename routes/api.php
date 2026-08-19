@@ -418,6 +418,14 @@ Route::prefix("tools")->group(function() {
         Route::delete("/orders/{sgc_order}", [
             SgcOrderController::class, "destroy",
         ])->name("api.tools.sgc.orders.destroy");
+
+        Route::post("/orders/{sgc_order}/cancel", [
+            SgcOrderController::class, "cancel",
+        ])->name("api.tools.sgc.orders.cancel");
+
+        Route::post("/orders/{sgc_order}/installments/{sgc_order_installment}/pay", [
+            SgcOrderController::class, "payInstallment",
+        ])->name("api.tools.sgc.orders.installments.pay");
     });
 });
 

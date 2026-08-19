@@ -88,4 +88,19 @@ class SgcOrder extends Model
             ->accessibleBy($user)
             ->exists();
     }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
+    }
+
+    public function isConfirmed(): bool
+    {
+        return $this->status === self::STATUS_CONFIRMED;
+    }
+
+    public function canBeEdited(): bool
+    {
+        return $this->status === self::STATUS_DRAFT;
+    }
 }
