@@ -240,9 +240,13 @@ class OrderController extends Controller
             "message" => "Este pedido já está cancelado.",
         ], 422);
 
-        $sgc_order->update([
-            "status" => SgcOrder::STATUS_CANCELLED,
-        ]);
+        DB::transaction(function () use ($sgc_order) {
+            $sgc_order->update([
+                "status" => SgcOrder::STATUS_CANCELLED,
+            ]);
+
+            $sgc_order->clearInstallmentPayments();
+        });
 
         $this->loadOrder($sgc_order);
 

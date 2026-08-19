@@ -14,7 +14,7 @@
             type="error"
             variant="tonal"
             class="mb-4"
-            text="Este pedido está cancelado. Não é possível dar baixa nas parcelas."
+            text="Este pedido está cancelado. As baixas foram zeradas e não podem ser registradas novamente."
         ></v-alert>
 
         <div class="d-flex flex-wrap align-center justify-space-between ga-2 mb-4">
@@ -232,7 +232,8 @@
         v-model="isConfirmCancelDialogOpen"
     >
         O pedido <strong class="text-primary">#{{ order.id ?? "" }}</strong>
-        será cancelado. Não será mais possível dar baixa nas parcelas.
+        será cancelado. As baixas das parcelas serão zeradas, como se o valor
+        tivesse sido devolvido ao cliente.
 
         <template #actions>
             <v-btn
@@ -327,6 +328,7 @@
     };
 
     const installmentStatusLabels = {
+        cancelled: "Cancelada",
         paid: "Paga",
         partial: "Parcial",
         overdue: "Vencida",
@@ -334,6 +336,7 @@
     };
 
     const installmentStatusColors = {
+        cancelled: "error",
         paid: "success",
         partial: "warning",
         overdue: "error",
@@ -455,6 +458,10 @@
     }
 
     function installmentStatus(installment) {
+        if( isCancelled.value ) {
+            return "cancelled";
+        }
+
         if( isInstallmentPaid(installment) ) {
             return "paid";
         }

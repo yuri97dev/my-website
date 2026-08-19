@@ -103,4 +103,12 @@ class SgcOrder extends Model
     {
         return $this->status === self::STATUS_DRAFT;
     }
+
+    public function clearInstallmentPayments(): void
+    {
+        $this->installments()->update([
+            "paid_amount" => 0,
+            "paid_at" => null,
+        ]);
+    }
 }
