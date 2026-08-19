@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Sgc;
 
 use App\Helpers\TextFormatter;
+use App\Models\SgcProduct;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -131,6 +132,17 @@ class StoreProductRequest extends SgcFormRequest
 
             if( !$this->companyAccessible($company_id) ) {
                 $validator->errors()->add("company_id", "Empresa inválida ou sem permissão.");
+            }
+
+            if( $this->filled("product_id") ) {
+                $product = SgcProduct::query()->find($this->integer("product_id"));
+                $accessible = $product?->companies()
+                    ->accessibleBy($this->user())
+                    ->exists();
+
+                if( !$accessible ) {
+                    $validator->errors()->add("product_id", "Produto inválido ou sem permissão.");
+                }
             }
 
             if( $this->filled("notes") && !$this->companyCanBeManagedBy($company_id) ) {

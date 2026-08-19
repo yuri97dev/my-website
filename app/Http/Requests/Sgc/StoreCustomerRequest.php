@@ -91,7 +91,7 @@ class StoreCustomerRequest extends SgcFormRequest
         $validator->after(function ($validator) {
             $matches = SgcCustomer::findByDocuments(
                 $this->input("identity_document"),
-                $this->input("tax_id")
+                $this->input("tax_id"),
             );
 
             if( $matches->pluck("id")->unique()->count() > 1 ) {

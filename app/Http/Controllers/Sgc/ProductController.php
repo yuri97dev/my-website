@@ -61,12 +61,25 @@ class ProductController extends Controller
                 "=",
                 "sgc_product_categories.id"
             )
-            ->leftJoin(
-                "sgc_company_product",
-                "sgc_products.id",
-                "=",
-                "sgc_company_product.product_id"
-            )
+            ->leftJoin("sgc_company_product", function ($join) use ($request) {
+                $join->on("sgc_products.id", "=", "sgc_company_product.product_id");
+
+                if( $request->filled("company_id") ) {
+                    $join->where(
+                        "sgc_company_product.company_id",
+                        $request->integer("company_id")
+                    );
+
+                    return;
+                }
+
+                $join->whereIn(
+                    "sgc_company_product.company_id",
+                    SgcCompany::query()
+                        ->accessibleBy($request->user())
+                        ->select("sgc_companies.id")
+                );
+            })
             ->leftJoin(
                 "sgc_units_of_measure",
                 "sgc_company_product.unit_of_measure_id",

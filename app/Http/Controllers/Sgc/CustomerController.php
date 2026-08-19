@@ -109,7 +109,7 @@ class CustomerController extends Controller
 
         $matches = SgcCustomer::findByDocuments(
             $validated["identity_document"] ?? null,
-            $validated["tax_id"] ?? null
+            $validated["tax_id"] ?? null,
         );
 
         if( $matches->isEmpty() ) {
@@ -133,11 +133,16 @@ class CustomerController extends Controller
         $customer = $matches->first();
 
         $customer->load([
-            "addresses",
             "companies" => function ($query) use ($request) {
                 $query->accessibleBy($request->user());
             },
         ]);
+
+        if( $customer->companies->isNotEmpty() ) {
+            $customer->load("addresses");
+        } else {
+            $customer->setRelation("addresses", collect());
+        }
 
         return response()->json([
             "customer" => $customer,
@@ -256,7 +261,7 @@ class CustomerController extends Controller
     {
         $matches = SgcCustomer::findByDocuments(
             $validated["identity_document"] ?? null,
-            $validated["tax_id"] ?? null
+            $validated["tax_id"] ?? null,
         );
 
         if( $matches->count() === 1 ) {

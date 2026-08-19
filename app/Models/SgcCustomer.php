@@ -93,8 +93,11 @@ class SgcCustomer extends Model
     /**
      * @return Collection<int, self>
      */
-    public static function findByDocuments(?string $identity_document, ?string $tax_id): Collection
-    {
+    public static function findByDocuments(
+        ?string $identity_document,
+        ?string $tax_id,
+        ?User $user = null,
+    ): Collection {
         $identity_document = self::normalizeIdentityDocument($identity_document);
         $tax_id = self::normalizeTaxId($tax_id);
 
@@ -117,6 +120,11 @@ class SgcCustomer extends Model
                         [ $tax_id ]
                     );
                 }
+            })
+            ->when($user, function ($query) use ($user) {
+                $query->whereHas("companies", function ($query) use ($user) {
+                    $query->accessibleBy($user);
+                });
             })
             ->get();
     }
