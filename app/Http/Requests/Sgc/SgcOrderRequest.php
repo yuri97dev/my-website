@@ -142,6 +142,7 @@ abstract class SgcOrderRequest extends SgcFormRequest
             $this->validateCustomer($validator, $company_id);
             $this->validateCustomerAddress($validator);
             $this->validateItems($validator, $company_id);
+            $this->validateStock($validator, $company_id);
             $this->validateInstallments($validator);
             $this->validateConfirmation($validator);
         });
@@ -224,6 +225,57 @@ abstract class SgcOrderRequest extends SgcFormRequest
                     "Produto não vinculado a esta empresa."
                 );
             }
+        }
+    }
+
+    protected function validateStock(Validator $validator, int $company_id): void
+    {
+        if( $this->input("status") !== SgcOrder::STATUS_CONFIRMED ) {
+            return;
+        }
+
+        $required = [];
+
+        foreach( $this->input("items", []) as $index => $item ) {
+            $product_id = $item["product_id"] ?? null;
+
+            if( !$product_id ) {
+                continue;
+            }
+
+            if( !isset($required[$product_id]) ) {
+                $required[$product_id] = [
+                    "quantity" => 0,
+                    "index" => $index,
+                ];
+            }
+
+            $required[$product_id]["quantity"] += (float) ($item["quantity"] ?? 0);
+        }
+
+        if( count($required) < 1 ) {
+            return;
+        }
+
+        $stocks = DB::table("sgc_company_product")
+            ->where("company_id", $company_id)
+            ->whereIn("product_id", array_keys($required))
+            ->select("product_id", DB::raw("sum(stock_quantity) as stock_quantity"))
+            ->groupBy("product_id")
+            ->pluck("stock_quantity", "product_id");
+
+        foreach( $required as $product_id => $data ) {
+            $available = round((float) ($stocks[$product_id] ?? 0), 3);
+            $needed = round($data["quantity"], 3);
+
+            if( $needed <= $available ) {
+                continue;
+            }
+
+            $validator->errors()->add(
+                "items.{$data["index"]}.quantity",
+                "Estoque insuficiente. Disponível: {$available}."
+            );
         }
     }
 

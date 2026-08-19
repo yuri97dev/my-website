@@ -10,7 +10,9 @@ use App\Http\Requests\Sgc\UpdateOrderRequest;
 use App\Models\SgcCompany;
 use App\Models\SgcOrder;
 use App\Models\SgcOrderInstallment;
+use App\Models\SgcProduct;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -142,6 +144,10 @@ class OrderController extends Controller
 
             $this->syncInstallments($order, $validated);
 
+            if( $order->isConfirmed() ) {
+                $this->deductStock($order, $items);
+            }
+
             return $order;
         });
 
@@ -192,6 +198,10 @@ class OrderController extends Controller
             $sgc_order->items()->createMany($this->itemsPayload($items));
 
             $this->syncInstallments($sgc_order, $validated);
+
+            if( $sgc_order->isConfirmed() ) {
+                $this->deductStock($sgc_order, $items);
+            }
         });
 
         $this->loadOrder($sgc_order);
@@ -215,7 +225,13 @@ class OrderController extends Controller
             Response::HTTP_FORBIDDEN
         );
 
-        $sgc_order->delete();
+        DB::transaction(function () use ($sgc_order) {
+            if( $sgc_order->isConfirmed() ) {
+                $this->restoreStock($sgc_order);
+            }
+
+            $sgc_order->delete();
+        });
 
         return response()->json([
             "message" => "Pedido removido com sucesso.",
@@ -241,11 +257,17 @@ class OrderController extends Controller
         ], 422);
 
         DB::transaction(function () use ($sgc_order) {
+            $was_confirmed = $sgc_order->isConfirmed();
+
             $sgc_order->update([
                 "status" => SgcOrder::STATUS_CANCELLED,
             ]);
 
             $sgc_order->clearInstallmentPayments();
+
+            if( $was_confirmed ) {
+                $this->restoreStock($sgc_order);
+            }
         });
 
         $this->loadOrder($sgc_order);
@@ -356,6 +378,124 @@ class OrderController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     */
+    private function deductStock(SgcOrder $order, array $items): void
+    {
+        $this->adjustStock((int) $order->company_id, $items, -1);
+    }
+
+    private function restoreStock(SgcOrder $order): void
+    {
+        $items = $order->items()->get(["product_id", "quantity"])->map(function ($item) {
+            return [
+                "product_id" => $item->product_id,
+                "quantity" => $item->quantity,
+            ];
+        })->all();
+
+        $this->adjustStock((int) $order->company_id, $items, 1);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     */
+    private function adjustStock(int $company_id, array $items, int $multiplier): void
+    {
+        $quantities = [];
+
+        foreach( $items as $item ) {
+            $product_id = $item["product_id"] ?? null;
+
+            if( !$product_id ) {
+                continue;
+            }
+
+            $quantities[$product_id] = ($quantities[$product_id] ?? 0)
+                + (float) ($item["quantity"] ?? 0);
+        }
+
+        foreach( $quantities as $product_id => $quantity ) {
+            $delta = round($quantity * $multiplier, 3);
+
+            if( $delta == 0 ) {
+                continue;
+            }
+
+            $pivots = DB::table("sgc_company_product")
+                ->where("company_id", $company_id)
+                ->where("product_id", $product_id)
+                ->orderBy("id")
+                ->lockForUpdate()
+                ->get();
+
+            if( $pivots->isEmpty() ) {
+                throw ValidationException::withMessages([
+                    "items" => "Produto não vinculado a esta empresa.",
+                ]);
+            }
+
+            if( $delta < 0 ) {
+                $this->consumeStock($pivots, abs($delta), (int) $product_id);
+
+                continue;
+            }
+
+            $pivot = $pivots->first();
+
+            DB::table("sgc_company_product")
+                ->where("id", $pivot->id)
+                ->update([
+                    "stock_quantity" => round((float) $pivot->stock_quantity + $delta, 3),
+                    "updated_at" => now(),
+                ]);
+        }
+    }
+
+    /**
+     * @param  Collection<int, object>  $pivots
+     */
+    private function consumeStock(Collection $pivots, float $needed, int $product_id): void
+    {
+        $available = round((float) $pivots->sum("stock_quantity"), 3);
+        $needed = round($needed, 3);
+
+        if( $needed > $available ) {
+            $name = SgcProduct::query()->whereKey($product_id)->value("name");
+
+            throw ValidationException::withMessages([
+                "items" => $name
+                    ? "Estoque insuficiente para o produto {$name}."
+                    : "Estoque insuficiente para um dos produtos do pedido.",
+            ]);
+        }
+
+        $remaining = $needed;
+
+        foreach( $pivots as $pivot ) {
+            if( $remaining <= 0 ) {
+                break;
+            }
+
+            $current = (float) $pivot->stock_quantity;
+            $take = min($current, $remaining);
+
+            if( $take <= 0 ) {
+                continue;
+            }
+
+            DB::table("sgc_company_product")
+                ->where("id", $pivot->id)
+                ->update([
+                    "stock_quantity" => round($current - $take, 3),
+                    "updated_at" => now(),
+                ]);
+
+            $remaining = round($remaining - $take, 3);
+        }
     }
 
     /**
