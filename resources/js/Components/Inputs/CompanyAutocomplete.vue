@@ -115,5 +115,6 @@
 
     defineExpose({
         autocompleteRef,
+        getSelectedCompany: () => selectedCompany.value,
     });
 </script>

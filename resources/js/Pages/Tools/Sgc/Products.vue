@@ -16,13 +16,13 @@
         >
             <template #item.sale_price="{ item }">
                 <span v-if="item.sale_price != null">
-                    R$ {{ formatNumber(item.sale_price, 2) }}
+                    R$ {{ formatMoney(item.sale_price) }}
                 </span>
             </template>
 
             <template #item.cost_price="{ item }">
                 <span v-if="item.cost_price != null">
-                    R$ {{ formatNumber(item.cost_price, 2) }}
+                    R$ {{ formatMoney(item.cost_price) }}
                 </span>
             </template>
 
@@ -69,6 +69,7 @@
     import VirtualRemoteTable from "@/Components/VirtualRemoteTable.vue";
 
     import { formatDate, formatNumber } from "@/Utils/Common";
+    import { formatMoney } from "@/Utils/Money";
 
     const productFormRef = ref(null);
     const tableRef = ref(null);

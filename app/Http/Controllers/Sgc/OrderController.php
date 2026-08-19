@@ -289,6 +289,20 @@ class OrderController extends Controller
     {
         $order->installments()->delete();
 
+        $installments = $validated["installments"] ?? [];
+
+        if( is_array($installments) && count($installments) > 0 ) {
+            foreach( $installments as $installment ) {
+                $order->installments()->create([
+                    "installment_number" => $installment["installment_number"],
+                    "due_date" => $installment["due_date"] ?? null,
+                    "amount" => $installment["amount"],
+                ]);
+            }
+
+            return;
+        }
+
         $count = (int) ($validated["installments_count"] ?? 1);
 
         if( $count < 1 ) {

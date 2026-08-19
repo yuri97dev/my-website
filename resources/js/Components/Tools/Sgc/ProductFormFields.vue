@@ -236,6 +236,7 @@
     import UnitOfMeasureManager from "@/Components/Tools/Sgc/UnitOfMeasureManager.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { normalizeMoneyInput } from "@/Utils/Money";
     import { useSgcAuth } from "@/Composables/useSgcAuth";
 
     const props = defineProps({
@@ -344,21 +345,13 @@
             name: form.value.name,
             technical_specifications: form.value.technical_specifications,
             notes: form.value.notes,
-            sale_price: normalizePrice(form.value.sale_price),
-            cost_price: normalizePrice(form.value.cost_price),
+            sale_price: normalizeMoneyInput(form.value.sale_price),
+            cost_price: normalizeMoneyInput(form.value.cost_price),
             stock_quantity: normalizeStockQuantity(form.value.stock_quantity),
             unit_of_measure_id: form.value.unit_of_measure_id || null,
             serial_number: normalizeSerialNumber(form.value.serial_number),
             currency: "BRL",
         };
-    }
-
-    function normalizePrice(value) {
-        if( value === null || value === "" ) {
-            return null;
-        }
-
-        return Number(value);
     }
 
     function normalizeStockQuantity(value) {

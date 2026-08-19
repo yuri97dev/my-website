@@ -37,6 +37,10 @@ abstract class SgcOrderRequest extends SgcFormRequest
                 Rule::exists("sgc_payment_methods", "id"),
             ],
             "installments_count" => ["nullable", "integer", "min:1", "max:24"],
+            "installments" => ["nullable", "array"],
+            "installments.*.installment_number" => ["required", "integer", "min:1"],
+            "installments.*.due_date" => ["nullable", "date"],
+            "installments.*.amount" => ["required", "numeric", "min:0", "decimal:0,2"],
             "status" => [
                 "nullable",
                 "string",
@@ -80,6 +84,15 @@ abstract class SgcOrderRequest extends SgcFormRequest
             "installments_count.integer" => "O número de parcelas deve ser um número inteiro.",
             "installments_count.min" => "O número de parcelas deve ser no mínimo 1.",
             "installments_count.max" => "O número de parcelas não pode ser maior que 24.",
+            "installments.array" => "As parcelas devem ser uma lista válida.",
+            "installments.*.installment_number.required" => "O número da parcela é obrigatório.",
+            "installments.*.installment_number.integer" => "O número da parcela deve ser um número inteiro.",
+            "installments.*.installment_number.min" => "O número da parcela deve ser no mínimo 1.",
+            "installments.*.due_date.date" => "A data de vencimento deve ser uma data válida.",
+            "installments.*.amount.required" => "O valor da parcela é obrigatório.",
+            "installments.*.amount.numeric" => "O valor da parcela deve ser um número válido.",
+            "installments.*.amount.min" => "O valor da parcela não pode ser negativo.",
+            "installments.*.amount.decimal" => "O valor da parcela deve ter no máximo 2 casas decimais.",
             "status.string" => "O status deve ser um texto válido.",
             "status.in" => "O status selecionado é inválido.",
             "discount_amount.numeric" => "O desconto deve ser um número válido.",
@@ -129,6 +142,7 @@ abstract class SgcOrderRequest extends SgcFormRequest
             $this->validateCustomer($validator, $company_id);
             $this->validateCustomerAddress($validator);
             $this->validateItems($validator, $company_id);
+            $this->validateInstallments($validator);
             $this->validateConfirmation($validator);
         });
     }
@@ -210,6 +224,59 @@ abstract class SgcOrderRequest extends SgcFormRequest
                     "Produto não vinculado a esta empresa."
                 );
             }
+        }
+    }
+
+    protected function validateInstallments(Validator $validator): void
+    {
+        $installments = $this->input("installments", []);
+
+        if( count($installments) < 1 ) {
+            return;
+        }
+
+        $numbers = [];
+
+        foreach( $installments as $index => $installment ) {
+            $number = (int) ($installment["installment_number"] ?? 0);
+
+            if( in_array($number, $numbers, true) ) {
+                $validator->errors()->add(
+                    "installments.{$index}.installment_number",
+                    "Número de parcela duplicado."
+                );
+            }
+
+            $numbers[] = $number;
+        }
+
+        $items = $this->input("items", []);
+
+        $order_discount = (float) ($this->input("discount_amount") ?? 0);
+        $items_total = 0;
+
+        foreach( $items as $item ) {
+            $quantity = (float) ($item["quantity"] ?? 0);
+            $unit_price = (float) ($item["unit_price"] ?? 0);
+            $discount = (float) ($item["discount_amount"] ?? 0);
+
+            $items_total += ($quantity * $unit_price) - $discount;
+        }
+
+        $expected_total = max(0, round($items_total - $order_discount, 2));
+        $installments_total = 0;
+
+        foreach( $installments as $installment ) {
+            $installments_total += (float) ($installment["amount"] ?? 0);
+        }
+
+        $installments_total = round($installments_total, 2);
+
+        if( $installments_total !== $expected_total ) {
+            $validator->errors()->add(
+                "installments",
+                "A soma das parcelas deve ser igual ao total do pedido."
+            );
         }
     }
 

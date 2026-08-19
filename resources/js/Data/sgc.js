@@ -47,6 +47,18 @@ export const sgcSections = [
             "Especificações",
         ],
     },
+    {
+        key: "orders",
+        title: "Pedidos",
+        subtitle: "Vendas e pedidos por empresa",
+        icon: "mdi-clipboard-list-outline",
+        href: route("tools.sgc.orders"),
+        features: [
+            "Cliente e empresa",
+            "Formas de pagamento",
+            "Itens e parcelas",
+        ],
+    },
 ];
 
 export function getSgcLinks() {

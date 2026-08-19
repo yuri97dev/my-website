@@ -53,6 +53,9 @@ export default createVuetify({
             hideDetails: "auto",
             inputFormat: "dd/MM/yyyy",
         },
+        VNumberInput: {
+            hideDetails: "auto",
+        },
         VCard: {
             rounded: "lg",
         },
