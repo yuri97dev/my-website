@@ -254,6 +254,10 @@ class ProductController extends Controller
             $payload["currency"] = "BRL";
         }
 
+        if( !array_key_exists("stock_quantity", $payload) || $payload["stock_quantity"] === null ) {
+            $payload["stock_quantity"] = 0;
+        }
+
         return $payload;
     }
 }

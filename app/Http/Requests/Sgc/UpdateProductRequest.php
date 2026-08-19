@@ -25,6 +25,12 @@ class UpdateProductRequest extends SgcFormRequest
                 "serial_number" => $serial_number === "" ? null : $serial_number,
             ]);
         }
+
+        if( $this->has("stock_quantity") && !$this->filled("stock_quantity") ) {
+            $this->merge([
+                "stock_quantity" => 0,
+            ]);
+        }
     }
 
     /**
@@ -63,7 +69,7 @@ class UpdateProductRequest extends SgcFormRequest
             "notes" => ["nullable", "string"],
             "sale_price" => ["nullable", "numeric", "min:0", "decimal:0,2"],
             "cost_price" => ["nullable", "numeric", "min:0", "decimal:0,2"],
-            "stock_quantity" => ["nullable", "numeric", "min:0", "decimal:0,3"],
+            "stock_quantity" => ["sometimes", "required", "numeric", "min:0", "decimal:0,3"],
             "unit_of_measure_id" => [
                 "nullable",
                 "integer",
@@ -123,6 +129,7 @@ class UpdateProductRequest extends SgcFormRequest
             "cost_price.numeric" => "O preço de custo deve ser um número válido.",
             "cost_price.min" => "O preço de custo não pode ser negativo.",
             "cost_price.decimal" => "O preço de custo deve ter no máximo 2 casas decimais.",
+            "stock_quantity.required" => "A quantidade em estoque é obrigatória.",
             "stock_quantity.numeric" => "A quantidade em estoque deve ser um número válido.",
             "stock_quantity.min" => "A quantidade em estoque não pode ser negativa.",
             "stock_quantity.decimal" => "A quantidade em estoque deve ter no máximo 3 casas decimais.",

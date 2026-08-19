@@ -356,7 +356,7 @@
 
     function normalizeStockQuantity(value) {
         if( value === null || value === "" ) {
-            return null;
+            return 0;
         }
 
         return Number(value);
@@ -578,7 +578,7 @@
             notes: data.notes ?? null,
             sale_price: data.pivot?.sale_price ?? data.sale_price ?? null,
             cost_price: data.pivot?.cost_price ?? data.cost_price ?? null,
-            stock_quantity: data.pivot?.stock_quantity ?? data.stock_quantity ?? null,
+            stock_quantity: data.pivot?.stock_quantity ?? data.stock_quantity ?? 0,
             unit_of_measure_id: data.pivot?.unit_of_measure_id ?? data.unit_of_measure_id ?? null,
             serial_number: data.pivot?.serial_number ?? data.serial_number ?? null,
         };
@@ -607,7 +607,7 @@
             notes: null,
             sale_price: null,
             cost_price: null,
-            stock_quantity: null,
+            stock_quantity: 0,
             unit_of_measure_id: null,
             serial_number: null,
         };
