@@ -17,22 +17,6 @@
             text="Este pedido está cancelado. As baixas foram zeradas e não podem ser registradas novamente."
         ></v-alert>
 
-        <div class="d-flex flex-wrap align-center justify-space-between ga-2 mb-4">
-            <span
-                v-if="order.ordered_at"
-                class="text-body-2 text-medium-emphasis"
-            >
-                Pedido em {{ formatDate(order.ordered_at, "dd/MM/yyyy HH:mm") }}
-            </span>
-
-            <v-chip
-                variant="tonal"
-                :color="statusColor(order.status)"
-            >
-                {{ statusLabel(order.status) }}
-            </v-chip>
-        </div>
-
         <v-list lines="two" class="mb-4">
             <v-list-item
                 prepend-icon="mdi-domain"
@@ -202,13 +186,6 @@
                 </tr>
             </tfoot>
         </v-table>
-
-        <v-alert
-            v-else
-            type="info"
-            variant="tonal"
-            text="Este pedido não possui parcelas."
-        ></v-alert>
 
         <template
             v-if="canCancel"

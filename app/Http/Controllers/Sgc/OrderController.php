@@ -10,6 +10,7 @@ use App\Http\Requests\Sgc\UpdateOrderRequest;
 use App\Models\SgcCompany;
 use App\Models\SgcOrder;
 use App\Models\SgcOrderInstallment;
+use App\Models\SgcPaymentMethod;
 use App\Models\SgcProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -505,16 +506,35 @@ class OrderController extends Controller
     {
         $order->installments()->delete();
 
+        $payment_method_id = $validated["payment_method_id"] ?? $order->payment_method_id;
+
+        $payment_method = $payment_method_id
+            ? SgcPaymentMethod::query()->find($payment_method_id)
+            : null;
+
+        if( $payment_method && !$payment_method->supports_installments ) {
+            $this->createInstallment(
+                $order,
+                1,
+                now()->toDateString(),
+                (float) $order->total,
+                $order->isConfirmed()
+            );
+
+            return;
+        }
+
         $installments = $validated["installments"] ?? [];
 
         if( is_array($installments) && count($installments) > 0 ) {
             foreach( $installments as $installment ) {
-                $order->installments()->create([
-                    "installment_number" => $installment["installment_number"],
-                    "due_date" => $installment["due_date"] ?? null,
-                    "amount" => $installment["amount"],
-                    "paid_amount" => 0,
-                ]);
+                $this->createInstallment(
+                    $order,
+                    (int) $installment["installment_number"],
+                    $installment["due_date"] ?? null,
+                    (float) $installment["amount"],
+                    false
+                );
             }
 
             return;
@@ -537,12 +557,31 @@ class OrderController extends Controller
 
             $remaining -= $amount;
 
-            $order->installments()->create([
-                "installment_number" => $i,
-                "due_date" => now()->addMonths($i)->toDateString(),
-                "amount" => $amount,
-                "paid_amount" => 0,
-            ]);
+            $this->createInstallment(
+                $order,
+                $i,
+                now()->addMonths($i)->toDateString(),
+                $amount,
+                false
+            );
         }
+    }
+
+    private function createInstallment(
+        SgcOrder $order,
+        int $number,
+        mixed $due_date,
+        float $amount,
+        bool $paid,
+    ): void {
+        $amount = round($amount, 2);
+
+        $order->installments()->create([
+            "installment_number" => $number,
+            "due_date" => $due_date,
+            "amount" => $amount,
+            "paid_amount" => $paid ? $amount : 0,
+            "paid_at" => $paid ? now() : null,
+        ]);
     }
 }
