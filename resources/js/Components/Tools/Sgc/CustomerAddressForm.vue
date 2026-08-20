@@ -25,24 +25,31 @@
                     ></v-text-field>
                 </v-col>
 
-                <v-col cols="12" lg="4">
+                <v-col cols="12" lg="6">
                     <v-text-field
                         label="Número"
                         v-model="form.address_number"
                     ></v-text-field>
                 </v-col>
 
-                <v-col cols="12" lg="4">
+                <v-col cols="12" lg="6">
                     <v-text-field
                         label="Bairro"
                         v-model="form.address_district"
                     ></v-text-field>
                 </v-col>
 
-                <v-col cols="12" lg="4">
+                <v-col cols="12">
                     <v-text-field
                         label="Complemento"
                         v-model="form.address_complement"
+                    ></v-text-field>
+                </v-col>
+
+                <v-col cols="12">
+                    <v-text-field
+                        label="Ponto de referência"
+                        v-model="form.address_reference_point"
                     ></v-text-field>
                 </v-col>
 
@@ -143,6 +150,7 @@
             address_street: null,
             address_number: null,
             address_complement: null,
+            address_reference_point: null,
             address_district: null,
             address_city: null,
             address_state: null,
@@ -156,6 +164,7 @@
             address_street: form.address_street,
             address_number: form.address_number,
             address_complement: form.address_complement,
+            address_reference_point: form.address_reference_point,
             address_district: form.address_district,
             address_city: form.address_city,
             address_state: form.address_state,

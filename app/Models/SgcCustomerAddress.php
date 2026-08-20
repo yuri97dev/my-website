@@ -12,6 +12,7 @@ class SgcCustomerAddress extends Model
         "address_street",
         "address_number",
         "address_complement",
+        "address_reference_point",
         "address_district",
         "address_city",
         "address_state",

@@ -114,12 +114,6 @@
 
             <v-spacer></v-spacer>
 
-            <slot
-                v-if="currentStep === 'data'"
-                name="action-buttons"
-                :can-manage-addresses="isEditing"
-            ></slot>
-
             <v-btn
                 v-if="currentStep === 'data'"
                 variant="text"
@@ -137,6 +131,12 @@
                 text="Próximo"
                 @click="goToNextStep"
             ></v-btn>
+
+            <slot
+                v-if="currentStep === 'data'"
+                name="action-buttons"
+                :can-manage-addresses="isEditing"
+            ></slot>
 
             <v-btn
                 v-if="currentStep === 'data'"

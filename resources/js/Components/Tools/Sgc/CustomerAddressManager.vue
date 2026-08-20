@@ -41,8 +41,12 @@
                     <v-card-text class="d-flex flex-column justify-end flex-grow-1 text-primary">
                         <div>{{ formatAddressSubtitle(address) }}</div>
 
-                        <div>
+                        <div v-if="address.address_complement">
                             {{ address.address_complement }}
+                        </div>
+
+                        <div v-if="address.address_reference_point">
+                            Ref.: {{ address.address_reference_point }}
                         </div>
 
                         <div
