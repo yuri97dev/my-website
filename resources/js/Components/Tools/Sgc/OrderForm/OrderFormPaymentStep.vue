@@ -62,7 +62,6 @@
                         <td>
                             <DateField
                                 flat
-                                width="300"
                                 variant="solo"
                                 prepend-inner-icon=""
                                 bg-color="transparent"
@@ -76,7 +75,6 @@
                             <v-text-field
                                 flat
                                 type="number"
-                                width="300"
                                 prefix="R$"
                                 min="0"
                                 step="0.01"
