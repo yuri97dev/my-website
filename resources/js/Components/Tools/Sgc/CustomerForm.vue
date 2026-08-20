@@ -43,10 +43,11 @@
 
     function openAddressManager() {
         const customer = customerFormFieldsRef.value?.getCustomer();
+        const companyId = customerFormFieldsRef.value?.getCompanyId();
 
         if( !customer?.id ) return;
 
-        addressManagerRef.value?.open(customer.id);
+        addressManagerRef.value?.open(customer.id, companyId);
     }
 
     function handleFormClosed() {

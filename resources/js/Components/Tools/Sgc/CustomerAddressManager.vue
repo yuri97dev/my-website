@@ -95,6 +95,8 @@
     const addressFormRef = ref(null);
 
     const customerId = ref(null);
+    const companyId = ref(null);
+    const companyAddressDefaults = ref(null);
     const addresses = ref([]);
     const loading = ref(false);
 
@@ -135,21 +137,51 @@
         }
     }
 
-    function openAddressForm(address = null) {
-        addressFormRef.value?.open(customerId.value, address);
+    async function loadCompanyAddressDefaults() {
+        companyAddressDefaults.value = null;
+
+        if( companyId.value == null ) return;
+
+        try {
+            const url = route("api.tools.sgc.companies.show", companyId.value);
+
+            const { data } = await api.get(url);
+
+            const company = data.company || {};
+
+            companyAddressDefaults.value = {
+                address_city: company.address_city ?? null,
+                address_state: company.address_state ?? null,
+                address_country: company.address_country ?? null,
+            };
+        } catch {
+            companyAddressDefaults.value = null;
+        }
     }
 
-    function open(id) {
+    function openAddressForm(address = null) {
+        addressFormRef.value?.open(
+            customerId.value,
+            address,
+            address?.id ? null : companyAddressDefaults.value,
+        );
+    }
+
+    function open(id, idCompany = null) {
         customerId.value = id;
+        companyId.value = idCompany;
         isOpen.value = true;
 
         loadAddresses();
+        loadCompanyAddressDefaults();
     }
 
     function close() {
         addressFormRef.value?.close();
         isOpen.value = false;
         customerId.value = null;
+        companyId.value = null;
+        companyAddressDefaults.value = null;
         addresses.value = [];
     }
 

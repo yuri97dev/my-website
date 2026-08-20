@@ -559,5 +559,6 @@
     defineExpose({
         open,
         getCustomer: () => customer.value,
+        getCompanyId: () => form.value.company_id,
     });
 </script>

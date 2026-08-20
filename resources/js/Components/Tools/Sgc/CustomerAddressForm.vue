@@ -176,6 +176,12 @@
         form.address_country = address.address_country ?? form.address_country;
     }
 
+    function applyCompanyAddressDefaults(defaults) {
+        form.address_city = defaults.address_city ?? form.address_city;
+        form.address_state = defaults.address_state ?? form.address_state;
+        form.address_country = defaults.address_country ?? form.address_country;
+    }
+
     async function handleSave() {
         if( !customerId.value ) return;
 
@@ -241,9 +247,15 @@
         }
     }
 
-    function open(id, address = null) {
+    function open(id, address = null, companyDefaults = null) {
         customerId.value = id;
+
         Object.assign(form, emptyAddress(), address || {});
+
+        if( !address?.id && companyDefaults ) {
+            applyCompanyAddressDefaults(companyDefaults);
+        }
+
         isOpen.value = true;
     }
 
