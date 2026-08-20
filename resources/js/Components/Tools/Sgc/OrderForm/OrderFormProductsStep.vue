@@ -48,11 +48,25 @@
                             variant="tonal"
                             class="h-100 d-flex flex-column"
                         >
-                            <v-card-title class="text-wrap text-body-1">
+                            <v-card-title class="text-truncate lines-2">
                                 {{ item.name }}
                             </v-card-title>
 
-                            <v-card-text class="d-flex flex-column ga-3 flex-grow-1">
+                            <v-card-subtitle
+                                v-if="item.serial_number"
+                                class="text-wrap opacity-100 pb-0"
+                            >
+                                <span class="d-inline-flex align-center ga-2">
+                                    <v-icon
+                                        icon="mdi-barcode"
+                                        size="small"
+                                    ></v-icon>
+
+                                    {{ item.serial_number }}
+                                </span>
+                            </v-card-subtitle>
+
+                            <v-card-text class="d-flex flex-column ga-4 flex-grow-1">
                                 <v-text-field
                                     label="Preço unitário"
                                     prefix="R$"

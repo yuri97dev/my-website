@@ -129,9 +129,13 @@
     }
 
     function itemSummary(item) {
-        const parts = [
-            `${formatNumber(item.quantity, 3)} × R$ ${formatMoney(item.unit_price)}`,
-        ];
+        const parts = [];
+
+        if( item.serial_number ) {
+            parts.push(item.serial_number);
+        }
+
+        parts.push(`${formatNumber(item.quantity, 3)} × R$ ${formatMoney(item.unit_price)}`);
 
         if( Number(item.discount_amount || 0) > 0 ) {
             parts.push(`desconto R$ ${formatMoney(item.discount_amount)}`);

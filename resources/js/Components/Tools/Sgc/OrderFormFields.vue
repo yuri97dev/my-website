@@ -339,9 +339,8 @@
         cart.value[id] = {
             product_id: product.id,
             company_product_id: product.company_product_id,
-            name: product.serial_number
-                ? `${product.name} — ${product.serial_number}`
-                : product.name,
+            name: product.name,
+            serial_number: product.serial_number || null,
             quantity: finalQty,
             unit_price: toMoney(product.sale_price || 0),
             unit_of_measure_id: product.unit_of_measure_id ?? null,

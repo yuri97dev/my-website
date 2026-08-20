@@ -168,6 +168,8 @@ class ProductListingService
             "concat_ws(' ', sgc_products.name, sgc_brands.name, sgc_product_categories.name, sgc_company_product.serial_number)",
         );
 
+        $this->applyStockFilter($query, $request);
+
         return $query
             ->orderByDesc("sgc_company_product.id")
             ->paginate($this->perPage($request));
@@ -224,5 +226,18 @@ class ProductListingService
                     $request->input("search")
                 );
             });
+    }
+
+    private function applyStockFilter(Builder $query, Request $request): void
+    {
+        $stock = $request->input("stock", "all");
+
+        if( $stock === "in_stock" ) {
+            $query->where("sgc_company_product.stock_quantity", ">", 0);
+        }
+
+        if( $stock === "out_of_stock" ) {
+            $query->where("sgc_company_product.stock_quantity", "<=", 0);
+        }
     }
 }

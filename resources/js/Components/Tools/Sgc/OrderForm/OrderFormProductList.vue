@@ -17,6 +17,7 @@
                     hide-details
                     v-model="search"
                     @keyup.enter="submitSearch"
+                    @click:clear="clearSearch"
                 ></v-text-field>
             </v-col>
 
@@ -40,11 +41,11 @@
         ></v-progress-linear>
 
         <v-row
-            v-else-if="filteredProducts.length > 0"
+            v-else-if="products.length > 0"
             class="mt-4"
         >
             <v-col
-                v-for="product in filteredProducts"
+                v-for="product in products"
                 :key="product.company_product_id"
                 cols="12"
                 lg="6"
@@ -54,11 +55,25 @@
                     variant="tonal"
                     class="h-100 d-flex flex-column"
                 >
-                    <v-card-title class="text-wrap text-body-1">
-                        {{ productTitle(product) }}
+                    <v-card-title class="text-truncate lines-2">
+                        {{ product.name }}
                     </v-card-title>
 
-                    <v-card-text class="text-body-2 text-medium-emphasis">
+                    <v-card-subtitle
+                        v-if="product.serial_number"
+                        class="text-wrap opacity-100 pb-0"
+                    >
+                        <span class="d-inline-flex align-center ga-2">
+                            <v-icon
+                                icon="mdi-barcode"
+                                size="small"
+                            ></v-icon>
+
+                            {{ product.serial_number }}
+                        </span>
+                    </v-card-subtitle>
+
+                    <v-card-text class="text-body-2 text-medium-emphasis pt-2">
                         {{ productSubtitle(product) }}
                     </v-card-text>
 
@@ -93,7 +108,7 @@
 </template>
 
 <script setup>
-    import { ref, computed, watch } from "vue";
+    import { ref, watch } from "vue";
 
     import api from "@/api";
 
@@ -119,7 +134,7 @@
     const products = ref([]);
     const search = ref("");
     const appliedSearch = ref("");
-    const stockFilter = ref("all");
+    const stockFilter = ref("in_stock");
     const loading = ref(false);
     const hasFetched = ref(false);
     let suppressStockFilterFetch = false;
@@ -130,34 +145,12 @@
         { title: "SEM ESTOQUE", value: "out_of_stock" },
     ];
 
-    const filteredProducts = computed(() => {
-        return products.value.filter((product) => {
-            if( stockFilter.value === "in_stock" && !hasStock(product) ) {
-                return false;
-            }
-
-            if( stockFilter.value === "out_of_stock" && hasStock(product) ) {
-                return false;
-            }
-
-            return true;
-        });
-    });
-
     function hasStock(product) {
         return Number(product.stock_quantity || 0) > 0;
     }
 
     function cartQuantity(companyProductId) {
         return Number(props.cart[companyProductId]?.quantity || 0);
-    }
-
-    function productTitle(product) {
-        if( product.serial_number ) {
-            return `${product.name} — ${product.serial_number}`;
-        }
-
-        return product.name;
     }
 
     function productSubtitle(product) {
@@ -189,6 +182,30 @@
         fetchProducts();
     }
 
+    function clearSearch() {
+        search.value = "";
+        appliedSearch.value = "";
+
+        if( hasFetched.value ) {
+            fetchProducts();
+        }
+    }
+
+    function buildFetchParams() {
+        const params = {
+            company_id: props.companyId,
+            stock: stockFilter.value,
+            per_page: 100,
+            page: 1,
+        };
+
+        if( appliedSearch.value ) {
+            params.search = appliedSearch.value;
+        }
+
+        return params;
+    }
+
     async function fetchProducts() {
         if( !props.companyId ) {
             products.value = [];
@@ -200,17 +217,10 @@
 
         try {
             const url = route("api.tools.sgc.company-products.index");
-            const params = {
-                company_id: props.companyId,
-                per_page: 100,
-                page: 1,
-            };
 
-            if( appliedSearch.value ) {
-                params.search = appliedSearch.value;
-            }
-
-            const { data } = await api.get(url, { params });
+            const { data } = await api.get(url, {
+                params: buildFetchParams(),
+            });
 
             products.value = data.company_products || [];
             hasFetched.value = true;

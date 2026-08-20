@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SgcCompany;
 use App\Services\Sgc\ProductListingService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 class CompanyProductController extends Controller
@@ -22,6 +23,7 @@ class CompanyProductController extends Controller
             "id" => ["nullable", "integer"],
             "name" => ["nullable", "string", "max:255"],
             "search" => ["nullable", "string", "max:255"],
+            "stock" => ["nullable", "string", Rule::in(["all", "in_stock", "out_of_stock"])],
         ]);
 
         $company = SgcCompany::query()->findOrFail($request->integer("company_id"));
