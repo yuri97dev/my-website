@@ -42,6 +42,8 @@
                 <v-col cols="12">
                     <v-text-field
                         label="Complemento"
+                        hint="Detalhes do imóvel. Ex.: Apto 101, Bloco B, Sala 3"
+                        persistent-hint
                         v-model="form.address_complement"
                     ></v-text-field>
                 </v-col>
@@ -49,6 +51,8 @@
                 <v-col cols="12">
                     <v-text-field
                         label="Ponto de referência"
+                        hint="Referência externa para achar o local. Ex.: Próximo ao mercado Central, em frente à praça"
+                        persistent-hint
                         v-model="form.address_reference_point"
                     ></v-text-field>
                 </v-col>
