@@ -8,6 +8,7 @@
         <v-row>
             <v-col cols="12" lg="6">
                 <CompanyAutocomplete
+                    auto-select-single
                     :disabled="isEditing"
                     v-model="form.company_id"
                 ></CompanyAutocomplete>

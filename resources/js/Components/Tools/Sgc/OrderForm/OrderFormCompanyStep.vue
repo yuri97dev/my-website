@@ -2,6 +2,7 @@
     <v-row>
         <v-col cols="12">
             <CompanyAutocomplete
+                auto-select-single
                 ref="companyAutocompleteRef"
                 :disabled="isEditing"
                 v-model="companyId"
