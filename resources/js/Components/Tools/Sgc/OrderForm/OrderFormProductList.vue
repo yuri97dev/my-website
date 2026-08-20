@@ -45,7 +45,7 @@
         >
             <v-col
                 v-for="product in filteredProducts"
-                :key="product.id"
+                :key="product.company_product_id"
                 cols="12"
                 lg="6"
             >
@@ -55,7 +55,7 @@
                     class="h-100 d-flex flex-column"
                 >
                     <v-card-title class="text-wrap text-body-1">
-                        {{ product.name }}
+                        {{ productTitle(product) }}
                     </v-card-title>
 
                     <v-card-text class="text-body-2 text-medium-emphasis">
@@ -71,7 +71,7 @@
                             :max="Number(product.stock_quantity || 0)"
                             :disabled="!hasStock(product)"
                             :suffix="product.unit_of_measure || undefined"
-                            :model-value="cartQuantity(product.id)"
+                            :model-value="cartQuantity(product.company_product_id)"
                             @update:model-value="setQuantity(product, $event)"
                         ></v-number-input>
                     </v-card-actions>
@@ -148,8 +148,16 @@
         return Number(product.stock_quantity || 0) > 0;
     }
 
-    function cartQuantity(productId) {
-        return Number(props.cart[productId]?.quantity || 0);
+    function cartQuantity(companyProductId) {
+        return Number(props.cart[companyProductId]?.quantity || 0);
+    }
+
+    function productTitle(product) {
+        if( product.serial_number ) {
+            return `${product.name} — ${product.serial_number}`;
+        }
+
+        return product.name;
     }
 
     function productSubtitle(product) {
@@ -191,7 +199,7 @@
         loading.value = true;
 
         try {
-            const url = route("api.tools.sgc.products.index");
+            const url = route("api.tools.sgc.company-products.index");
             const params = {
                 company_id: props.companyId,
                 per_page: 100,
@@ -204,7 +212,7 @@
 
             const { data } = await api.get(url, { params });
 
-            products.value = data.products || [];
+            products.value = data.company_products || [];
             hasFetched.value = true;
         } catch (e) {
             const { message } = e?.response?.data || {};

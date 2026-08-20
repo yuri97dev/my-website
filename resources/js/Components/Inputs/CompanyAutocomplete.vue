@@ -34,6 +34,10 @@
     });
 
     const props = defineProps({
+        autoSelectSingle: {
+            type: Boolean,
+            default: false,
+        },
         clearable: {
             type: Boolean,
             default: false,
@@ -69,9 +73,23 @@
         };
     }
 
+    function tryAutoSelectSingle() {
+        if( !props.autoSelectSingle ) return;
+
+        if( modelValue.value != null ) return;
+
+        const items = autocompleteRef.value?.items ?? [];
+
+        if( items.length !== 1 ) return;
+
+        selectedCompany.value = items[0];
+    }
+
     async function syncSelectedFromId(id) {
         if( id == null ) {
             selectedCompany.value = null;
+            await nextTick();
+            tryAutoSelectSingle();
             return;
         }
 
@@ -104,6 +122,12 @@
         await nextTick();
         await syncSelectedFromId(id);
     }, { immediate: true });
+
+    watch(
+        () => autocompleteRef.value?.items,
+        () => tryAutoSelectSingle(),
+        { deep: true },
+    );
 
     watch(selectedCompany, (company) => {
         const id = company?.id ?? null;

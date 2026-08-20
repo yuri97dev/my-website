@@ -356,6 +356,7 @@ class OrderController extends Controller
         return collect($items)->map(function ($item) {
             return [
                 "product_id" => $item["product_id"] ?? null,
+                "company_product_id" => $item["company_product_id"] ?? null,
                 "unit_of_measure_id" => $item["unit_of_measure_id"] ?? null,
                 "quantity" => $item["quantity"],
                 "unit_price" => $item["unit_price"],

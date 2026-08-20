@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Sgc;
 
-use App\Helpers\SearchQuery;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sgc\StoreProductRequest;
 use App\Http\Requests\Sgc\UpdateProductRequest;
@@ -11,6 +10,7 @@ use App\Models\SgcCompanyProduct;
 use App\Models\SgcCompanyProductStockMovement;
 use App\Models\SgcProduct;
 use App\Models\User;
+use App\Services\Sgc\ProductListingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,6 +26,10 @@ class ProductController extends Controller
         "serial_number",
         "currency",
     ];
+
+    public function __construct(
+        private ProductListingService $listing,
+    ) {}
 
     public function index(Request $request)
     {
@@ -46,131 +50,7 @@ class ProductController extends Controller
             );
         }
 
-        $per_page = min($request->integer("per_page", 15), 100);
-
-        $pivots = DB::table("sgc_company_product")
-            ->select([
-                "product_id",
-                "company_id",
-                DB::raw("min(id) as id"),
-                DB::raw("sum(stock_quantity) as stock_quantity"),
-                DB::raw("count(*) as units_count"),
-                DB::raw("min(serial_number) as serial_number"),
-                DB::raw("min(sale_price) as sale_price"),
-                DB::raw("max(sale_price) as max_sale_price"),
-                DB::raw("min(cost_price) as cost_price"),
-                DB::raw("max(cost_price) as max_cost_price"),
-                DB::raw("min(unit_of_measure_id) as unit_of_measure_id"),
-            ])
-            ->groupBy("product_id", "company_id");
-
-        $paginator = SgcProduct::query()
-            ->leftJoin(
-                "sgc_brands",
-                "sgc_products.brand_id",
-                "=",
-                "sgc_brands.id"
-            )
-            ->leftJoin(
-                "sgc_product_categories",
-                "sgc_products.product_category_id",
-                "=",
-                "sgc_product_categories.id"
-            )
-            ->leftJoinSub($pivots, "sgc_company_product", function ($join) use ($request) {
-                $join->on("sgc_products.id", "=", "sgc_company_product.product_id");
-
-                if( $request->filled("company_id") ) {
-                    $join->where(
-                        "sgc_company_product.company_id",
-                        $request->integer("company_id")
-                    );
-
-                    return;
-                }
-
-                $join->whereIn(
-                    "sgc_company_product.company_id",
-                    SgcCompany::query()
-                        ->accessibleBy($request->user())
-                        ->select("sgc_companies.id")
-                );
-            })
-            ->leftJoin(
-                "sgc_units_of_measure",
-                "sgc_company_product.unit_of_measure_id",
-                "=",
-                "sgc_units_of_measure.id"
-            )
-            ->select([
-                "sgc_products.*",
-                "sgc_brands.name as brand_name",
-                "sgc_product_categories.name as category_name",
-                "sgc_company_product.id as company_product_id",
-                "sgc_company_product.company_id",
-                "sgc_company_product.sale_price",
-                "sgc_company_product.max_sale_price",
-                "sgc_company_product.cost_price",
-                "sgc_company_product.max_cost_price",
-                "sgc_company_product.stock_quantity",
-                "sgc_company_product.serial_number",
-                "sgc_company_product.units_count",
-                "sgc_company_product.unit_of_measure_id",
-                "sgc_units_of_measure.abbreviation as unit_of_measure",
-            ])
-            ->when($request->filled("company_id"), function ($query) use ($request) {
-                $query->where(
-                    "sgc_company_product.company_id",
-                    $request->integer("company_id")
-                );
-            })
-            ->whereHas("companies", function ($query) use ($request) {
-                $query->accessibleBy($request->user());
-
-                if( $request->filled("company_id") ) {
-                    $query->where("sgc_companies.id", $request->integer("company_id"));
-                }
-
-                if( $request->filled("company") ) {
-                    $company = $request->input("company");
-
-                    $query->where(function ($query) use ($company) {
-                        SearchQuery::applySubstringSearch($query, "sgc_companies.legal_name", $company);
-
-                        $query->orWhere(function ($query) use ($company) {
-                            SearchQuery::applySubstringSearch($query, "sgc_companies.trade_name", $company);
-                        });
-                    });
-                }
-            })
-            ->when($request->filled("id"), function ($query) use ($request) {
-                $query->where("sgc_products.id", $request->integer("id"));
-            })
-            ->when($request->filled("name"), function ($query) use ($request) {
-                SearchQuery::applySubstringSearch(
-                    $query,
-                    "sgc_products.name",
-                    $request->input("name")
-                );
-            })
-            ->when($request->filled("search"), function ($query) use ($request) {
-                SearchQuery::applyWordSearch(
-                    $query,
-                    "concat_ws(' ', sgc_products.name, sgc_brands.name, sgc_product_categories.name)",
-                    $request->input("search")
-                );
-            })
-            ->with([
-                "companies" => function ($query) use ($request) {
-                    $query->accessibleBy($request->user());
-
-                    if( $request->filled("company_id") ) {
-                        $query->where("sgc_companies.id", $request->integer("company_id"));
-                    }
-                },
-            ])
-            ->orderByDesc("sgc_products.id")
-            ->paginate($per_page);
+        $paginator = $this->listing->grouped($request);
 
         return response()->json([
             "current_page" => $paginator->currentPage(),
@@ -341,48 +221,6 @@ class ProductController extends Controller
 
         return response()->json([
             "message" => "Produto removido com sucesso.",
-        ], 200);
-    }
-
-    public function units(Request $request, SgcProduct $sgc_product)
-    {
-        abort_unless(
-            $this->productAccessibleByUser($sgc_product, $request->user()),
-            Response::HTTP_FORBIDDEN
-        );
-
-        $request->validate([
-            "company_id" => ["nullable", "integer", "exists:sgc_companies,id"],
-        ]);
-
-        if( $request->filled("company_id") ) {
-            $company = SgcCompany::query()->findOrFail($request->integer("company_id"));
-
-            abort_unless(
-                $company->isAccessibleBy($request->user()),
-                Response::HTTP_FORBIDDEN
-            );
-        }
-
-        $units = SgcCompanyProduct::query()
-            ->where("product_id", $sgc_product->id)
-            ->when($request->filled("company_id"), function ($query) use ($request) {
-                $query->where("company_id", $request->integer("company_id"));
-            })
-            ->whereIn(
-                "company_id",
-                SgcCompany::query()
-                    ->accessibleBy($request->user())
-                    ->select("sgc_companies.id")
-            )
-            ->with([
-                "unitOfMeasure:id,abbreviation",
-            ])
-            ->orderBy("id")
-            ->get();
-
-        return response()->json([
-            "units" => $units,
         ], 200);
     }
 

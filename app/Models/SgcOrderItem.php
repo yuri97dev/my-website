@@ -10,6 +10,7 @@ class SgcOrderItem extends Model
     protected $fillable = [
         "order_id",
         "product_id",
+        "company_product_id",
         "unit_of_measure_id",
         "quantity",
         "unit_price",
@@ -33,6 +34,11 @@ class SgcOrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(SgcProduct::class, "product_id");
+    }
+
+    public function companyProduct(): BelongsTo
+    {
+        return $this->belongsTo(SgcCompanyProduct::class, "company_product_id");
     }
 
     public function unitOfMeasure(): BelongsTo

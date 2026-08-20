@@ -305,8 +305,8 @@
         }
     }
 
-    function setCartQuantity({ product, productId, quantity }) {
-        const id = productId ?? product?.id;
+    function setCartQuantity({ product, companyProductId, quantity }) {
+        const id = companyProductId ?? product?.company_product_id;
 
         if( !id ) return;
 
@@ -337,8 +337,11 @@
         if( !product ) return;
 
         cart.value[id] = {
-            product_id: id,
-            name: product.name,
+            product_id: product.id,
+            company_product_id: product.company_product_id,
+            name: product.serial_number
+                ? `${product.name} — ${product.serial_number}`
+                : product.name,
             quantity: finalQty,
             unit_price: toMoney(product.sale_price || 0),
             unit_of_measure_id: product.unit_of_measure_id ?? null,
@@ -363,6 +366,7 @@
     function buildItemsPayload() {
         return cartItems.value.map(item => ({
             product_id: item.product_id,
+            company_product_id: item.company_product_id,
             unit_of_measure_id: item.unit_of_measure_id,
             quantity: item.quantity,
             unit_price: toMoney(item.unit_price),

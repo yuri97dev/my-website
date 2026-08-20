@@ -55,6 +55,11 @@ abstract class SgcOrderRequest extends SgcFormRequest
                 "integer",
                 Rule::exists("sgc_products", "id"),
             ],
+            "items.*.company_product_id" => [
+                "nullable",
+                "integer",
+                Rule::exists("sgc_company_product", "id"),
+            ],
             "items.*.unit_of_measure_id" => [
                 "nullable",
                 "integer",
@@ -107,6 +112,8 @@ abstract class SgcOrderRequest extends SgcFormRequest
             "items.*.product_id.required" => "O produto é obrigatório.",
             "items.*.product_id.integer" => "O produto deve ser um número inteiro.",
             "items.*.product_id.exists" => "O produto selecionado é inválido.",
+            "items.*.company_product_id.integer" => "A unidade do produto deve ser um número inteiro.",
+            "items.*.company_product_id.exists" => "A unidade do produto selecionada é inválida.",
             "items.*.unit_of_measure_id.integer" => "A unidade de medida deve ser um número inteiro.",
             "items.*.unit_of_measure_id.exists" => "A unidade de medida selecionada é inválida.",
             "items.*.quantity.required" => "A quantidade é obrigatória.",
@@ -209,8 +216,26 @@ abstract class SgcOrderRequest extends SgcFormRequest
     {
         foreach( $this->input("items", []) as $index => $item ) {
             $product_id = $item["product_id"] ?? null;
+            $company_product_id = $item["company_product_id"] ?? null;
 
             if( !$product_id ) {
+                continue;
+            }
+
+            if( $company_product_id ) {
+                $pivot = DB::table("sgc_company_product")
+                    ->where("id", $company_product_id)
+                    ->where("company_id", $company_id)
+                    ->where("product_id", $product_id)
+                    ->first();
+
+                if( !$pivot ) {
+                    $validator->errors()->add(
+                        "items.{$index}.company_product_id",
+                        "Unidade do produto inválida para esta empresa."
+                    );
+                }
+
                 continue;
             }
 
@@ -238,35 +263,47 @@ abstract class SgcOrderRequest extends SgcFormRequest
 
         foreach( $this->input("items", []) as $index => $item ) {
             $product_id = $item["product_id"] ?? null;
+            $company_product_id = $item["company_product_id"] ?? null;
 
             if( !$product_id ) {
                 continue;
             }
 
-            if( !isset($required[$product_id]) ) {
-                $required[$product_id] = [
+            $key = $company_product_id
+                ? "cp:{$company_product_id}"
+                : "p:{$product_id}";
+
+            if( !isset($required[$key]) ) {
+                $required[$key] = [
                     "quantity" => 0,
                     "index" => $index,
+                    "product_id" => $product_id,
+                    "company_product_id" => $company_product_id,
                 ];
             }
 
-            $required[$product_id]["quantity"] += (float) ($item["quantity"] ?? 0);
+            $required[$key]["quantity"] += (float) ($item["quantity"] ?? 0);
         }
 
         if( count($required) < 1 ) {
             return;
         }
 
-        $stocks = DB::table("sgc_company_product")
-            ->where("company_id", $company_id)
-            ->whereIn("product_id", array_keys($required))
-            ->select("product_id", DB::raw("sum(stock_quantity) as stock_quantity"))
-            ->groupBy("product_id")
-            ->pluck("stock_quantity", "product_id");
-
-        foreach( $required as $product_id => $data ) {
-            $available = round((float) ($stocks[$product_id] ?? 0), 3);
+        foreach( $required as $data ) {
             $needed = round($data["quantity"], 3);
+
+            if( $data["company_product_id"] ) {
+                $available = round((float) DB::table("sgc_company_product")
+                    ->where("id", $data["company_product_id"])
+                    ->where("company_id", $company_id)
+                    ->where("product_id", $data["product_id"])
+                    ->value("stock_quantity"), 3);
+            } else {
+                $available = round((float) DB::table("sgc_company_product")
+                    ->where("company_id", $company_id)
+                    ->where("product_id", $data["product_id"])
+                    ->sum("stock_quantity"), 3);
+            }
 
             if( $needed <= $available ) {
                 continue;

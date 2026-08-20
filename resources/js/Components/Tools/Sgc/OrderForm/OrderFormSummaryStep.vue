@@ -29,7 +29,7 @@
 
         <v-list-item
             v-for="item in cartItems"
-            :key="`summary-${item.product_id}`"
+            :key="`summary-${item.company_product_id}`"
             prepend-icon="mdi-package-variant"
             :title="item.name"
             :subtitle="itemSummary(item)"

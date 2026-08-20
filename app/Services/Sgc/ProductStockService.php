@@ -54,9 +54,14 @@ class ProductStockService
         string $reason,
         ?User $user,
     ): void {
-        $items = $order->items()->get(["product_id", "quantity"])->map(function ($item) {
+        $items = $order->items()->get([
+            "product_id",
+            "company_product_id",
+            "quantity",
+        ])->map(function ($item) {
             return [
                 "product_id" => $item->product_id,
+                "company_product_id" => $item->company_product_id,
                 "quantity" => $item->quantity,
             ];
         })->all();
@@ -88,25 +93,67 @@ class ProductStockService
 
         foreach( $items as $item ) {
             $product_id = $item["product_id"] ?? null;
+            $company_product_id = $item["company_product_id"] ?? null;
 
             if( !$product_id ) {
                 continue;
             }
 
-            $quantities[$product_id] = ($quantities[$product_id] ?? 0)
-                + (float) ($item["quantity"] ?? 0);
+            $key = $company_product_id
+                ? "cp:{$company_product_id}"
+                : "p:{$product_id}";
+
+            $quantities[$key] = [
+                "product_id" => $product_id,
+                "company_product_id" => $company_product_id,
+                "quantity" => ($quantities[$key]["quantity"] ?? 0)
+                    + (float) ($item["quantity"] ?? 0),
+            ];
         }
 
-        foreach( $quantities as $product_id => $quantity ) {
-            $delta = round($quantity * $multiplier, 3);
+        foreach( $quantities as $data ) {
+            $delta = round($data["quantity"] * $multiplier, 3);
 
             if( $delta == 0 ) {
                 continue;
             }
 
+            if( $data["company_product_id"] ) {
+                $pivot = SgcCompanyProduct::query()
+                    ->where("id", $data["company_product_id"])
+                    ->where("company_id", $company_id)
+                    ->where("product_id", $data["product_id"])
+                    ->lockForUpdate()
+                    ->first();
+
+                if( !$pivot ) {
+                    throw ValidationException::withMessages([
+                        "items" => "Unidade do produto não vinculada a esta empresa.",
+                    ]);
+                }
+
+                if( $delta < 0 ) {
+                    $this->consumeFromPivot(
+                        $pivot,
+                        abs($delta),
+                        (int) $data["product_id"],
+                        $type,
+                        $reason,
+                        $order,
+                        $user,
+                    );
+
+                    continue;
+                }
+
+                $this->applyDelta($pivot, $delta, $type, $reason, $order, $user);
+
+                continue;
+            }
+
             $pivots = SgcCompanyProduct::query()
                 ->where("company_id", $company_id)
-                ->where("product_id", $product_id)
+                ->where("product_id", $data["product_id"])
                 ->orderBy("id")
                 ->lockForUpdate()
                 ->get();
@@ -118,7 +165,7 @@ class ProductStockService
             }
 
             if( $delta < 0 ) {
-                $this->consumeStock($pivots, abs($delta), (int) $product_id, $type, $reason, $order, $user);
+                $this->consumeStock($pivots, abs($delta), (int) $data["product_id"], $type, $reason, $order, $user);
 
                 continue;
             }
@@ -127,6 +174,31 @@ class ProductStockService
 
             $this->applyDelta($pivot, $delta, $type, $reason, $order, $user);
         }
+    }
+
+    private function consumeFromPivot(
+        SgcCompanyProduct $pivot,
+        float $needed,
+        int $product_id,
+        string $type,
+        ?string $reason,
+        SgcOrder $order,
+        ?User $user,
+    ): void {
+        $available = round((float) $pivot->stock_quantity, 3);
+        $needed = round($needed, 3);
+
+        if( $needed > $available ) {
+            $name = SgcProduct::query()->whereKey($product_id)->value("name");
+
+            throw ValidationException::withMessages([
+                "items" => $name
+                    ? "Estoque insuficiente para o produto {$name}."
+                    : "Estoque insuficiente para um dos produtos do pedido.",
+            ]);
+        }
+
+        $this->applyDelta($pivot, -$needed, $type, $reason, $order, $user);
     }
 
     /**

@@ -30,7 +30,7 @@
         >
             <v-list-item
                 v-for="unit in units"
-                :key="unit.id"
+                :key="unit.company_product_id"
                 prepend-icon="mdi-barcode"
                 :title="unitTitle(unit)"
                 :subtitle="unitSubtitle(unit)"
@@ -85,7 +85,7 @@
             return unit.serial_number;
         }
 
-        return `Unidade #${unit.id}`;
+        return `Unidade #${unit.company_product_id}`;
     }
 
     function unitSubtitle(unit) {
@@ -93,8 +93,8 @@
             `Estoque: ${formatNumber(unit.stock_quantity, 3)}`,
         ];
 
-        if( unit.unit_of_measure?.abbreviation ) {
-            parts.push(unit.unit_of_measure.abbreviation);
+        if( unit.unit_of_measure ) {
+            parts.push(unit.unit_of_measure);
         }
 
         if( unit.sale_price != null ) {
@@ -108,15 +108,15 @@
         emit("select", {
             id: productId.value,
             company_id: unit.company_id,
-            company_product_id: unit.id,
+            company_product_id: unit.company_product_id,
             serial_number: unit.serial_number,
             sale_price: unit.sale_price,
             cost_price: unit.cost_price,
             stock_quantity: unit.stock_quantity,
             unit_of_measure_id: unit.unit_of_measure_id,
-            unit_of_measure: unit.unit_of_measure?.abbreviation ?? null,
+            unit_of_measure: unit.unit_of_measure ?? null,
             pivot: {
-                id: unit.id,
+                id: unit.company_product_id,
                 sale_price: unit.sale_price,
                 cost_price: unit.cost_price,
                 stock_quantity: unit.stock_quantity,
@@ -127,22 +127,24 @@
     }
 
     async function loadUnits() {
-        if( !productId.value ) {
+        if( !productId.value || !companyId.value ) {
             return;
         }
 
         loading.value = true;
 
         try {
-            const url = route("api.tools.sgc.products.units.index", productId.value);
+            const url = route("api.tools.sgc.company-products.index");
 
             const { data } = await api.get(url, {
                 params: {
-                    company_id: companyId.value || undefined,
+                    company_id: companyId.value,
+                    product_id: productId.value,
+                    per_page: 100,
                 },
             });
 
-            units.value = data.units || [];
+            units.value = data.company_products || [];
         } catch (e) {
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao buscar unidades");

@@ -22,6 +22,7 @@ use App\Http\Controllers\SpreadsheetFormatterController;
 use App\Http\Controllers\PostalCodeAddressController;
 use App\Http\Controllers\Sgc\BrandController as SgcBrandController;
 use App\Http\Controllers\Sgc\CompanyController as SgcCompanyController;
+use App\Http\Controllers\Sgc\CompanyProductController as SgcCompanyProductController;
 use App\Http\Controllers\Sgc\CustomerAddressController as SgcCustomerAddressController;
 use App\Http\Controllers\Sgc\CustomerController as SgcCustomerController;
 use App\Http\Controllers\Sgc\ProductCategoryController as SgcProductCategoryController;
@@ -359,6 +360,10 @@ Route::prefix("tools")->group(function() {
             SgcProductCategoryController::class, "destroy",
         ])->name("api.tools.sgc.product-categories.destroy");
 
+        Route::get("/company-products", [
+            SgcCompanyProductController::class, "index",
+        ])->name("api.tools.sgc.company-products.index");
+
         Route::get("/products", [
             SgcProductController::class, "index",
         ])->name("api.tools.sgc.products.index");
@@ -382,10 +387,6 @@ Route::prefix("tools")->group(function() {
         Route::get("/products/{sgc_product}/stock-movements", [
             SgcProductController::class, "stockMovements",
         ])->name("api.tools.sgc.products.stock-movements.index");
-
-        Route::get("/products/{sgc_product}/units", [
-            SgcProductController::class, "units",
-        ])->name("api.tools.sgc.products.units.index");
 
         Route::get("/employees", [
             SgcEmployeeController::class, "index",

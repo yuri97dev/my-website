@@ -39,7 +39,7 @@
                 <v-row>
                     <v-col
                         v-for="(item, index) in cartItems"
-                        :key="item.product_id"
+                        :key="item.company_product_id"
                         cols="12"
                         lg="6"
                     >
@@ -149,7 +149,7 @@
 
     function updateItemQuantity(item, quantity) {
         emit("set-quantity", {
-            productId: item.product_id,
+            companyProductId: item.company_product_id,
             quantity,
         });
     }
