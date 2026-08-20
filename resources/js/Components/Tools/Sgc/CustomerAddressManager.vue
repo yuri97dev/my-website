@@ -33,7 +33,7 @@
                     @click="openAddressForm(address)"
                 >
                     <v-card-title class="text-wrap">
-                        <div class="lines-2">
+                        <div>
                             {{ formatAddressTitle(address) }}
                         </div>
                     </v-card-title>
@@ -41,9 +41,13 @@
                     <v-card-text class="d-flex flex-column justify-end flex-grow-1 text-primary">
                         <div>{{ formatAddressSubtitle(address) }}</div>
 
+                        <div>
+                            {{ address.address_complement }}
+                        </div>
+
                         <div
                             v-if="address.address_postal_code"
-                            class="text-end mt-2"
+                            class="text-end"
                         >
                             CEP {{ address.address_postal_code }}
                         </div>
@@ -96,11 +100,11 @@
 
     function formatAddressTitle(address) {
         const street = [
-            address.address_street,
+            address.address_street || "Logradouro não informado",
             address.address_number,
         ].filter(Boolean).join(", ");
 
-        return street || "Endereço sem logradouro";
+        return street;
     }
 
     function formatAddressSubtitle(address) {
