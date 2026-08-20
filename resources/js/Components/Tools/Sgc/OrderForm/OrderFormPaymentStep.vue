@@ -60,25 +60,27 @@
                         </td>
 
                         <td>
-                            <v-date-input
+                            <DateField
+                                flat
                                 width="300"
-                                prepend-icon=""
-                                prepend-inner-icon="mdi-calendar-outline"
+                                variant="solo"
+                                prepend-inner-icon=""
                                 bg-color="transparent"
-                                :allowed-dates="isDueDateAllowed"
                                 :error-messages="installmentError(installment.installment_number, 'due_date')"
-                                :model-value="parseDueDate(installment.due_date)"
-                                @update:model-value="(value) => setDueDate(installment, value)"
-                            ></v-date-input>
+                                @update:model-value="handleInstallmentEdit"
+                                v-model="installment.due_date"
+                            ></DateField>
                         </td>
 
                         <td>
                             <v-text-field
+                                flat
                                 type="number"
                                 width="300"
                                 prefix="R$"
                                 min="0"
                                 step="0.01"
+                                variant="solo"
                                 bg-color="transparent"
                                 :error-messages="installmentError(installment.installment_number, 'amount')"
                                 @update:model-value="handleInstallmentEdit"
@@ -131,8 +133,8 @@
         sumInstallmentAmounts,
     } from "@/Utils/Installments";
 
-    import { formatDate, parseDate } from "@/Utils/Common";
-    import { isNonBusinessDay } from "@/Utils/BusinessDays";
+    import DateField from "@/Components/DateField.vue";
+
     import { formatMoney } from "@/Utils/Money";
 
     const props = defineProps({
@@ -225,25 +227,6 @@
         const key = `installments.${installmentNumber - 1}.${field}`;
 
         return props.errors[key];
-    }
-
-    function parseDueDate(value) {
-        return parseDate(value);
-    }
-
-    function setDueDate(installment, value) {
-        installment.due_date = value ? formatDate(value, "yyyy-MM-dd") : null;
-        handleInstallmentEdit();
-    }
-
-    function isDueDateAllowed(date) {
-        const parsed = parseDate(date);
-
-        if( !parsed ) {
-            return false;
-        }
-
-        return !isNonBusinessDay(parsed);
     }
 
     function handleInstallmentEdit() {

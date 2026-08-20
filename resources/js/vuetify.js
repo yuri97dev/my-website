@@ -49,10 +49,6 @@ export default createVuetify({
         VFileUpload: {
             hideDetails: "auto",
         },
-        VDateInput: {
-            hideDetails: "auto",
-            inputFormat: "dd/MM/yyyy",
-        },
         VNumberInput: {
             hideDetails: "auto",
         },

@@ -38,13 +38,12 @@
 
             <v-col cols="12" lg="4" xl="3">
                 <v-card hover>
-                    <v-date-input
+                    <DateField
                         variant="solo"
-                        prepend-icon=""
-                        prepend-inner-icon="mdi-calendar-outline"
+                        :warn-non-business-day="false"
                         :disabled="!!selectedFile"
                         v-model="date"
-                    ></v-date-input>
+                    ></DateField>
                 </v-card>
             </v-col>
         </v-row>
@@ -190,6 +189,7 @@
     import api from "@/api";
 
     import Container from "@/Components/Container.vue";
+    import DateField from "@/Components/DateField.vue";
     import Dialog from "@/Components/Dialog.vue";
     import LogFileSelect from "@/Components/Inputs/LogFileSelect.vue";
 
@@ -198,14 +198,12 @@
     import { formatDate, formatText } from "@/Utils/Common";
 
     const search = ref("");
-    const date = ref(new Date());
+    const date = ref(formatDate(new Date(), "yyyy-MM-dd"));
     const selectedFile = ref(null);
     const content = ref("");
     const loading = ref(false);
     const expandedTraces = ref(new Set());
     const isClearLogsDialogOpen = ref(false);
-
-    const dateString = computed(() => formatDate(date.value, "yyyy-MM-dd"));
 
     const logEntries = computed(() => parseLogEntries(content.value));
 
@@ -256,7 +254,7 @@
         try {
             const url = selectedFile.value
                 ? route("api.logs.files.show", selectedFile.value.name)
-                : route("api.logs.files.daily.show", dateString.value);
+                : route("api.logs.files.daily.show", date.value);
 
             const { data } = await api.get(url);
 
@@ -278,7 +276,7 @@
         try {
             const url = selectedFile.value
                 ? route("api.logs.files.clear", selectedFile.value.name)
-                : route("api.logs.files.daily.clear", dateString.value);
+                : route("api.logs.files.daily.clear", date.value);
 
             await api.delete(url);
 
