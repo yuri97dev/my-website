@@ -391,6 +391,10 @@ class OrderController extends Controller
         $status = $validated["status"] ?? $order?->status ?? SgcOrder::STATUS_DRAFT;
 
         if( $status === SgcOrder::STATUS_CONFIRMED ) {
+            if( !empty($validated["ordered_at"]) ) {
+                return $validated["ordered_at"];
+            }
+
             return $order?->ordered_at ?? now();
         }
 

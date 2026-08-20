@@ -72,6 +72,7 @@
                     :errors="errors"
                     :order-discount-amount="form.discount_amount"
                     v-model:notes="form.notes"
+                    v-model:ordered-at="form.ordered_at"
                 ></OrderFormSummaryStep>
             </v-tabs-window-item>
         </v-tabs-window>
@@ -126,6 +127,8 @@
     import OrderFormPaymentStep from "@/Components/Tools/Sgc/OrderForm/OrderFormPaymentStep.vue";
     import OrderFormProductsStep from "@/Components/Tools/Sgc/OrderForm/OrderFormProductsStep.vue";
     import OrderFormSummaryStep from "@/Components/Tools/Sgc/OrderForm/OrderFormSummaryStep.vue";
+
+    import { formatDate } from "@/Utils/Common";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
 
@@ -386,6 +389,7 @@
             discount_amount: toMoney(form.value.discount_amount || 0),
             currency: "BRL",
             notes: form.value.notes || null,
+            ordered_at: form.value.ordered_at || null,
             items: buildItemsPayload(),
         };
     }
@@ -473,6 +477,7 @@
             installments_count: 1,
             discount_amount: 0,
             notes: null,
+            ordered_at: formatDate(new Date(), "yyyy-MM-dd"),
         };
     }
 

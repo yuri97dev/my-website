@@ -64,6 +64,13 @@
         </v-list-item>
     </v-list>
 
+    <DateField
+        class="mt-2"
+        label="Data do pedido"
+        :error-messages="errors.ordered_at"
+        v-model="orderedAt"
+    ></DateField>
+
     <v-textarea
         class="mt-2"
         label="Observações"
@@ -76,6 +83,8 @@
 </template>
 
 <script setup>
+    import DateField from "@/Components/DateField.vue";
+
     import { formatNumber } from "@/Utils/Common";
     import { formatMoney, lineItemTotal, toMoney } from "@/Utils/Money";
 
@@ -116,6 +125,11 @@
     });
 
     const notes = defineModel("notes", {
+        type: [ String, null ],
+        default: null,
+    });
+
+    const orderedAt = defineModel("orderedAt", {
         type: [ String, null ],
         default: null,
     });

@@ -49,6 +49,7 @@ abstract class SgcOrderRequest extends SgcFormRequest
             "discount_amount" => ["nullable", "numeric", "min:0", "decimal:0,2"],
             "currency" => ["nullable", "string", "size:3", Rule::in(["BRL"])],
             "notes" => ["nullable", "string", "max:500"],
+            "ordered_at" => ["nullable", "date"],
             "items" => ["nullable", "array"],
             "items.*.product_id" => [
                 "required",
@@ -108,6 +109,7 @@ abstract class SgcOrderRequest extends SgcFormRequest
             "currency.in" => "A moeda selecionada é inválida.",
             "notes.string" => "As observações devem ser um texto válido.",
             "notes.max" => "As observações não podem ter mais de 500 caracteres.",
+            "ordered_at.date" => "A data do pedido deve ser uma data válida.",
             "items.array" => "Os itens devem ser uma lista válida.",
             "items.*.product_id.required" => "O produto é obrigatório.",
             "items.*.product_id.integer" => "O produto deve ser um número inteiro.",
