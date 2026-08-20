@@ -17,13 +17,13 @@
         >
             <template #item.sale_price="{ item }">
                 <span v-if="item.sale_price != null">
-                    R$ {{ formatMoney(item.sale_price) }}
+                    {{ formatPriceRange(item.sale_price, item.max_sale_price) }}
                 </span>
             </template>
 
             <template #item.cost_price="{ item }">
                 <span v-if="item.cost_price != null">
-                    R$ {{ formatMoney(item.cost_price) }}
+                    {{ formatPriceRange(item.cost_price, item.max_cost_price) }}
                 </span>
             </template>
 
@@ -48,8 +48,13 @@
 
         <ProductForm
             ref="productFormRef"
-            @form-closed="refresh"
+            @form-closed="handleFormClosed"
         ></ProductForm>
+
+        <ProductUnitList
+            ref="unitListRef"
+            @select="handleUnitSelect"
+        ></ProductUnitList>
 
         <v-fab
             app
@@ -67,12 +72,14 @@
     import Container from "@/Components/Container.vue";
     import SearchField from "@/Components/SearchField.vue";
     import ProductForm from "@/Components/Tools/Sgc/ProductForm.vue";
+    import ProductUnitList from "@/Components/Tools/Sgc/ProductUnitList.vue";
     import VirtualRemoteTable from "@/Components/VirtualRemoteTable.vue";
 
     import { formatDate, formatNumber } from "@/Utils/Common";
     import { formatMoney } from "@/Utils/Money";
 
     const productFormRef = ref(null);
+    const unitListRef = ref(null);
     const tableRef = ref(null);
     const search = ref(null);
 
@@ -107,10 +114,6 @@
         {
             key: "category_name",
             title: "Categoria",
-        },
-        {
-            key: "serial_number",
-            title: "Número de Série",
         },
         {
             key: "stock_quantity",
@@ -148,10 +151,39 @@
         };
     });
 
+    function formatPriceRange(minPrice, maxPrice) {
+        const min = formatMoney(minPrice);
+        const max = formatMoney(maxPrice);
+
+        if( maxPrice != null && Number(maxPrice) !== Number(minPrice) ) {
+            return `R$ ${min} – R$ ${max}`;
+        }
+
+        return `R$ ${min}`;
+    }
+
+    function openProduct(item) {
+        if( Number(item.units_count) > 1 ) {
+            unitListRef.value?.open(item);
+            return;
+        }
+
+        productFormRef.value.open(item);
+    }
+
+    function handleUnitSelect(unit) {
+        productFormRef.value.open(unit);
+    }
+
+    function handleFormClosed() {
+        refresh();
+        unitListRef.value?.loadUnits();
+    }
+
     function rowProps({ item }) {
         return {
             style: { cursor: "pointer" },
-            onDblclick: () => productFormRef.value.open(item),
+            onDblclick: () => openProduct(item),
         };
     }
 

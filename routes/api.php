@@ -383,6 +383,10 @@ Route::prefix("tools")->group(function() {
             SgcProductController::class, "stockMovements",
         ])->name("api.tools.sgc.products.stock-movements.index");
 
+        Route::get("/products/{sgc_product}/units", [
+            SgcProductController::class, "units",
+        ])->name("api.tools.sgc.products.units.index");
+
         Route::get("/employees", [
             SgcEmployeeController::class, "index",
         ])->name("api.tools.sgc.employees.index");

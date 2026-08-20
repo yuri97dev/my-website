@@ -48,6 +48,22 @@ class ProductController extends Controller
 
         $per_page = min($request->integer("per_page", 15), 100);
 
+        $pivots = DB::table("sgc_company_product")
+            ->select([
+                "product_id",
+                "company_id",
+                DB::raw("min(id) as id"),
+                DB::raw("sum(stock_quantity) as stock_quantity"),
+                DB::raw("count(*) as units_count"),
+                DB::raw("min(serial_number) as serial_number"),
+                DB::raw("min(sale_price) as sale_price"),
+                DB::raw("max(sale_price) as max_sale_price"),
+                DB::raw("min(cost_price) as cost_price"),
+                DB::raw("max(cost_price) as max_cost_price"),
+                DB::raw("min(unit_of_measure_id) as unit_of_measure_id"),
+            ])
+            ->groupBy("product_id", "company_id");
+
         $paginator = SgcProduct::query()
             ->leftJoin(
                 "sgc_brands",
@@ -61,7 +77,7 @@ class ProductController extends Controller
                 "=",
                 "sgc_product_categories.id"
             )
-            ->leftJoin("sgc_company_product", function ($join) use ($request) {
+            ->leftJoinSub($pivots, "sgc_company_product", function ($join) use ($request) {
                 $join->on("sgc_products.id", "=", "sgc_company_product.product_id");
 
                 if( $request->filled("company_id") ) {
@@ -91,10 +107,14 @@ class ProductController extends Controller
                 "sgc_brands.name as brand_name",
                 "sgc_product_categories.name as category_name",
                 "sgc_company_product.id as company_product_id",
+                "sgc_company_product.company_id",
                 "sgc_company_product.sale_price",
+                "sgc_company_product.max_sale_price",
                 "sgc_company_product.cost_price",
+                "sgc_company_product.max_cost_price",
                 "sgc_company_product.stock_quantity",
                 "sgc_company_product.serial_number",
+                "sgc_company_product.units_count",
                 "sgc_company_product.unit_of_measure_id",
                 "sgc_units_of_measure.abbreviation as unit_of_measure",
             ])
@@ -321,6 +341,48 @@ class ProductController extends Controller
 
         return response()->json([
             "message" => "Produto removido com sucesso.",
+        ], 200);
+    }
+
+    public function units(Request $request, SgcProduct $sgc_product)
+    {
+        abort_unless(
+            $this->productAccessibleByUser($sgc_product, $request->user()),
+            Response::HTTP_FORBIDDEN
+        );
+
+        $request->validate([
+            "company_id" => ["nullable", "integer", "exists:sgc_companies,id"],
+        ]);
+
+        if( $request->filled("company_id") ) {
+            $company = SgcCompany::query()->findOrFail($request->integer("company_id"));
+
+            abort_unless(
+                $company->isAccessibleBy($request->user()),
+                Response::HTTP_FORBIDDEN
+            );
+        }
+
+        $units = SgcCompanyProduct::query()
+            ->where("product_id", $sgc_product->id)
+            ->when($request->filled("company_id"), function ($query) use ($request) {
+                $query->where("company_id", $request->integer("company_id"));
+            })
+            ->whereIn(
+                "company_id",
+                SgcCompany::query()
+                    ->accessibleBy($request->user())
+                    ->select("sgc_companies.id")
+            )
+            ->with([
+                "unitOfMeasure:id,abbreviation",
+            ])
+            ->orderBy("id")
+            ->get();
+
+        return response()->json([
+            "units" => $units,
         ], 200);
     }
 
