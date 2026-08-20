@@ -140,13 +140,13 @@
             </v-col>
 
             <v-col cols="12" lg="6">
-                <v-text-field
+                <BarcodeField
                     label="Número de Série"
                     hint="Ex.: IMEI do celular"
                     persistent-hint
                     :error-messages="errors.serial_number"
                     v-model="form.serial_number"
-                ></v-text-field>
+                ></BarcodeField>
             </v-col>
 
             <v-col cols="12">
@@ -290,6 +290,7 @@
 
     import api from "@/api";
 
+    import BarcodeField from "@/Components/BarcodeField.vue";
     import BottomSheet from "@/Components/BottomSheet.vue";
     import Dialog from "@/Components/Dialog.vue";
     import CompanyAutocomplete from "@/Components/Inputs/CompanyAutocomplete.vue";
