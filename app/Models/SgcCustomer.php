@@ -12,6 +12,10 @@ class SgcCustomer extends Model
 {
     use SoftDeletes;
 
+    public const FINAL_CONSUMER_ID = 0;
+
+    public const FINAL_CONSUMER_NAME = "CONSUMIDOR FINAL";
+
     protected $fillable = [
         "name",
         "nickname",
@@ -46,9 +50,23 @@ class SgcCustomer extends Model
 
     public function isAccessibleBy(User $user): bool
     {
+        if( $this->isFinalConsumer() ) {
+            return true;
+        }
+
         return $this->companies()
             ->accessibleBy($user)
             ->exists();
+    }
+
+    public function isFinalConsumer(): bool
+    {
+        return self::isFinalConsumerId($this->id);
+    }
+
+    public static function isFinalConsumerId(?int $customer_id): bool
+    {
+        return $customer_id === self::FINAL_CONSUMER_ID;
     }
 
     public static function normalizeIdentityDocument(mixed $value): ?string

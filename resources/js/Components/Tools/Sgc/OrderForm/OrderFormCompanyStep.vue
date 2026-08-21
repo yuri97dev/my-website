@@ -12,6 +12,8 @@
         <v-col cols="12">
             <CustomerAutocomplete
                 ref="customerAutocompleteRef"
+                clearable
+                label="Cliente (opcional)"
                 :company-id="companyId"
                 :error-messages="errors.customer_id"
                 v-model="customerId"

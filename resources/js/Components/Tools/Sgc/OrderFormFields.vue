@@ -215,10 +215,12 @@
             || "—";
     });
 
+    const FINAL_CONSUMER_NAME = "CONSUMIDOR FINAL";
+
     const summaryCustomerName = computed(() => {
         return companyStepRef.value?.getSelectedCustomer?.()?.name
             || order.value.customer?.name
-            || "—";
+            || (form.value.customer_id == null ? FINAL_CONSUMER_NAME : "—");
     });
 
     const summaryPaymentName = computed(() => {
@@ -229,7 +231,7 @@
 
     const canGoNext = computed(() => {
         if( currentStep.value === "company" ) {
-            return !!form.value.company_id && !!form.value.customer_id;
+            return !!form.value.company_id;
         }
 
         if( currentStep.value === "products" ) {
@@ -255,7 +257,7 @@
         }
 
         if( stepValue === "products" ) {
-            return !!form.value.company_id && !!form.value.customer_id;
+            return !!form.value.company_id;
         }
 
         if( stepValue === "payment" ) {
@@ -379,7 +381,7 @@
     function buildPayload() {
         return {
             company_id: form.value.company_id,
-            customer_id: form.value.customer_id,
+            customer_id: form.value.customer_id ?? 0,
             payment_method_id: form.value.payment_method_id,
             installments_count: supportsInstallments.value
                 ? form.value.installments_count

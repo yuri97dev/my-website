@@ -37,6 +37,7 @@ class CustomerController extends Controller
         $per_page = min($request->integer("per_page", 15), 100);
 
         $paginator = SgcCustomer::query()
+            ->where("sgc_customers.id", "!=", SgcCustomer::FINAL_CONSUMER_ID)
             ->whereHas("companies", function ($query) use ($request) {
                 $query->accessibleBy($request->user());
 
@@ -192,6 +193,12 @@ class CustomerController extends Controller
             Response::HTTP_FORBIDDEN
         );
 
+        if( $sgc_customer->isFinalConsumer() ) {
+            return response()->json([
+                "customer" => $sgc_customer,
+            ], 200);
+        }
+
         $sgc_customer->load([
             "addresses",
             "companies" => function ($query) use ($request) {
@@ -206,6 +213,12 @@ class CustomerController extends Controller
 
     public function update(UpdateCustomerRequest $request, SgcCustomer $sgc_customer)
     {
+        abort_if(
+            $sgc_customer->isFinalConsumer(),
+            Response::HTTP_FORBIDDEN,
+            "O consumidor final não pode ser alterado."
+        );
+
         $validated = $request->validated();
         $company_id = $validated["company_id"];
 
@@ -227,6 +240,12 @@ class CustomerController extends Controller
 
     public function destroy(Request $request, SgcCustomer $sgc_customer)
     {
+        abort_if(
+            $sgc_customer->isFinalConsumer(),
+            Response::HTTP_FORBIDDEN,
+            "O consumidor final não pode ser removido."
+        );
+
         $request->validate([
             "company_id" => ["required", "integer", "exists:sgc_companies,id"],
         ]);

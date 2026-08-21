@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Sgc;
 
+use App\Models\SgcCustomer;
 use App\Models\SgcCustomerAddress;
 use App\Models\SgcOrder;
 use Illuminate\Support\Facades\DB;
@@ -10,6 +11,15 @@ use Illuminate\Validation\Validator;
 
 abstract class SgcOrderRequest extends SgcFormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if( $this->input("customer_id") === null || $this->input("customer_id") === "" ) {
+            $this->merge([
+                "customer_id" => SgcCustomer::FINAL_CONSUMER_ID,
+            ]);
+        }
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -172,7 +182,7 @@ abstract class SgcOrderRequest extends SgcFormRequest
 
     protected function validateCustomer(Validator $validator, int $company_id): void
     {
-        if( !$this->filled("customer_id") ) {
+        if( SgcCustomer::isFinalConsumerId($this->integer("customer_id")) ) {
             return;
         }
 
@@ -192,10 +202,10 @@ abstract class SgcOrderRequest extends SgcFormRequest
             return;
         }
 
-        if( !$this->filled("customer_id") ) {
+        if( SgcCustomer::isFinalConsumerId($this->integer("customer_id")) ) {
             $validator->errors()->add(
                 "customer_address_id",
-                "Selecione um cliente para informar o endereço."
+                "Endereço não aplicável para consumidor final."
             );
 
             return;
@@ -375,10 +385,6 @@ abstract class SgcOrderRequest extends SgcFormRequest
     {
         if( $this->input("status") !== SgcOrder::STATUS_CONFIRMED ) {
             return;
-        }
-
-        if( !$this->filled("customer_id") ) {
-            $validator->errors()->add("customer_id", "O cliente é obrigatório para confirmar o pedido.");
         }
 
         if( count($this->input("items", [])) < 1 ) {
