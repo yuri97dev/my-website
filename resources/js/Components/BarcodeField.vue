@@ -51,6 +51,7 @@
             <QrcodeStream
                 v-if="isOpen"
                 :key="scannerKey"
+                :constraints="constraints"
                 :formats="formats"
                 :paused="paused"
                 :track="paintBoundingBox"
@@ -69,6 +70,17 @@
                 </div>
             </QrcodeStream>
         </div>
+
+        <template #actions>
+            <v-btn
+                v-if="!errorMessage"
+                prepend-icon="mdi-camera-flip-outline"
+                variant="tonal"
+                text="Alternar câmera"
+                :disabled="cameraLoading"
+                @click="switchCamera"
+            ></v-btn>
+        </template>
     </Dialog>
 </template>
 
@@ -109,6 +121,9 @@
     const cameraLoading = ref(false);
     const errorMessage = ref(null);
     const scannerKey = ref(0);
+    const constraints = ref({ facingMode: "environment" });
+    const cameras = ref([]);
+    const cameraIndex = ref(0);
 
     const isDisabled = computed(() => {
         const value = attrs.disabled ?? attrs.readonly;
@@ -134,11 +149,58 @@
         errorMessage.value = null;
         paused.value = false;
         cameraLoading.value = true;
+        constraints.value = { facingMode: "environment" };
+        cameras.value = [];
+        cameraIndex.value = 0;
         isOpen.value = true;
+    }
+
+    async function loadCameras() {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(({ kind }) => kind === "videoinput");
+
+            if( videoDevices.length > 0 ) {
+                cameras.value = videoDevices;
+
+                const currentDeviceId = constraints.value.deviceId;
+
+                if( currentDeviceId ) {
+                    const index = videoDevices.findIndex((device) => device.deviceId === currentDeviceId);
+
+                    if( index >= 0 ) {
+                        cameraIndex.value = index;
+                    }
+                }
+            }
+        } catch {
+            // ignore
+        }
     }
 
     function onCameraOn() {
         cameraLoading.value = false;
+        loadCameras();
+    }
+
+    function switchCamera() {
+        cameraLoading.value = true;
+
+        if( cameras.value.length > 1 ) {
+            const isFacingMode = !constraints.value.deviceId;
+
+            cameraIndex.value = isFacingMode
+                ? 1 % cameras.value.length
+                : (cameraIndex.value + 1) % cameras.value.length;
+
+            constraints.value = { deviceId: cameras.value[cameraIndex.value].deviceId };
+
+            return;
+        }
+
+        constraints.value = constraints.value.facingMode === "environment"
+            ? { facingMode: "user" }
+            : { facingMode: "environment" };
     }
 
     function onDetect(detectedCodes) {
@@ -187,6 +249,9 @@
         paused.value = false;
         cameraLoading.value = false;
         errorMessage.value = null;
+        constraints.value = { facingMode: "environment" };
+        cameras.value = [];
+        cameraIndex.value = 0;
     }
 </script>
 
