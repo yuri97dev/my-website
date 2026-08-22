@@ -22,6 +22,7 @@ class SgcCustomer extends Model
         "identity_document",
         "tax_id",
         "birth_date",
+        "photo_path",
     ];
 
     protected function casts(): array
