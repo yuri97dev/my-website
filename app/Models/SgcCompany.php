@@ -57,7 +57,7 @@ class SgcCompany extends Model
     public function customers(): BelongsToMany
     {
         return $this->belongsToMany(SgcCustomer::class, "sgc_company_customer", "company_id", "customer_id")
-            ->withPivot("notes")
+            ->withPivot("id", "notes")
             ->withTimestamps();
     }
 

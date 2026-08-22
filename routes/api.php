@@ -24,6 +24,7 @@ use App\Http\Controllers\Sgc\BrandController as SgcBrandController;
 use App\Http\Controllers\Sgc\CompanyController as SgcCompanyController;
 use App\Http\Controllers\Sgc\CompanyProductController as SgcCompanyProductController;
 use App\Http\Controllers\Sgc\CustomerAddressController as SgcCustomerAddressController;
+use App\Http\Controllers\Sgc\CustomerAttachmentController as SgcCustomerAttachmentController;
 use App\Http\Controllers\Sgc\CustomerController as SgcCustomerController;
 use App\Http\Controllers\Sgc\ProductCategoryController as SgcProductCategoryController;
 use App\Http\Controllers\Sgc\ProductController as SgcProductController;
@@ -311,6 +312,22 @@ Route::prefix("tools")->group(function() {
         Route::delete("/customers/{sgc_customer}/addresses/{sgc_customer_address}", [
             SgcCustomerAddressController::class, "destroy",
         ])->name("api.tools.sgc.customers.addresses.destroy");
+
+        Route::get("/customers/{sgc_customer}/attachments", [
+            SgcCustomerAttachmentController::class, "index",
+        ])->name("api.tools.sgc.customers.attachments.index");
+
+        Route::post("/customers/{sgc_customer}/attachments", [
+            SgcCustomerAttachmentController::class, "store",
+        ])->name("api.tools.sgc.customers.attachments.store");
+
+        Route::get("/customers/{sgc_customer}/attachments/{sgc_customer_attachment}", [
+            SgcCustomerAttachmentController::class, "show",
+        ])->name("api.tools.sgc.customers.attachments.show");
+
+        Route::delete("/customers/{sgc_customer}/attachments/{sgc_customer_attachment}", [
+            SgcCustomerAttachmentController::class, "destroy",
+        ])->name("api.tools.sgc.customers.attachments.destroy");
 
         Route::get("/brands", [
             SgcBrandController::class, "index",

@@ -2,9 +2,11 @@
 
 use App\Models\SgcBrand;
 use App\Models\SgcCompany;
+use App\Models\SgcCompanyCustomer;
 use App\Models\SgcCompanyProduct;
 use App\Models\SgcCompanyUser;
 use App\Models\SgcCustomer;
+use App\Models\SgcCustomerAttachment;
 use App\Models\SgcOrder;
 use App\Models\SgcOrderInstallment;
 use App\Models\SgcPaymentMethod;
@@ -13,6 +15,8 @@ use App\Models\SgcProductCategory;
 use App\Models\SgcUnitOfMeasure;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 
@@ -213,6 +217,100 @@ describe("isolamento entre empresas (LGPD)", function () {
         expect($foreign["address"]->fresh()->address_city)->toBe($original_city)
             ->and($foreign["customer"]->addresses()->count())->toBe(1);
     })->with("pares_empresas_distintas");
+
+    it("nao consulta nem altera anexos de cliente de outra empresa", function (string $actor, string $target) {
+        Storage::fake("local");
+
+        $foreign = tenant($target);
+        $attachment = makeSgcCustomerAttachment($foreign);
+
+        assertTenantDenied(
+            asTenant($actor)->getJson(
+                "/api/tools/sgc/customers/{$foreign["customer"]->id}/attachments?company_id={$foreign["company"]->id}"
+            )
+        );
+
+        assertTenantDenied(
+            asTenant($actor)->post("/api/tools/sgc/customers/{$foreign["customer"]->id}/attachments", [
+                "company_id" => $foreign["company"]->id,
+                "type" => SgcCustomerAttachment::TYPE_CONTRACT,
+                "file" => UploadedFile::fake()->image("contrato.jpg"),
+            ])
+        );
+
+        assertTenantDenied(
+            asTenant($actor)->get(
+                "/api/tools/sgc/customers/{$foreign["customer"]->id}/attachments/{$attachment->id}"
+            )
+        );
+
+        assertTenantDenied(
+            asTenant($actor)->deleteJson(
+                "/api/tools/sgc/customers/{$foreign["customer"]->id}/attachments/{$attachment->id}"
+            )
+        );
+
+        expect(SgcCustomerAttachment::query()->whereKey($attachment->id)->exists())->toBeTrue();
+    })->with("pares_empresas_distintas");
+
+    it("nao expoe anexos da outra empresa apos vincular o mesmo cliente", function (string $actor, string $target) {
+        Storage::fake("local");
+
+        $own = tenant($actor);
+        $foreign = tenant($target);
+        $attachment = makeSgcCustomerAttachment($foreign);
+
+        asTenant($actor)->postJson("/api/tools/sgc/customers", [
+            "company_id" => $own["company"]->id,
+            "customer_id" => $foreign["customer"]->id,
+            "name" => $foreign["customer"]->name,
+            "tax_id" => $foreign["customer"]->tax_id,
+        ])->assertCreated();
+
+        $list = asTenant($actor)
+            ->getJson(
+                "/api/tools/sgc/customers/{$foreign["customer"]->id}/attachments?company_id={$own["company"]->id}"
+            )
+            ->assertOk();
+
+        expect(jsonIds($list, "attachments"))->not->toContain($attachment->id);
+
+        assertTenantDenied(
+            asTenant($actor)->get(
+                "/api/tools/sgc/customers/{$foreign["customer"]->id}/attachments/{$attachment->id}"
+            )
+        );
+    })->with("pares_empresas_distintas");
+
+    it("consulta e cria anexos da propria empresa", function (string $key) {
+        Storage::fake("local");
+
+        $tenant = tenant($key);
+
+        $create = asTenant($key)->post(
+            "/api/tools/sgc/customers/{$tenant["customer"]->id}/attachments",
+            [
+                "company_id" => $tenant["company"]->id,
+                "type" => SgcCustomerAttachment::TYPE_CONTRACT,
+                "file" => UploadedFile::fake()->image("contrato.jpg"),
+            ]
+        )->assertCreated();
+
+        $attachment_id = $create->json("attachment.id");
+
+        $list = asTenant($key)
+            ->getJson(
+                "/api/tools/sgc/customers/{$tenant["customer"]->id}/attachments?company_id={$tenant["company"]->id}"
+            )
+            ->assertOk();
+
+        expect(jsonIds($list, "attachments"))->toContain($attachment_id)
+            ->and($list->json("attachments.0.path") ?? null)->toBeNull();
+
+        asTenant($key)
+            ->get("/api/tools/sgc/customers/{$tenant["customer"]->id}/attachments/{$attachment_id}")
+            ->assertOk();
+    })->with("empresas");
 
     it("nao lista, consulta nem altera produtos e estoque de outra empresa", function (string $actor, string $target) {
         $own = tenant($actor);
@@ -723,6 +821,26 @@ function makeSgcTenant(string $key, string $tax_id, string $identity_document): 
         "confirmed_order" => $confirmed_order,
         "installment" => $installment,
     ];
+}
+
+function makeSgcCustomerAttachment(array $tenant): SgcCustomerAttachment
+{
+    $pivot = SgcCompanyCustomer::query()
+        ->where("company_id", $tenant["company"]->id)
+        ->where("customer_id", $tenant["customer"]->id)
+        ->firstOrFail();
+
+    $path = "sgc/customers/{$tenant["customer"]->id}/attachments/contrato-{$tenant["company"]->id}.pdf";
+
+    Storage::disk("local")->put($path, "conteudo");
+
+    return $pivot->attachments()->create([
+        "type" => SgcCustomerAttachment::TYPE_CONTRACT,
+        "original_name" => "contrato.pdf",
+        "path" => $path,
+        "mime_type" => "application/pdf",
+        "size_bytes" => 8,
+    ]);
 }
 
 function tenant(string $key): array

@@ -140,6 +140,14 @@
 
             <v-btn
                 v-if="currentStep === 'data'"
+                prepend-icon="mdi-paperclip"
+                text="Anexos"
+                :disabled="!isEditing"
+                @click="openAttachmentManager"
+            ></v-btn>
+
+            <v-btn
+                v-if="currentStep === 'data'"
                 variant="tonal"
                 color="primary"
                 prepend-icon="mdi-content-save"
@@ -170,6 +178,8 @@
             ></v-btn>
         </template>
     </Dialog>
+
+    <CustomerAttachmentManager ref="attachmentManagerRef" />
 </template>
 
 <script setup>
@@ -180,6 +190,7 @@
     import BottomSheet from "@/Components/BottomSheet.vue";
     import Dialog from "@/Components/Dialog.vue";
     import CompanyAutocomplete from "@/Components/Inputs/CompanyAutocomplete.vue";
+    import CustomerAttachmentManager from "@/Components/Tools/Sgc/CustomerAttachmentManager.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
     import { useSgcAuth } from "@/Composables/useSgcAuth";
@@ -204,6 +215,7 @@
 
     const isDialogOpen = ref(false);
     const isConfirmRemoveDialogOpen = ref(false);
+    const attachmentManagerRef = ref(null);
     const loading = ref(false);
     const lookingUp = ref(false);
     const deleting = ref(false);
@@ -472,6 +484,11 @@
         }
     }
 
+    function openAttachmentManager() {
+        if( !customer.value.id || form.value.company_id == null ) return;
+        attachmentManagerRef.value?.open(customer.value.id, form.value.company_id);
+    }
+
     async function handleSave() {
         if( isEditing.value ) {
             await updateCustomer();
@@ -540,6 +557,7 @@
 
     function handleClose() {
         isConfirmRemoveDialogOpen.value = false;
+        attachmentManagerRef.value?.close();
 
         reset();
 

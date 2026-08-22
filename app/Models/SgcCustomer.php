@@ -40,8 +40,16 @@ class SgcCustomer extends Model
     public function companies(): BelongsToMany
     {
         return $this->belongsToMany(SgcCompany::class, "sgc_company_customer", "customer_id", "company_id")
-            ->withPivot("notes")
+            ->withPivot("id", "notes")
             ->withTimestamps();
+    }
+
+    public function companyCustomer(int $company_id): ?SgcCompanyCustomer
+    {
+        return SgcCompanyCustomer::query()
+            ->where("customer_id", $this->id)
+            ->where("company_id", $company_id)
+            ->first();
     }
 
     public function orders(): HasMany
