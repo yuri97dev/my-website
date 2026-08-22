@@ -18,7 +18,20 @@
                     v-model="search"
                     @keyup.enter="submitSearch"
                     @click:clear="clearSearch"
-                ></v-text-field>
+                >
+                    <template #append-inner>
+                        <v-btn
+                            size="small"
+                            icon="mdi-magnify"
+                            variant="tonal"
+                            color="primary"
+                            class="rounded"
+                            :loading="loading"
+                            aria-label="Buscar"
+                            @click.prevent="submitSearch"
+                        ></v-btn>
+                    </template>
+                </v-text-field>
             </v-col>
 
             <v-col cols="12" md="4">
