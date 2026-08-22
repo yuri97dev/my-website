@@ -240,7 +240,7 @@ describe("isolamento entre empresas (LGPD)", function () {
 
         assertTenantDenied(
             asTenant($actor)->get(
-                "/api/tools/sgc/customers/{$foreign["customer"]->id}/attachments/{$attachment->id}"
+                "/tools/sgc/customers/{$foreign["customer"]->id}/attachments/{$attachment->id}"
             )
         );
 
@@ -277,7 +277,7 @@ describe("isolamento entre empresas (LGPD)", function () {
 
         assertTenantDenied(
             asTenant($actor)->get(
-                "/api/tools/sgc/customers/{$foreign["customer"]->id}/attachments/{$attachment->id}"
+                "/tools/sgc/customers/{$foreign["customer"]->id}/attachments/{$attachment->id}"
             )
         );
     })->with("pares_empresas_distintas");
@@ -308,7 +308,7 @@ describe("isolamento entre empresas (LGPD)", function () {
             ->and($list->json("attachments.0.path") ?? null)->toBeNull();
 
         asTenant($key)
-            ->get("/api/tools/sgc/customers/{$tenant["customer"]->id}/attachments/{$attachment_id}")
+            ->get("/tools/sgc/customers/{$tenant["customer"]->id}/attachments/{$attachment_id}")
             ->assertOk();
     })->with("empresas");
 

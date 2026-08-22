@@ -321,10 +321,6 @@ Route::prefix("tools")->group(function() {
             SgcCustomerAttachmentController::class, "store",
         ])->name("api.tools.sgc.customers.attachments.store");
 
-        Route::get("/customers/{sgc_customer}/attachments/{sgc_customer_attachment}", [
-            SgcCustomerAttachmentController::class, "show",
-        ])->name("api.tools.sgc.customers.attachments.show");
-
         Route::delete("/customers/{sgc_customer}/attachments/{sgc_customer_attachment}", [
             SgcCustomerAttachmentController::class, "destroy",
         ])->name("api.tools.sgc.customers.attachments.destroy");

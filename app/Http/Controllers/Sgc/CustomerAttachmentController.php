@@ -83,9 +83,17 @@ class CustomerAttachmentController extends Controller
             Response::HTTP_NOT_FOUND
         );
 
+        $headers = [];
+
+        if( filled($sgc_customer_attachment->mime_type) ) {
+            $headers["Content-Type"] = $sgc_customer_attachment->mime_type;
+        }
+
         return response()->download(
             Storage::disk("local")->path($sgc_customer_attachment->path),
             $sgc_customer_attachment->original_name,
+            $headers,
+            "inline",
         );
     }
 

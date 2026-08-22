@@ -6,6 +6,7 @@ use App\Http\Controllers\SpreadsheetFormatterController;
 use App\Http\Controllers\Blog\PostController;
 use App\Http\Controllers\Blog\PostImageController;
 use App\Http\Controllers\Blog\ScrapedArticleImageController;
+use App\Http\Controllers\Sgc\CustomerAttachmentController as SgcCustomerAttachmentController;
 use App\Models\Role;
 
 Route::inertia("/", "Home")->name("home");
@@ -47,6 +48,10 @@ Route::prefix("tools")->group(function () {
         Route::inertia("/products", "Tools/Sgc/Products")->name("tools.sgc.products");
         Route::inertia("/employees", "Tools/Sgc/Employees")->name("tools.sgc.employees");
         Route::inertia("/orders", "Tools/Sgc/Orders")->name("tools.sgc.orders");
+
+        Route::get("/customers/{sgc_customer}/attachments/{sgc_customer_attachment}", [
+            SgcCustomerAttachmentController::class, "show",
+        ])->name("tools.sgc.customers.attachments.show");
     });
 });
 

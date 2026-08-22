@@ -54,10 +54,9 @@
             >
                 <template #append>
                     <v-btn
-                        icon="mdi-download"
+                        icon="mdi-open-in-new"
                         variant="text"
-                        :loading="downloadingId === attachment.id"
-                        @click="downloadAttachment(attachment)"
+                        @click="openAttachment(attachment)"
                     ></v-btn>
 
                     <v-btn
@@ -92,6 +91,10 @@
             ></v-btn>
         </template>
     </Dialog>
+
+    <ImageViewerDialog
+        ref="imageViewerDialogRef"
+    ></ImageViewerDialog>
 </template>
 
 <script setup>
@@ -100,6 +103,7 @@
     import api from "@/api";
 
     import Dialog from "@/Components/Dialog.vue";
+    import ImageViewerDialog from "@/Components/ImageViewerDialog.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
     import { formatBytes, formatDate } from "@/Utils/Common";
@@ -126,9 +130,9 @@
     );
 
     const isConfirmRemoveDialogOpen = ref(false);
+    const imageViewerDialogRef = ref(null);
     const loading = ref(false);
     const saving = ref(false);
-    const downloadingId = ref(null);
     const errors = ref({});
     const attachments = ref([]);
     const selectedAttachment = ref(null);
@@ -230,31 +234,26 @@
         }
     }
 
-    async function downloadAttachment(attachment) {
-        downloadingId.value = attachment.id;
-
-        try {
-            const url = route("api.tools.sgc.customers.attachments.show", {
-                sgc_customer: props.customerId,
-                sgc_customer_attachment: attachment.id,
-            });
-
-            const { data } = await api.get(url, {
-                responseType: "blob",
-            });
-
-            const blobUrl = URL.createObjectURL(data);
-            const link = document.createElement("a");
-            link.href = blobUrl;
-            link.download = attachment.original_name;
-            link.click();
-            URL.revokeObjectURL(blobUrl);
-        } catch (e) {
-            const { message } = e?.response?.data || {};
-            alertError("Ooops", message || "Erro ao baixar anexo");
-        } finally {
-            downloadingId.value = null;
+    function isImageAttachment(attachment) {
+        if( typeof attachment.mime_type === "string" && attachment.mime_type.startsWith("image/") ) {
+            return true;
         }
+
+        return /\.(jpe?g|png|webp)$/i.test(attachment.original_name || "");
+    }
+
+    function openAttachment(attachment) {
+        const url = route("tools.sgc.customers.attachments.show", {
+            sgc_customer: props.customerId,
+            sgc_customer_attachment: attachment.id,
+        });
+
+        if( isImageAttachment(attachment) ) {
+            imageViewerDialogRef.value.open(url);
+            return;
+        }
+
+        window.open(url, "_blank", "noopener,noreferrer");
     }
 
     function confirmRemove(attachment) {
