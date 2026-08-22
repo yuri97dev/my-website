@@ -1,14 +1,13 @@
 <template>
-    <BottomSheet
-        overlay-id="sgc-customer-address-list"
-        title="Endereços"
-        height="90dvh"
-        :loading="loading"
-        v-model="isOpen"
-    >
+    <div>
+        <v-skeleton-loader
+            v-if="loading"
+            type="list-item-two-line@4"
+        ></v-skeleton-loader>
+
         <div
-            v-if="addresses.length === 0 && !loading"
-            class="d-flex align-center justify-center py-4 h-100"
+            v-else-if="addresses.length === 0"
+            class="d-flex align-center justify-center py-8"
         >
             <v-empty-state
                 icon="mdi-map-marker-outline"
@@ -22,7 +21,6 @@
                 v-for="address in addresses"
                 :key="address.id"
                 cols="12"
-                xl="4"
                 lg="6"
             >
                 <v-card
@@ -59,24 +57,7 @@
                 </v-card>
             </v-col>
         </v-row>
-
-        <template #actions>
-            <v-btn
-                prepend-icon="mdi-refresh"
-                text="Atualizar"
-                :disabled="loading"
-                @click="loadAddresses"
-            ></v-btn>
-
-            <v-btn
-                variant="tonal"
-                color="primary"
-                prepend-icon="mdi-plus"
-                text="Novo Endereço"
-                @click="openAddressForm()"
-            ></v-btn>
-        </template>
-    </BottomSheet>
+    </div>
 
     <CustomerAddressForm
         ref="addressFormRef"
@@ -86,20 +67,26 @@
 </template>
 
 <script setup>
-    import { ref } from "vue";
+    import { ref, watch } from "vue";
 
     import api from "@/api";
 
-    import BottomSheet from "@/Components/BottomSheet.vue";
     import CustomerAddressForm from "@/Components/Tools/Sgc/CustomerAddressForm.vue";
 
     import { alertError } from "@/Utils/Alert";
 
-    const isOpen = ref(false);
-    const addressFormRef = ref(null);
+    const props = defineProps({
+        customerId: {
+            type: [ Number, null ],
+            default: null,
+        },
+        companyId: {
+            type: [ Number, null ],
+            default: null,
+        },
+    });
 
-    const customerId = ref(null);
-    const companyId = ref(null);
+    const addressFormRef = ref(null);
     const companyAddressDefaults = ref(null);
     const addresses = ref([]);
     const loading = ref(false);
@@ -124,12 +111,12 @@
     }
 
     async function loadAddresses() {
-        if( !customerId.value ) return;
+        if( !props.customerId ) return;
 
         loading.value = true;
 
         try {
-            const url = route("api.tools.sgc.customers.addresses.index", customerId.value);
+            const url = route("api.tools.sgc.customers.addresses.index", props.customerId);
             const { data } = await api.get(url);
 
             addresses.value = data.addresses || [];
@@ -144,10 +131,10 @@
     async function loadCompanyAddressDefaults() {
         companyAddressDefaults.value = null;
 
-        if( companyId.value == null ) return;
+        if( props.companyId == null ) return;
 
         try {
-            const url = route("api.tools.sgc.companies.show", companyId.value);
+            const url = route("api.tools.sgc.companies.show", props.companyId);
 
             const { data } = await api.get(url);
 
@@ -165,32 +152,36 @@
 
     function openAddressForm(address = null) {
         addressFormRef.value?.open(
-            customerId.value,
+            props.customerId,
             address,
             address?.id ? null : companyAddressDefaults.value,
         );
     }
 
-    function open(id, idCompany = null) {
-        customerId.value = id;
-        companyId.value = idCompany;
-        isOpen.value = true;
-
-        loadAddresses();
-        loadCompanyAddressDefaults();
-    }
-
-    function close() {
+    function reset() {
         addressFormRef.value?.close();
-        isOpen.value = false;
-        customerId.value = null;
-        companyId.value = null;
         companyAddressDefaults.value = null;
         addresses.value = [];
     }
 
+    watch(
+        () => [ props.customerId, props.companyId ],
+        ([ customerId ]) => {
+            if( !customerId ) {
+                reset();
+                return;
+            }
+
+            loadAddresses();
+            loadCompanyAddressDefaults();
+        },
+        { immediate: true },
+    );
+
     defineExpose({
-        open,
-        close,
+        load: loadAddresses,
+        create: () => openAddressForm(),
+        reset,
+        loading,
     });
 </script>

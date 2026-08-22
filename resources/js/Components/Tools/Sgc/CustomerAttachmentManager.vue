@@ -1,37 +1,28 @@
 <template>
-    <Dialog
-        overlay-id="sgc-customer-attachments"
-        title="Anexos"
-        max-width="720"
-        no-body
-        @close="handleClose"
-        v-model="isOpen"
-    >
-        <v-card-text>
-            <v-row>
-                <v-col cols="12" lg="5">
-                    <v-select
-                        label="Tipo"
-                        :items="typeOptions"
-                        item-title="title"
-                        item-value="value"
-                        :error-messages="errors.type"
-                        v-model="form.type"
-                    ></v-select>
-                </v-col>
+    <div>
+        <v-row>
+            <v-col cols="12" lg="5">
+                <v-select
+                    label="Tipo"
+                    :items="typeOptions"
+                    item-title="title"
+                    item-value="value"
+                    :error-messages="errors.type"
+                    v-model="form.type"
+                ></v-select>
+            </v-col>
 
-                <v-col cols="12" lg="7">
-                    <v-file-input
-                        label="Arquivo"
-                        accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
-                        prepend-icon="mdi-paperclip"
-                        show-size
-                        :error-messages="errors.file"
-                        v-model="form.file"
-                    ></v-file-input>
-                </v-col>
-            </v-row>
-        </v-card-text>
+            <v-col cols="12" lg="7">
+                <v-file-input
+                    label="Arquivo"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+                    prepend-icon="mdi-paperclip"
+                    show-size
+                    :error-messages="errors.file"
+                    v-model="form.file"
+                ></v-file-input>
+            </v-col>
+        </v-row>
 
         <v-skeleton-loader
             v-if="loading"
@@ -52,7 +43,7 @@
         <v-list
             v-else
             lines="two"
-            style="height: 40dvh; overflow-y: auto;"
+            style="max-height: 40dvh; overflow-y: auto;"
         >
             <v-list-item
                 v-for="attachment in attachments"
@@ -78,28 +69,7 @@
                 </template>
             </v-list-item>
         </v-list>
-
-        <template #actions>
-            <v-btn
-                prepend-icon="mdi-refresh"
-                text="Atualizar"
-                :disabled="loading || saving"
-                @click="loadAttachments"
-            ></v-btn>
-
-            <v-spacer></v-spacer>
-
-            <v-btn
-                variant="tonal"
-                color="primary"
-                prepend-icon="mdi-plus"
-                :loading="saving"
-                :disabled="loading"
-                text="Adicionar"
-                @click="handleSave"
-            ></v-btn>
-        </template>
-    </Dialog>
+    </div>
 
     <Dialog
         overlay-id="sgc-customer-attachment-confirm-remove"
@@ -125,7 +95,7 @@
 </template>
 
 <script setup>
-    import { reactive, ref } from "vue";
+    import { reactive, ref, watch } from "vue";
 
     import api from "@/api";
 
@@ -133,6 +103,17 @@
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
     import { formatBytes, formatDate } from "@/Utils/Common";
+
+    const props = defineProps({
+        customerId: {
+            type: [ Number, null ],
+            default: null,
+        },
+        companyId: {
+            type: [ Number, null ],
+            default: null,
+        },
+    });
 
     const typeOptions = [
         { value: "identity_document", title: "Documento de identidade" },
@@ -144,7 +125,6 @@
         typeOptions.map(option => [ option.value, option.title ])
     );
 
-    const isOpen = ref(false);
     const isConfirmRemoveDialogOpen = ref(false);
     const loading = ref(false);
     const saving = ref(false);
@@ -152,8 +132,6 @@
     const errors = ref({});
     const attachments = ref([]);
     const selectedAttachment = ref(null);
-    const customerId = ref(null);
-    const companyId = ref(null);
 
     const form = reactive(emptyForm());
 
@@ -197,15 +175,15 @@
     }
 
     async function loadAttachments() {
-        if( !customerId.value || companyId.value == null ) return;
+        if( !props.customerId || props.companyId == null ) return;
 
         loading.value = true;
 
         try {
-            const url = route("api.tools.sgc.customers.attachments.index", customerId.value);
+            const url = route("api.tools.sgc.customers.attachments.index", props.customerId);
             const { data } = await api.get(url, {
                 params: {
-                    company_id: companyId.value,
+                    company_id: props.companyId,
                 },
             });
 
@@ -219,7 +197,7 @@
     }
 
     async function handleSave() {
-        if( !customerId.value || companyId.value == null ) return;
+        if( !props.customerId || props.companyId == null ) return;
 
         errors.value = {};
         saving.value = true;
@@ -227,7 +205,7 @@
         const file = resolveFile(form.file);
 
         const formData = new FormData();
-        formData.append("company_id", companyId.value);
+        formData.append("company_id", props.companyId);
         formData.append("type", form.type || "");
 
         if( file ) {
@@ -235,7 +213,7 @@
         }
 
         try {
-            const url = route("api.tools.sgc.customers.attachments.store", customerId.value);
+            const url = route("api.tools.sgc.customers.attachments.store", props.customerId);
 
             await api.post(url, formData);
 
@@ -257,7 +235,7 @@
 
         try {
             const url = route("api.tools.sgc.customers.attachments.show", {
-                sgc_customer: customerId.value,
+                sgc_customer: props.customerId,
                 sgc_customer_attachment: attachment.id,
             });
 
@@ -285,13 +263,13 @@
     }
 
     async function handleRemove() {
-        if( !customerId.value || !selectedAttachment.value?.id ) return;
+        if( !props.customerId || !selectedAttachment.value?.id ) return;
 
         saving.value = true;
 
         try {
             const url = route("api.tools.sgc.customers.attachments.destroy", {
-                sgc_customer: customerId.value,
+                sgc_customer: props.customerId,
                 sgc_customer_attachment: selectedAttachment.value.id,
             });
 
@@ -311,32 +289,31 @@
         }
     }
 
-    function open(id, idCompany = null) {
-        customerId.value = id;
-        companyId.value = idCompany;
-        resetForm();
-        attachments.value = [];
-        isOpen.value = true;
-
-        loadAttachments();
-    }
-
-    function close() {
-        isOpen.value = false;
-        handleClose();
-    }
-
-    function handleClose() {
+    function reset() {
         isConfirmRemoveDialogOpen.value = false;
         selectedAttachment.value = null;
-        customerId.value = null;
-        companyId.value = null;
         attachments.value = [];
         resetForm();
     }
 
+    watch(
+        () => [ props.customerId, props.companyId ],
+        ([ customerId, companyId ]) => {
+            if( !customerId || companyId == null ) {
+                reset();
+                return;
+            }
+
+            loadAttachments();
+        },
+        { immediate: true },
+    );
+
     defineExpose({
-        open,
-        close,
+        load: loadAttachments,
+        save: handleSave,
+        reset,
+        loading,
+        saving,
     });
 </script>

@@ -8,6 +8,7 @@
     >
         <v-tabs
             grow
+            show-arrows
             align-tabs="center"
             v-model="currentStep"
         >
@@ -16,6 +17,7 @@
                 :key="step.value"
                 :value="step.value"
                 :prepend-icon="step.icon"
+                :disabled="step.disabled"
                 :text="step.title"
             ></v-tab>
         </v-tabs>
@@ -99,6 +101,24 @@
                     </v-col>
                 </v-row>
             </v-tabs-window-item>
+
+            <v-tabs-window-item value="addresses">
+                <CustomerAddressManager
+                    v-if="isEditing"
+                    ref="addressManagerRef"
+                    :customer-id="customer.id"
+                    :company-id="form.company_id"
+                />
+            </v-tabs-window-item>
+
+            <v-tabs-window-item value="attachments">
+                <CustomerAttachmentManager
+                    v-if="isEditing"
+                    ref="attachmentManagerRef"
+                    :customer-id="customer.id"
+                    :company-id="form.company_id"
+                />
+            </v-tabs-window-item>
         </v-tabs-window>
 
         <template #actions>
@@ -112,15 +132,31 @@
                 @click="isConfirmRemoveDialogOpen = true"
             ></v-btn>
 
-            <v-spacer></v-spacer>
+            <v-btn
+                v-if="currentStep === 'addresses'"
+                prepend-icon="mdi-refresh"
+                text="Atualizar"
+                :disabled="addressManagerRef?.loading"
+                @click="addressManagerRef?.load()"
+            ></v-btn>
 
             <v-btn
+                v-if="currentStep === 'attachments'"
+                prepend-icon="mdi-refresh"
+                text="Atualizar"
+                :disabled="attachmentManagerRef?.loading || attachmentManagerRef?.saving"
+                @click="attachmentManagerRef?.load()"
+            ></v-btn>
+
+            <v-spacer></v-spacer>
+
+            <!-- <v-btn
                 v-if="currentStep === 'data'"
                 variant="text"
                 prepend-icon="mdi-file-multiple"
                 text="Documentos"
                 @click="goToPreviousStep"
-            ></v-btn>
+            ></v-btn> -->
 
             <v-btn
                 v-if="currentStep === 'documents'"
@@ -132,20 +168,6 @@
                 @click="goToNextStep"
             ></v-btn>
 
-            <slot
-                v-if="currentStep === 'data'"
-                name="action-buttons"
-                :can-manage-addresses="isEditing"
-            ></slot>
-
-            <v-btn
-                v-if="currentStep === 'data'"
-                prepend-icon="mdi-paperclip"
-                text="Anexos"
-                :disabled="!isEditing"
-                @click="openAttachmentManager"
-            ></v-btn>
-
             <v-btn
                 v-if="currentStep === 'data'"
                 variant="tonal"
@@ -154,6 +176,26 @@
                 :loading="loading"
                 text="Salvar"
                 @click="handleSave"
+            ></v-btn>
+
+            <v-btn
+                v-if="currentStep === 'addresses'"
+                variant="tonal"
+                color="primary"
+                prepend-icon="mdi-plus"
+                text="Novo Endereço"
+                @click="addressManagerRef?.create()"
+            ></v-btn>
+
+            <v-btn
+                v-if="currentStep === 'attachments'"
+                variant="tonal"
+                color="primary"
+                prepend-icon="mdi-plus"
+                :loading="attachmentManagerRef?.saving"
+                :disabled="attachmentManagerRef?.loading"
+                text="Adicionar"
+                @click="attachmentManagerRef?.save()"
             ></v-btn>
         </template>
     </BottomSheet>
@@ -179,7 +221,6 @@
         </template>
     </Dialog>
 
-    <CustomerAttachmentManager ref="attachmentManagerRef" />
 </template>
 
 <script setup>
@@ -190,6 +231,7 @@
     import BottomSheet from "@/Components/BottomSheet.vue";
     import Dialog from "@/Components/Dialog.vue";
     import CompanyAutocomplete from "@/Components/Inputs/CompanyAutocomplete.vue";
+    import CustomerAddressManager from "@/Components/Tools/Sgc/CustomerAddressManager.vue";
     import CustomerAttachmentManager from "@/Components/Tools/Sgc/CustomerAttachmentManager.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
@@ -208,13 +250,9 @@
 
     const { canManageCompany } = useSgcAuth();
 
-    const steps = [
-        { value: "documents", title: "Documentos", icon: "mdi-card-account-details-outline" },
-        { value: "data", title: "Dados", icon: "mdi-account-details" },
-    ];
-
     const isDialogOpen = ref(false);
     const isConfirmRemoveDialogOpen = ref(false);
+    const addressManagerRef = ref(null);
     const attachmentManagerRef = ref(null);
     const loading = ref(false);
     const lookingUp = ref(false);
@@ -228,6 +266,13 @@
     const form = ref({});
 
     const isEditing = computed(() => !!customer.value.id);
+
+    const steps = computed(() => [
+        { value: "documents", title: "Documentos", icon: "mdi-card-account-details-outline" },
+        { value: "data", title: "Dados", icon: "mdi-account-details" },
+        { value: "addresses", title: "Endereços", icon: "mdi-map-marker-outline", disabled: !isEditing.value },
+        { value: "attachments", title: "Anexos", icon: "mdi-paperclip", disabled: !isEditing.value },
+    ]);
 
     const isAlreadyLinked = computed(() => {
         if( !matchedCustomer.value?.id || form.value.company_id == null ) {
@@ -248,7 +293,7 @@
     });
 
     const currentStepIndex = computed(() => {
-        return steps.findIndex(step => step.value === currentStep.value);
+        return steps.value.findIndex(step => step.value === currentStep.value);
     });
 
     function formatBirthDate(value) {
@@ -484,11 +529,6 @@
         }
     }
 
-    function openAttachmentManager() {
-        if( !customer.value.id || form.value.company_id == null ) return;
-        attachmentManagerRef.value?.open(customer.value.id, form.value.company_id);
-    }
-
     async function handleSave() {
         if( isEditing.value ) {
             await updateCustomer();
@@ -557,7 +597,8 @@
 
     function handleClose() {
         isConfirmRemoveDialogOpen.value = false;
-        attachmentManagerRef.value?.close();
+        addressManagerRef.value?.reset();
+        attachmentManagerRef.value?.reset();
 
         reset();
 
