@@ -29,9 +29,11 @@ export default createVuetify({
         },
         VSelect: {
             hideDetails: "auto",
+            noDataText: "Nenhum resultado encontrado",
         },
         VAutocomplete: {
             hideDetails: "auto",
+            noDataText: "Nenhum resultado encontrado",
         },
         VCheckbox: {
             hideDetails: "auto",
