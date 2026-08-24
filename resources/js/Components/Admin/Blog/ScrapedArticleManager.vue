@@ -57,18 +57,16 @@
         </v-row>
 
         <div
-            v-if="scrapedArticles.length > 0"
+            v-if="pagination.total > 0"
             class="d-flex justify-center mt-4"
         >
-            <v-btn
-                prepend-icon="mdi-arrow-down-circle"
-                text="Carregar Mais"
-                variant="tonal"
-                color="success"
-                :disabled="pagination.page === pagination.lastPage"
-                :loading="loading"
-                @click="handlePaginationUpdate(pagination.page + 1)"
-            ></v-btn>
+            <v-pagination
+                v-model="pagination.page"
+                :length="pagination.lastPage"
+                :total-visible="7"
+                :disabled="loading"
+                @update:model-value="handlePaginationUpdate"
+            ></v-pagination>
         </div>
 
         <template #actions>
@@ -77,6 +75,15 @@
                 text="Atualizar"
                 :disabled="loading"
                 @click="handlePaginationUpdate(1)"
+            ></v-btn>
+
+            <v-btn
+                variant="tonal"
+                color="error"
+                prepend-icon="mdi-delete-sweep"
+                text="Excluir em Massa"
+                :disabled="loading"
+                @click="bulkDeleteDialogRef?.open(articleSource)"
             ></v-btn>
 
             <v-btn
@@ -269,6 +276,11 @@
             ></v-btn>
         </template>
     </Dialog>
+
+    <ScrapedArticleBulkDeleteDialog
+        ref="bulkDeleteDialogRef"
+        @deleted="handleBulkDeleted"
+    />
 </template>
 
 <script setup>
@@ -278,6 +290,7 @@
 
     import BottomSheet from "@/Components/BottomSheet.vue";
     import Dialog from "@/Components/Dialog.vue";
+    import ScrapedArticleBulkDeleteDialog from "@/Components/Admin/Blog/ScrapedArticleBulkDeleteDialog.vue";
 
     import { copyText, formatDate } from "@/Utils/Common";
 
@@ -291,6 +304,8 @@
     const isDisableScrapedArticleDialogOpen = ref(false);
     const isRejectTranslationDialogOpen = ref(false);
     const isResetTranslationAttemptsDialogOpen = ref(false);
+
+    const bulkDeleteDialogRef = ref(null);
 
     const scrapedArticles = ref([]);
     const articleSource = ref(null);
@@ -335,6 +350,11 @@
         return article.title || "";
     });
 
+    async function handleBulkDeleted() {
+        pagination.page = 1;
+        await getScrapedArticles();
+    }
+
     async function getScrapedArticles() {
         loading.value = true;
 
@@ -357,11 +377,7 @@
                 finalTitle: sa.translated_title || sa.title || "",
             }));
 
-            if( pagination.page === 1 ) {
-                scrapedArticles.value = mappedScrapedArticles;
-            } else {
-                scrapedArticles.value.push(...mappedScrapedArticles);
-            }
+            scrapedArticles.value = mappedScrapedArticles;
 
             pagination.page = data.current_page;
             pagination.perPage = data.per_page;

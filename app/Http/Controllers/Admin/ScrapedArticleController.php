@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ScrapedArticle\BulkDeleteScrapedArticlesRequest;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use App\Jobs\ScrapeArticleSourcesJob;
@@ -116,5 +118,50 @@ class ScrapedArticleController extends Controller
             "scraped_article" => $scraped_article->fresh(),
             "message" => "Contagem de tentativas de tradução reiniciada com sucesso.",
         ], 200);
+    }
+
+    public function bulkDeleteCount(BulkDeleteScrapedArticlesRequest $request)
+    {
+        $count = $this->buildBulkDeleteQuery($request)->count();
+
+        return response()->json([
+            "count" => $count,
+        ], 200);
+    }
+
+    public function bulkDelete(BulkDeleteScrapedArticlesRequest $request)
+    {
+        $deleted_count = $this->buildBulkDeleteQuery($request)->delete();
+
+        return response()->json([
+            "deleted_count" => $deleted_count,
+            "message" => "Artigos excluídos com sucesso.",
+        ], 200);
+    }
+
+    private function buildBulkDeleteQuery(BulkDeleteScrapedArticlesRequest $request): Builder
+    {
+        $query = ScrapedArticle::query()
+            ->whereNull("post_id");
+
+        if( $request->integer("article_source_id") ) {
+            $query->where("article_source_id", $request->integer("article_source_id"));
+        }
+
+        $date_from = $request->date("date_from");
+        $date_to = $request->date("date_to");
+
+        if( $date_from && $date_to ) {
+            $query->whereDate("created_at", ">=", $date_from);
+            $query->whereDate("created_at", "<=", $date_to);
+        } elseif( $date_from ) {
+            $query->whereDate("created_at", $date_from);
+        }
+
+        if( $request->boolean("untranslated_only") ) {
+            $query->whereNull("translated_title");
+        }
+
+        return $query;
     }
 }

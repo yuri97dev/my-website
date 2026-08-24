@@ -200,6 +200,14 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             ScrapedArticleController::class, "scrape",
         ])->name("api.scraped-articles.scrape");
 
+        Route::get("/scraped-articles/bulk-delete/count", [
+            ScrapedArticleController::class, "bulkDeleteCount",
+        ])->name("api.scraped-articles.bulk-delete.count");
+
+        Route::delete("/scraped-articles/bulk-delete", [
+            ScrapedArticleController::class, "bulkDelete",
+        ])->name("api.scraped-articles.bulk-delete");
+
         Route::get("/scraped-articles/{scraped_article}", [
             ScrapedArticleController::class, "show",
         ])->name("api.scraped-articles.show");
