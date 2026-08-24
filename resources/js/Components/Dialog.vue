@@ -5,7 +5,10 @@
         v-bind="attrs"
         v-model="isOpen"
     >
-        <v-card :class="cardClasses">
+        <v-card
+            :class="cardClasses"
+            :loading="loading"
+        >
             <v-card-title class="d-flex justify-space-between align-center ga-2">
                 <span
                     class="text-primary text-truncate"
@@ -18,6 +21,7 @@
                     size="small"
                     icon="mdi-close"
                     variant="text"
+                    :disabled="loading"
                     @click="close"
                 ></v-btn>
             </v-card-title>
@@ -45,6 +49,7 @@
                     <v-btn
                         prepend-icon="mdi-close"
                         text="Fechar"
+                        :disabled="loading"
                         @click="close"
                     ></v-btn>
                 </v-card-actions>
@@ -77,6 +82,7 @@
         },
         hideFooter: Boolean,
         noBody: Boolean,
+        loading: Boolean,
     });
 
     const emit = defineEmits([

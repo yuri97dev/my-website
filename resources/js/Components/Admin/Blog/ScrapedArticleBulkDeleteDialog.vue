@@ -5,6 +5,7 @@
         max-width="560px"
         no-body
         scrollable
+        :loading="deleting"
         v-model="isDialogOpen"
     >
         <v-card-text>

@@ -3,7 +3,7 @@
         overlay-id="scraped-article-list"
         title="Posts Baixados"
         height="90dvh"
-        :loading="loading"
+        :loading="listLoading"
         v-model="isOpen"
     >
         <SearchField
@@ -73,7 +73,7 @@
                 v-model="pagination.page"
                 :length="pagination.lastPage"
                 :total-visible="7"
-                :disabled="loading"
+                :disabled="listLoading"
                 class="bg-surface px-2 rounded-lg"
                 @update:model-value="handlePaginationUpdate"
             ></v-pagination>
@@ -83,7 +83,7 @@
             <v-btn
                 prepend-icon="mdi-refresh"
                 text="Atualizar"
-                :disabled="loading"
+                :disabled="listLoading"
                 @click="handlePaginationUpdate(pagination.page)"
             ></v-btn>
 
@@ -92,7 +92,7 @@
                 color="error"
                 prepend-icon="mdi-delete-sweep"
                 text="Excluir em Massa"
-                :disabled="loading"
+                :disabled="listLoading"
                 @click="bulkDeleteDialogRef?.open(articleSource)"
             ></v-btn>
 
@@ -113,6 +113,7 @@
         no-body
         scrollable
         max-width="900px"
+        :loading="contentLoading"
         v-model="isScrapedArticleContentDialogOpen"
     >
         <div>
@@ -154,6 +155,7 @@
                         variant="tonal"
                         prepend-icon="mdi-dots-vertical"
                         text="Mais Opções"
+                        :disabled="contentLoading"
                         v-bind="props"
                     ></v-btn>
                 </template>
@@ -218,6 +220,7 @@
         overlay-id="scraped-article-reject-translation"
         title="Rejeitar Tradução"
         max-width="500px"
+        :loading="rejectLoading"
         v-model="isRejectTranslationDialogOpen"
     >
         <p class="mb-2">
@@ -238,6 +241,8 @@
                 color="warning"
                 prepend-icon="mdi-translate-off"
                 text="Rejeitar"
+                :loading="rejectLoading"
+                :disabled="rejectLoading"
                 @click="rejectTranslation(false)"
             ></v-btn>
 
@@ -246,6 +251,8 @@
                 color="error"
                 prepend-icon="mdi-translate-off"
                 text="Rejeitar Permanentemente"
+                :loading="rejectLoading"
+                :disabled="rejectLoading"
                 @click="rejectTranslation(true)"
             ></v-btn>
         </template>
@@ -307,7 +314,9 @@
     const selectedScrapedArticle = ref(null);
     const contentTab = ref("original");
 
-    const loading = ref(false);
+    const listLoading = ref(false);
+    const contentLoading = ref(false);
+    const rejectLoading = ref(false);
     const scraping = ref(false);
 
     const pagination = reactive({
@@ -360,7 +369,7 @@
     }
 
     async function getScrapedArticles() {
-        loading.value = true;
+        listLoading.value = true;
 
         try {
             const url = route("api.scraped-articles.index");
@@ -393,12 +402,12 @@
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao buscar artigos");
         } finally {
-            loading.value = false;
+            listLoading.value = false;
         }
     }
 
     async function getScrapedArticleById(id) {
-        loading.value = true;
+        contentLoading.value = true;
 
         try {
             const url = route("api.scraped-articles.show", id);
@@ -416,12 +425,12 @@
             alertError("Ooops", message || "Erro ao buscar artigo");
             isScrapedArticleContentDialogOpen.value = false;
         } finally {
-            loading.value = false;
+            contentLoading.value = false;
         }
     }
 
     async function disableScrapedArticle() {
-        loading.value = true;
+        contentLoading.value = true;
 
         try {
             const url = route("api.scraped-articles.disable", selectedScrapedArticle.value.id);
@@ -431,20 +440,18 @@
 
             isScrapedArticleContentDialogOpen.value = false;
 
-            nextTick(async () => {
-                await getScrapedArticles();
-            });
+            await getScrapedArticles();
         } catch (e) {
             console.error(e);
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao desativar artigo");
         } finally {
-            loading.value = false;
+            contentLoading.value = false;
         }
     }
 
     async function rejectTranslation(permanent = false) {
-        loading.value = true;
+        rejectLoading.value = true;
 
         try {
             const url = route(
@@ -461,20 +468,18 @@
 
             isRejectTranslationDialogOpen.value = false;
 
-            nextTick(async () => {
-                await getScrapedArticles();
-            });
+            await getScrapedArticles();
         } catch (e) {
             console.error(e);
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao rejeitar tradução");
         } finally {
-            loading.value = false;
+            rejectLoading.value = false;
         }
     }
 
     async function resetTranslationAttempts() {
-        loading.value = true;
+        contentLoading.value = true;
 
         try {
             const url = route(
@@ -488,15 +493,13 @@
 
             toastSuccess("Ok", data.message || "Contagem de tentativas reiniciada com sucesso");
 
-            nextTick(async () => {
-                await getScrapedArticles();
-            });
+            await getScrapedArticles();
         } catch (e) {
             console.error(e);
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao reiniciar tentativas de tradução");
         } finally {
-            loading.value = false;
+            contentLoading.value = false;
         }
     }
 
