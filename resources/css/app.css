@@ -96,3 +96,7 @@ table tr.v-data-table-rows-no-data td,
 table tr.v-data-table-rows-loading td {
     border: none !important;
 }
+
+.v-data-table thead th {
+    left: unset !important;
+}
