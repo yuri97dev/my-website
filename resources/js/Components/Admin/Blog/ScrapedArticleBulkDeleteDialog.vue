@@ -3,79 +3,83 @@
         overlay-id="scraped-article-bulk-delete"
         title="Excluir Artigos em Massa"
         max-width="560px"
+        no-body
+        scrollable
         v-model="isDialogOpen"
     >
-        <v-alert
-            type="info"
-            variant="tonal"
-            class="mb-4"
-        >
-            Apenas artigos <strong>não publicados</strong> serão excluídos permanentemente.
-            Informe ao menos um filtro abaixo.
-        </v-alert>
+        <v-card-text>
+            <v-alert
+                type="info"
+                variant="tonal"
+                class="mb-4"
+            >
+                Apenas artigos <strong>não publicados</strong> serão excluídos permanentemente.
+                Informe ao menos um filtro abaixo.
+            </v-alert>
 
-        <v-alert
-            v-if="hasFilters"
-            type="warning"
-            variant="tonal"
-            class="mb-4"
-        >
-            <template v-if="loadingCount">
-                Calculando quantidade de artigos...
-            </template>
+            <v-alert
+                v-if="hasFilters"
+                type="warning"
+                variant="tonal"
+                class="mb-4"
+            >
+                <template v-if="loadingCount">
+                    Calculando quantidade de artigos...
+                </template>
 
-            <template v-else>
-                {{ deleteCount }} artigo(s) serão excluídos permanentemente.
-            </template>
-        </v-alert>
+                <template v-else>
+                    {{ deleteCount }} artigo(s) serão excluídos permanentemente.
+                </template>
+            </v-alert>
 
-        <v-alert
-            v-else
-            type="info"
-            variant="tonal"
-            class="mb-4"
-        >
-            Selecione ao menos um filtro para visualizar a quantidade de artigos.
-        </v-alert>
+            <v-alert
+                v-else
+                type="info"
+                variant="tonal"
+                class="mb-4"
+            >
+                Selecione ao menos um filtro para visualizar a quantidade de artigos.
+            </v-alert>
 
-        <v-row>
-            <v-col cols="12">
-                <v-select
-                    label="Fonte"
-                    clearable
-                    item-title="name"
-                    item-value="id"
-                    :items="articleSources"
-                    :loading="loadingArticleSources"
-                    v-model="filters.article_source_id"
-                ></v-select>
-            </v-col>
+            <v-row>
+                <v-col cols="12">
+                    <v-select
+                        label="Fonte"
+                        clearable
+                        item-title="name"
+                        item-value="id"
+                        :items="articleSources"
+                        :loading="loadingArticleSources"
+                        v-model="filters.article_source_id"
+                    ></v-select>
+                </v-col>
 
-            <v-col cols="12" sm="6">
-                <DateField
-                    label="Data inicial"
-                    clearable
-                    v-model="filters.date_from"
-                ></DateField>
-            </v-col>
+                <v-col cols="12" sm="6">
+                    <DateField
+                        label="Data inicial"
+                        clearable
+                        v-model="filters.date_from"
+                    ></DateField>
+                </v-col>
 
-            <v-col cols="12" sm="6">
-                <DateField
-                    label="Data final"
-                    clearable
-                    :disabled="!filters.date_from"
-                    v-model="filters.date_to"
-                ></DateField>
-            </v-col>
+                <v-col cols="12" sm="6">
+                    <DateField
+                        label="Data final"
+                        clearable
+                        :disabled="!filters.date_from"
+                        v-model="filters.date_to"
+                    ></DateField>
+                </v-col>
 
-            <v-col cols="12">
-                <v-checkbox
-                    label="Apenas artigos não traduzidos"
-                    hide-details
-                    v-model="filters.untranslated_only"
-                ></v-checkbox>
-            </v-col>
-        </v-row>
+                <v-col cols="12">
+                    <v-checkbox
+                        label="Apenas artigos não traduzidos"
+                        hide-details
+                        v-model="filters.untranslated_only"
+                    ></v-checkbox>
+                </v-col>
+            </v-row>
+        </v-card-text>
 
         <template #actions>
             <v-btn
