@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Helpers\SearchQuery;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ScrapedArticle\BulkDeleteScrapedArticlesRequest;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,6 +15,15 @@ class ScrapedArticleController extends Controller
 {
     public function index(Request $request)
     {
+        $request->validate([
+            "article_source_id" => ["nullable", "integer"],
+            "id" => ["nullable", "integer"],
+            "title" => ["nullable", "string", "max:255"],
+            "translated_title" => ["nullable", "string", "max:255"],
+            "url" => ["nullable", "string", "max:255"],
+            "search" => ["nullable", "string", "max:255"],
+        ]);
+
         $per_page = min($request->integer("per_page", 15), 100);
 
         $query = ScrapedArticle::query()
@@ -34,6 +44,39 @@ class ScrapedArticleController extends Controller
         if( $request->integer("article_source_id") ) {
             $query->where("article_source_id", $request->integer("article_source_id"));
         }
+
+        $query
+            ->when($request->filled("id"), function ($query) use ($request) {
+                $query->where("id", $request->integer("id"));
+            })
+            ->when($request->filled("title"), function ($query) use ($request) {
+                SearchQuery::applySubstringSearch(
+                    $query,
+                    "title",
+                    $request->input("title")
+                );
+            })
+            ->when($request->filled("translated_title"), function ($query) use ($request) {
+                SearchQuery::applySubstringSearch(
+                    $query,
+                    "translated_title",
+                    $request->input("translated_title")
+                );
+            })
+            ->when($request->filled("url"), function ($query) use ($request) {
+                SearchQuery::applySubstringSearch(
+                    $query,
+                    "url",
+                    $request->input("url")
+                );
+            })
+            ->when($request->filled("search"), function ($query) use ($request) {
+                SearchQuery::applyWordSearch(
+                    $query,
+                    "concat_ws(' ', title, translated_title, url)",
+                    $request->input("search")
+                );
+            });
 
         $paginator = $query->paginate($per_page);
 

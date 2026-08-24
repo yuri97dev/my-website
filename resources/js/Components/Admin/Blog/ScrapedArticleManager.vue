@@ -6,7 +6,15 @@
         :loading="loading"
         v-model="isOpen"
     >
-        <v-row>
+        <SearchField
+            :fields="searchFields"
+            variant="tonal"
+            @refresh="handleSearch"
+            @update:model-value="handleSearch"
+            v-model="search"
+        ></SearchField>
+
+        <v-row class="mt-4">
             <v-col
                 v-for="(scrapedArticle, index) in scrapedArticles"
                 :key="index"
@@ -256,6 +264,7 @@
 
     import BottomSheet from "@/Components/BottomSheet.vue";
     import Dialog from "@/Components/Dialog.vue";
+    import SearchField from "@/Components/SearchField.vue";
     import ScrapedArticleBulkDeleteDialog from "@/Components/Admin/Blog/ScrapedArticleBulkDeleteDialog.vue";
 
     import { copyText, formatDate } from "@/Utils/Common";
@@ -274,6 +283,26 @@
 
     const scrapedArticles = ref([]);
     const articleSource = ref(null);
+    const search = ref(null);
+
+    const searchFields = ref([
+        {
+            key: "id",
+            title: "ID",
+        },
+        {
+            key: "title",
+            title: "Título",
+        },
+        {
+            key: "translated_title",
+            title: "Título Traduzido",
+        },
+        {
+            key: "url",
+            title: "URL",
+        },
+    ]);
 
     const selectedScrapedArticle = ref(null);
     const contentTab = ref("original");
@@ -320,6 +349,16 @@
         await getScrapedArticles();
     }
 
+    function buildSearchParams() {
+        if( !search.value ) return {};
+
+        const { key, search: searchValue } = search.value;
+
+        return {
+            [key]: searchValue,
+        };
+    }
+
     async function getScrapedArticles() {
         loading.value = true;
 
@@ -329,6 +368,7 @@
             const params = {
                 page: pagination.page,
                 per_page: pagination.perPage,
+                ...buildSearchParams(),
             };
 
             if( articleSource.value?.id ) {
@@ -488,6 +528,14 @@
         await getScrapedArticles();
     }
 
+    function handleSearch() {
+        pagination.page = 1;
+
+        nextTick(async () => {
+            await getScrapedArticles();
+        });
+    }
+
     function handleItemClick(scrapedArticle) {
         selectedScrapedArticle.value = scrapedArticle;
 
@@ -596,6 +644,7 @@
     function open(data = {}) {
         articleSource.value = data;
         pagination.page = 1;
+        search.value = null;
 
         isOpen.value = true;
 
