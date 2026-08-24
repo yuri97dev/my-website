@@ -2,7 +2,7 @@
     <v-card class="virtual-remote-table">
         <v-data-table-virtual
             ref="tableRef"
-            class="virtual-remote-table__data text-no-wrap"
+            class="virtual-remote-table__data"
             hover
             fixed-header
             :loading="loading"
@@ -20,6 +20,7 @@
                         v-for="(width, i) in columnWidths"
                         :key="i"
                         :style="{ width: `${width}px` }"
+                        style="min-width: 10ch"
                     />
                 </colgroup>
             </template>
@@ -232,6 +233,9 @@
         if( props.headers.length > 0 ) return props.headers.map(({ field, ...header }) => ({
             ...header,
             sortable: false,
+            headerProps: {
+                class: "text-no-wrap",
+            }
         }));
 
         const [ firstItem ] = items.value || [];
@@ -240,6 +244,9 @@
             title: key,
             key,
             sortable: false,
+            headerProps: {
+                class: "text-no-wrap",
+            }
         }));
     });
 
