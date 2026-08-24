@@ -14,6 +14,16 @@
             :no-data-text="emptyListText"
             v-model="selected"
         >
+            <template #colgroup>
+                <colgroup v-if="columnWidths.length">
+                    <col
+                        v-for="(width, i) in columnWidths"
+                        :key="i"
+                        :style="{ width: `${width}px` }"
+                    />
+                </colgroup>
+            </template>
+
             <template
                 v-for="header in filterableHeaders"
                 :key="header.key"
@@ -185,6 +195,7 @@
     const errorCount = ref(0);
 
     const items = ref([]);
+    const columnWidths = ref([]);
 
     const pagination = reactive({
         page: 1,
@@ -304,44 +315,29 @@
 
     let observer = null;
     let abortController = null;
-    let columnWidths = [];
 
     function extractItems(data) {
         return data?.[props.itemsKey] || [];
     }
 
-    async function waitForTableLayout() {
+    async function measureColumnWidths() {
         await nextTick();
-        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    }
-
-    async function syncColumnWidths(measure) {
-        await waitForTableLayout();
+        await new Promise(resolve => requestAnimationFrame(resolve));
 
         if( !items.value.length ) {
-            if( measure ) columnWidths = [];
+            columnWidths.value = [];
             return;
         }
 
-        const table = tableRef.value?.$el?.querySelector("table");
+        const tableWrapper = tableRef.value?.$el;
 
-        if( !table ) return;
+        if( !tableWrapper ) return;
 
-        const ths = [ ...table.querySelectorAll("thead th") ];
+        const ths = [ ...tableWrapper.querySelectorAll("table thead th") ];
 
         if( !ths.length ) return;
 
-        if( measure ) {
-            ths.forEach(th => th.style.width = "");
-            await waitForTableLayout();
-            columnWidths = ths.map(th => `${th.offsetWidth}px`);
-        }
-
-        if( !columnWidths.length ) return;
-
-        ths.forEach((th, i) => {
-            if( columnWidths[i] ) th.style.width = columnWidths[i];
-        });
+        columnWidths.value = ths.map(th => Math.ceil(th.getBoundingClientRect().width));
     }
 
     async function fetchItems(page = 1) {
@@ -352,6 +348,7 @@
 
         if( page === 1 ) {
             items.value = [];
+            columnWidths.value = [];
         }
 
         try {
@@ -391,7 +388,9 @@
 
             emit("loaded", data);
 
-            await syncColumnWidths(page === 1);
+            if( page === 1 ) {
+                await measureColumnWidths();
+            }
         } catch(e) {
             if( e?.code === "ERR_CANCELED" ) return;
 
