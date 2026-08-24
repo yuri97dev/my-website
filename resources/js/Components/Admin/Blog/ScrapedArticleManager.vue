@@ -84,7 +84,7 @@
                 prepend-icon="mdi-refresh"
                 text="Atualizar"
                 :disabled="loading"
-                @click="handlePaginationUpdate(1)"
+                @click="handlePaginationUpdate(pagination.page)"
             ></v-btn>
 
             <v-btn

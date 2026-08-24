@@ -1,6 +1,7 @@
 <template>
     <v-card hover>
         <v-autocomplete
+            ref="autocompleteRef"
             chips
             closable-chips
             no-filter
@@ -31,7 +32,8 @@
                     v-bind="props"
                     :text="item.title"
                     color="primary"
-                    @click="handleChipClick(item, index)"
+                    class="text-wrap h-auto"
+                    @mousedown.stop.prevent="handleChipClick(item, index)"
                 ></v-chip>
             </template>
 
@@ -77,7 +79,7 @@
 </template>
 
 <script setup>
-    import { ref, computed } from "vue";
+    import { ref, computed, nextTick } from "vue";
 
     const props = defineProps({
         multiple: Boolean,
@@ -92,6 +94,9 @@
     ]);
 
     const modelValue = defineModel();
+
+    const autocompleteRef = ref(null);
+
     const search = ref("");
     const menuOpen = ref(false);
 
@@ -128,7 +133,10 @@
         }
     }
 
-    function handleChipClick(item, index) {
+    async function handleChipClick(item, index) {
+        const autocompleteEl = autocompleteRef.value?.$el;
+        const autocompleteInput = autocompleteEl?.querySelector("input");
+
         const { search: searchValue } = item || {};
 
         if( props.multiple ) {
@@ -137,6 +145,20 @@
             modelValue.value = null;
         }
 
+        search.value = "";
+
+        if( !autocompleteInput ) return;
+
+        await nextTick();
+
+        autocompleteInput.focus();
+
+        await nextTick();
+
         search.value = searchValue;
+
+        await nextTick();
+
+        autocompleteInput.select();
     }
 </script>
