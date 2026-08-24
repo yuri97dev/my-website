@@ -121,7 +121,7 @@
 </template>
 
 <script setup>
-    import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from "vue";
+    import { ref, reactive, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 
     import api from "@/api";
 
@@ -304,9 +304,44 @@
 
     let observer = null;
     let abortController = null;
+    let columnWidths = [];
 
     function extractItems(data) {
         return data?.[props.itemsKey] || [];
+    }
+
+    async function waitForTableLayout() {
+        await nextTick();
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }
+
+    async function syncColumnWidths(measure) {
+        await waitForTableLayout();
+
+        if( !items.value.length ) {
+            if( measure ) columnWidths = [];
+            return;
+        }
+
+        const table = tableRef.value?.$el?.querySelector("table");
+
+        if( !table ) return;
+
+        const ths = [ ...table.querySelectorAll("thead th") ];
+
+        if( !ths.length ) return;
+
+        if( measure ) {
+            ths.forEach(th => th.style.width = "");
+            await waitForTableLayout();
+            columnWidths = ths.map(th => `${th.offsetWidth}px`);
+        }
+
+        if( !columnWidths.length ) return;
+
+        ths.forEach((th, i) => {
+            if( columnWidths[i] ) th.style.width = columnWidths[i];
+        });
     }
 
     async function fetchItems(page = 1) {
@@ -355,6 +390,8 @@
             errorCount.value = 0;
 
             emit("loaded", data);
+
+            await syncColumnWidths(page === 1);
         } catch(e) {
             if( e?.code === "ERR_CANCELED" ) return;
 
