@@ -129,7 +129,7 @@
                 prepend-icon="mdi-delete"
                 :loading="deleting"
                 text="Remover"
-                @click="isConfirmRemoveDialogOpen = true"
+                @click="handleDelete"
             ></v-btn>
 
             <v-btn
@@ -200,27 +200,6 @@
         </template>
     </BottomSheet>
 
-    <Dialog
-        overlay-id="sgc-customer-confirm-remove"
-        title="Excluir Cliente"
-        max-width="500"
-        v-model="isConfirmRemoveDialogOpen"
-    >
-        O cliente <strong class="text-primary">{{ form.name ?? "" }}</strong>
-        será removido desta empresa. Essa ação não pode ser desfeita.
-
-        <template #actions>
-            <v-btn
-                variant="tonal"
-                color="error"
-                prepend-icon="mdi-delete"
-                :loading="deleting"
-                text="Excluir"
-                @click="handleDelete"
-            ></v-btn>
-        </template>
-    </Dialog>
-
 </template>
 
 <script setup>
@@ -229,12 +208,11 @@
     import api from "@/api";
 
     import BottomSheet from "@/Components/BottomSheet.vue";
-    import Dialog from "@/Components/Dialog.vue";
     import CompanyAutocomplete from "@/Components/Inputs/CompanyAutocomplete.vue";
     import CustomerAddressManager from "@/Components/Tools/Sgc/CustomerAddressManager.vue";
     import CustomerAttachmentManager from "@/Components/Tools/Sgc/CustomerAttachmentManager.vue";
 
-    import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
     import { useSgcAuth } from "@/Composables/useSgcAuth";
 
     const props = defineProps({
@@ -251,7 +229,6 @@
     const { canManageCompany } = useSgcAuth();
 
     const isDialogOpen = ref(false);
-    const isConfirmRemoveDialogOpen = ref(false);
     const addressManagerRef = ref(null);
     const attachmentManagerRef = ref(null);
     const loading = ref(false);
@@ -504,6 +481,13 @@
     }
 
     async function handleDelete() {
+        const { isConfirmed } = await confirmDelete(
+            "Excluir Cliente",
+            `O cliente "${form.value.name ?? ""}" será removido desta empresa. Essa ação não pode ser desfeita.`,
+        );
+
+        if( !isConfirmed ) return;
+
         deleting.value = true;
 
         try {
@@ -517,7 +501,6 @@
 
             toastSuccess("Ok", "Cliente removido com sucesso");
 
-            isConfirmRemoveDialogOpen.value = false;
             isDialogOpen.value = false;
 
             handleClose();
@@ -596,7 +579,6 @@
     }
 
     function handleClose() {
-        isConfirmRemoveDialogOpen.value = false;
         addressManagerRef.value?.reset();
         attachmentManagerRef.value?.reset();
 

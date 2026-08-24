@@ -123,7 +123,7 @@
     import Container from "@/Components/Container.vue";
     import Breadcrumb from "@/Components/SpreadsheetFormatter/Breadcrumb.vue";
 
-    import { alertError } from "@/Utils/Alert";
+    import { alertError, confirmDelete } from "@/Utils/Alert";
     import { formatBytes } from "@/Utils/Common";
 
     const files = ref([]);
@@ -137,6 +137,13 @@
     }
 
     async function deleteFile(uuid) {
+        const { isConfirmed } = await confirmDelete(
+            "Excluir Arquivo",
+            "O arquivo será excluído permanentemente. Essa ação não pode ser desfeita.",
+        );
+
+        if( !isConfirmed ) return;
+
         loading.value = true;
 
         try {

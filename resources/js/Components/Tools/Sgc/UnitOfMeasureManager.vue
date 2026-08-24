@@ -99,25 +99,6 @@
         </template>
     </Dialog>
 
-    <Dialog
-        overlay-id="sgc-unit-of-measure-confirm-remove"
-        title="Excluir Unidade"
-        max-width="500"
-        v-model="isConfirmRemoveDialogOpen"
-    >
-        A unidade <strong class="text-primary">{{ selectedUnit?.name ?? "" }}</strong>
-        será removida permanentemente. Essa ação não pode ser desfeita.
-
-        <template #actions>
-            <v-btn
-                variant="tonal"
-                color="error"
-                prepend-icon="mdi-delete"
-                text="Excluir"
-                @click="removeUnit(selectedUnit)"
-            ></v-btn>
-        </template>
-    </Dialog>
 </template>
 
 <script setup>
@@ -127,7 +108,7 @@
 
     import Dialog from "@/Components/Dialog.vue";
 
-    import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
 
     const emits = defineEmits([
         "update",
@@ -141,12 +122,9 @@
 
     const isDialogListOpen = ref(false);
     const isDialogFormOpen = ref(false);
-    const isConfirmRemoveDialogOpen = ref(false);
-
     const hasChanges = ref(false);
 
     const unitsOfMeasure = ref([]);
-    const selectedUnit = ref(null);
 
     const loading = ref(false);
 
@@ -233,10 +211,7 @@
 
             toastSuccess("Ok", "Unidade removida com sucesso");
 
-            isConfirmRemoveDialogOpen.value = false;
             hasChanges.value = true;
-
-            selectedUnit.value = null;
         } catch (e) {
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao remover unidade");
@@ -247,9 +222,15 @@
         await getUnitsOfMeasure();
     }
 
-    function confirmRemoveUnit(unit) {
-        selectedUnit.value = unit;
-        isConfirmRemoveDialogOpen.value = true;
+    async function confirmRemoveUnit(unit) {
+        const { isConfirmed } = await confirmDelete(
+            "Excluir Unidade",
+            `A unidade "${unit.name}" será removida permanentemente. Essa ação não pode ser desfeita.`,
+        );
+
+        if( !isConfirmed ) return;
+
+        await removeUnit(unit);
     }
 
     function openList() {

@@ -205,24 +205,6 @@
     </Dialog>
 
     <Dialog
-        overlay-id="scraped-article-disable"
-        title="Desativar Artigo"
-        message="Desativar o artigo?"
-        max-width="400px"
-        v-model="isDisableScrapedArticleDialogOpen"
-    >
-        <template #actions>
-            <v-btn
-                variant="tonal"
-                color="error"
-                prepend-icon="mdi-block-helper"
-                text="Desativar"
-                @click="disableScrapedArticle"
-            ></v-btn>
-        </template>
-    </Dialog>
-
-    <Dialog
         overlay-id="scraped-article-reject-translation"
         title="Rejeitar Tradução"
         max-width="500px"
@@ -259,24 +241,6 @@
         </template>
     </Dialog>
 
-    <Dialog
-        overlay-id="scraped-article-reset-translation-attempts"
-        title="Reiniciar Tentativas de Tradução"
-        message="Reiniciar a contagem de tentativas de tradução deste artigo?"
-        max-width="400px"
-        v-model="isResetTranslationAttemptsDialogOpen"
-    >
-        <template #actions>
-            <v-btn
-                variant="tonal"
-                color="info"
-                prepend-icon="mdi-restart"
-                text="Reiniciar"
-                @click="resetTranslationAttempts"
-            ></v-btn>
-        </template>
-    </Dialog>
-
     <ScrapedArticleBulkDeleteDialog
         ref="bulkDeleteDialogRef"
         @deleted="handleBulkDeleted"
@@ -296,14 +260,13 @@
 
     import {
         alertError,
+        confirm,
         toastSuccess,
     } from "@/Utils/Alert";
 
     const isOpen = ref(false);
     const isScrapedArticleContentDialogOpen = ref(false);
-    const isDisableScrapedArticleDialogOpen = ref(false);
     const isRejectTranslationDialogOpen = ref(false);
-    const isResetTranslationAttemptsDialogOpen = ref(false);
 
     const bulkDeleteDialogRef = ref(null);
 
@@ -424,7 +387,6 @@
 
             toastSuccess("Ok", "Artigo desativado com sucesso");
 
-            isDisableScrapedArticleDialogOpen.value = false;
             isScrapedArticleContentDialogOpen.value = false;
 
             nextTick(async () => {
@@ -484,8 +446,6 @@
 
             toastSuccess("Ok", data.message || "Contagem de tentativas reiniciada com sucesso");
 
-            isResetTranslationAttemptsDialogOpen.value = false;
-
             nextTick(async () => {
                 await getScrapedArticles();
             });
@@ -536,9 +496,18 @@
         });
     }
 
-    function handleDisableScrapedArticle() {
+    async function handleDisableScrapedArticle() {
         if( !selectedScrapedArticle.value.is_enabled ) return;
-        isDisableScrapedArticleDialogOpen.value = true;
+
+        const { isConfirmed } = await confirm(
+            "Desativar Artigo",
+            "Desativar o artigo?",
+            { confirmButtonText: "Desativar" },
+        );
+
+        if( !isConfirmed ) return;
+
+        await disableScrapedArticle();
     }
 
     function handleRejectTranslation() {
@@ -546,9 +515,18 @@
         isRejectTranslationDialogOpen.value = true;
     }
 
-    function handleResetTranslationAttempts() {
+    async function handleResetTranslationAttempts() {
         if( !canResetTranslationAttempts.value ) return;
-        isResetTranslationAttemptsDialogOpen.value = true;
+
+        const { isConfirmed } = await confirm(
+            "Reiniciar Tentativas de Tradução",
+            "Reiniciar a contagem de tentativas de tradução deste artigo?",
+            { confirmButtonText: "Reiniciar" },
+        );
+
+        if( !isConfirmed ) return;
+
+        await resetTranslationAttempts();
     }
 
     function handleContentClick(e) {

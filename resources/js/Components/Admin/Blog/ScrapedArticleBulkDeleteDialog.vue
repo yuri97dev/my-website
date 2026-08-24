@@ -100,8 +100,8 @@
     import Dialog from "@/Components/Dialog.vue";
 
     import {
-        Swal,
         alertError,
+        confirmDelete as confirmDeleteDialog,
         toastSuccess,
     } from "@/Utils/Alert";
 
@@ -248,14 +248,10 @@
     async function confirmDelete() {
         if( !canDelete.value ) return;
 
-        const { isConfirmed } = await Swal.fire({
-            icon: "warning",
-            title: "Confirmar exclusão",
-            text: `${deleteCount.value} artigo(s) serão excluídos permanentemente. Esta ação não pode ser desfeita.`,
-            showCancelButton: true,
-            confirmButtonText: "Excluir",
-            cancelButtonText: "Cancelar",
-        });
+        const { isConfirmed } = await confirmDeleteDialog(
+            "Confirmar exclusão",
+            `${deleteCount.value} artigo(s) serão excluídos permanentemente. Esta ação não pode ser desfeita.`,
+        );
 
         if( !isConfirmed ) return;
 

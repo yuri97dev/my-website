@@ -118,7 +118,7 @@
                 prepend-icon="mdi-delete"
                 :loading="deleting"
                 text="Remover"
-                @click="isConfirmRemoveDialogOpen = true"
+                @click="handleDelete"
             ></v-btn>
 
             <v-spacer></v-spacer>
@@ -133,27 +133,6 @@
             ></v-btn>
         </template>
     </BottomSheet>
-
-    <Dialog
-        overlay-id="sgc-company-confirm-remove"
-        title="Excluir Empresa"
-        max-width="500"
-        v-model="isConfirmRemoveDialogOpen"
-    >
-        A empresa <strong class="text-primary">{{ form.trade_name || form.legal_name || "" }}</strong>
-        será removida permanentemente. Essa ação não pode ser desfeita.
-
-        <template #actions>
-            <v-btn
-                variant="tonal"
-                color="error"
-                prepend-icon="mdi-delete"
-                :loading="deleting"
-                text="Excluir"
-                @click="handleDelete"
-            ></v-btn>
-        </template>
-    </Dialog>
 </template>
 
 <script setup>
@@ -162,11 +141,10 @@
     import api from "@/api";
 
     import BottomSheet from "@/Components/BottomSheet.vue";
-    import Dialog from "@/Components/Dialog.vue";
     import CompanyAutocomplete from "@/Components/Inputs/CompanyAutocomplete.vue";
     import PostalCodeField from "@/Components/PostalCodeField.vue";
 
-    import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
     import { useSgcAuth } from "@/Composables/useSgcAuth";
 
     const emit = defineEmits([
@@ -176,7 +154,6 @@
     const { isCompanyOwner } = useSgcAuth();
 
     const isDialogOpen = ref(false);
-    const isConfirmRemoveDialogOpen = ref(false);
     const loading = ref(false);
     const deleting = ref(false);
     const errors = ref({});
@@ -262,6 +239,15 @@
     }
 
     async function handleDelete() {
+        const name = form.value.trade_name || form.value.legal_name || "";
+
+        const { isConfirmed } = await confirmDelete(
+            "Excluir Empresa",
+            `A empresa "${name}" será removida permanentemente. Essa ação não pode ser desfeita.`,
+        );
+
+        if( !isConfirmed ) return;
+
         deleting.value = true;
 
         try {
@@ -271,7 +257,6 @@
 
             toastSuccess("Ok", "Empresa removida com sucesso");
 
-            isConfirmRemoveDialogOpen.value = false;
             isDialogOpen.value = false;
 
             handleClose();
@@ -323,8 +308,6 @@
     }
 
     function handleClose() {
-        isConfirmRemoveDialogOpen.value = false;
-
         reset();
 
         nextTick(() => {

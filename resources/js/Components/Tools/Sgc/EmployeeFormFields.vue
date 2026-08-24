@@ -53,7 +53,7 @@
                 prepend-icon="mdi-delete"
                 :loading="deleting"
                 text="Remover"
-                @click="isConfirmRemoveDialogOpen = true"
+                @click="handleDelete"
             ></v-btn>
 
             <v-spacer></v-spacer>
@@ -69,27 +69,6 @@
             ></v-btn>
         </template>
     </BottomSheet>
-
-    <Dialog
-        overlay-id="sgc-employee-confirm-remove"
-        title="Excluir Funcionário"
-        max-width="500"
-        v-model="isConfirmRemoveDialogOpen"
-    >
-        O funcionário <strong class="text-primary">{{ employee.user?.name ?? employee.user?.email ?? "" }}</strong>
-        será removido desta empresa. Essa ação não pode ser desfeita.
-
-        <template #actions>
-            <v-btn
-                variant="tonal"
-                color="error"
-                prepend-icon="mdi-delete"
-                :loading="deleting"
-                text="Excluir"
-                @click="handleDelete"
-            ></v-btn>
-        </template>
-    </Dialog>
 </template>
 
 <script setup>
@@ -98,10 +77,9 @@
     import api from "@/api";
 
     import BottomSheet from "@/Components/BottomSheet.vue";
-    import Dialog from "@/Components/Dialog.vue";
     import CompanyAutocomplete from "@/Components/Inputs/CompanyAutocomplete.vue";
 
-    import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
     import { useSgcAuth } from "@/Composables/useSgcAuth";
 
     const props = defineProps({
@@ -129,7 +107,6 @@
     ];
 
     const isDialogOpen = ref(false);
-    const isConfirmRemoveDialogOpen = ref(false);
     const loading = ref(false);
     const deleting = ref(false);
     const errors = ref({});
@@ -238,6 +215,15 @@
     }
 
     async function handleDelete() {
+        const name = employee.value.user?.name ?? employee.value.user?.email ?? "";
+
+        const { isConfirmed } = await confirmDelete(
+            "Excluir Funcionário",
+            `O funcionário "${name}" será removido desta empresa. Essa ação não pode ser desfeita.`,
+        );
+
+        if( !isConfirmed ) return;
+
         deleting.value = true;
 
         try {
@@ -247,7 +233,6 @@
 
             toastSuccess("Ok", "Funcionário removido com sucesso");
 
-            isConfirmRemoveDialogOpen.value = false;
             isDialogOpen.value = false;
 
             handleClose();
@@ -305,8 +290,6 @@
     }
 
     function handleClose() {
-        isConfirmRemoveDialogOpen.value = false;
-
         reset();
 
         nextTick(() => {

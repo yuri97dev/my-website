@@ -97,25 +97,6 @@
         </template>
     </Dialog>
 
-    <Dialog
-        overlay-id="blog-category-confirm-remove"
-        title="Excluir Categoria"
-        max-width="500"
-        v-model="isConfirmRemoveDialogOpen"
-    >
-        A categoria <strong class="text-primary">{{ selectedCategory?.name ?? "" }}</strong>
-        será removida permanentemente. Essa ação não pode ser desfeita.
-
-        <template #actions>
-            <v-btn
-                variant="tonal"
-                color="error"
-                prepend-icon="mdi-delete"
-                text="Excluir"
-                @click="removeCategory(selectedCategory)"
-            ></v-btn>
-        </template>
-    </Dialog>
 </template>
 
 <script setup>
@@ -125,7 +106,7 @@
 
     import Dialog from "@/Components/Dialog.vue";
 
-    import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
 
     const emits = defineEmits([
         "update",
@@ -139,12 +120,9 @@
 
     const isDialogListOpen = ref(false);
     const isDialogFormOpen = ref(false);
-    const isConfirmRemoveDialogOpen = ref(false);
-
     const hasChanges = ref(false);
 
     const categories = ref([]);
-    const selectedCategory = ref(null);
 
     const loading = ref(false);
 
@@ -223,10 +201,7 @@
 
             toastSuccess("Ok", "Categoria removida com sucesso");
 
-            isConfirmRemoveDialogOpen.value = false;
             hasChanges.value = true;
-
-            selectedCategory.value = null;
         } catch (e) {
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao remover categoria");
@@ -237,9 +212,15 @@
         await getCategories();
     }
 
-    function confirmRemoveCategory(category) {
-        selectedCategory.value = category;
-        isConfirmRemoveDialogOpen.value = true;
+    async function confirmRemoveCategory(category) {
+        const { isConfirmed } = await confirmDelete(
+            "Excluir Categoria",
+            `A categoria "${category.name}" será removida permanentemente. Essa ação não pode ser desfeita.`,
+        );
+
+        if( !isConfirmed ) return;
+
+        await removeCategory(category);
     }
 
     function openList() {

@@ -71,4 +71,34 @@ export function alertInfo(title, text) {
     return fire({ icon: "info", title, text });
 }
 
+export function confirm(title, text, options = {}) {
+    return fire({
+        icon: "warning",
+        title,
+        text,
+        showCancelButton: true,
+        confirmButtonText: "Confirmar",
+        ...options,
+    });
+}
+
+export function confirmDelete(title, text, options = {}) {
+    const buttonClasses = `v-btn v-btn--density-default v-btn--size-large`;
+
+    return fire({
+        icon: "warning",
+        title,
+        text,
+        showCancelButton: true,
+        confirmButtonText: "Excluir",
+        customClass: {
+            closeButton: buttonClasses,
+            confirmButton: `${buttonClasses} bg-error`,
+            cancelButton: buttonClasses,
+            denyButton: buttonClasses,
+        },
+        ...options,
+    });
+}
+
 export { Swal };

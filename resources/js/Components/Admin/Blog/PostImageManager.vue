@@ -86,24 +86,6 @@
             ></v-btn>
         </template>
     </BottomSheet>
-
-    <Dialog
-        overlay-id="post-image-confirm-remove"
-        title="Remover Imagem"
-        message="Tem certeza que deseja remover a imagem?"
-        max-width="400"
-        v-model="isConfirmRemoveDialogOpen"
-    >
-        <template #actions>
-            <v-btn
-                variant="tonal"
-                color="error"
-                prepend-icon="mdi-delete"
-                text="Remover"
-                @click="removeImage"
-            ></v-btn>
-        </template>
-    </Dialog>
 </template>
 
 <script setup>
@@ -112,14 +94,12 @@
     import api from "@/api";
 
     import BottomSheet from "@/Components/BottomSheet.vue";
-    import Dialog from "@/Components/Dialog.vue";
 
-    import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
 
     import { copyText } from "@/Utils/Common";
 
     const isOpen = ref(false);
-    const isConfirmRemoveDialogOpen = ref(false);
 
     const fileInput = ref(null);
 
@@ -210,8 +190,6 @@
     }
 
     async function removeImage() {
-        isConfirmRemoveDialogOpen.value = false;
-
         loading.value = true;
 
         try {
@@ -247,9 +225,17 @@
         }
     }
 
-    function confirmRemoveImage(image) {
+    async function confirmRemoveImage(image) {
+        const { isConfirmed } = await confirmDelete(
+            "Remover Imagem",
+            "Tem certeza que deseja remover a imagem?",
+            { confirmButtonText: "Remover" },
+        );
+
+        if( !isConfirmed ) return;
+
         selectedImage.value = image;
-        isConfirmRemoveDialogOpen.value = true;
+        await removeImage();
     }
 
     function open(postId = null) {

@@ -87,7 +87,7 @@
                 color="error"
                 prepend-icon="mdi-delete"
                 text="Excluir"
-                @click="isConfirmRemoveDialogOpen = true"
+                @click="handleRemove"
             ></v-btn>
 
             <v-spacer></v-spacer>
@@ -102,26 +102,6 @@
             ></v-btn>
         </template>
     </Dialog>
-
-    <Dialog
-        overlay-id="sgc-customer-address-confirm-remove"
-        title="Excluir Endereço"
-        max-width="500"
-        v-model="isConfirmRemoveDialogOpen"
-    >
-        O endereço será removido permanentemente. Essa ação não pode ser desfeita.
-
-        <template #actions>
-            <v-btn
-                variant="tonal"
-                color="error"
-                prepend-icon="mdi-delete"
-                :loading="saving"
-                text="Excluir"
-                @click="handleRemove"
-            ></v-btn>
-        </template>
-    </Dialog>
 </template>
 
 <script setup>
@@ -132,7 +112,7 @@
     import Dialog from "@/Components/Dialog.vue";
     import PostalCodeField from "@/Components/PostalCodeField.vue";
 
-    import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
 
     const emit = defineEmits([
         "saved",
@@ -140,7 +120,6 @@
     ]);
 
     const isOpen = ref(false);
-    const isConfirmRemoveDialogOpen = ref(false);
     const saving = ref(false);
     const customerId = ref(null);
 
@@ -234,6 +213,13 @@
     async function handleRemove() {
         if( !customerId.value || !form.id ) return;
 
+        const { isConfirmed } = await confirmDelete(
+            "Excluir Endereço",
+            "O endereço será removido permanentemente. Essa ação não pode ser desfeita.",
+        );
+
+        if( !isConfirmed ) return;
+
         saving.value = true;
 
         try {
@@ -246,7 +232,6 @@
 
             toastSuccess("Ok", "Endereço removido com sucesso");
 
-            isConfirmRemoveDialogOpen.value = false;
             isOpen.value = false;
 
             resetForm();
@@ -274,7 +259,6 @@
 
     function close() {
         isOpen.value = false;
-        isConfirmRemoveDialogOpen.value = false;
         customerId.value = null;
         resetForm();
     }

@@ -40,28 +40,11 @@
                     text="Revogar Sessão"
                     :loading="loading"
                     :disabled="device.is_current"
-                    @click="selectDevice(device)"
+                    @click="confirmRevokeSession(device)"
                 ></v-btn>
             </v-card-actions>
         </v-card>
     </div>
-
-    <Dialog
-        overlay-id="account-revoke-session"
-        title="Revogar Sessão"
-        message="Tem certeza que deseja revogar a sessão?"
-        max-width="500"
-        v-model="dialog"
-    >
-        <template #actions>
-            <v-btn
-                color="primary"
-                prepend-icon="mdi-check"
-                text="Confirmar"
-                @click="revokeSession"
-            ></v-btn>
-        </template>
-    </Dialog>
 </template>
 
 <script setup>
@@ -69,9 +52,7 @@
 
     import api from "@/api";
 
-    import Dialog from "@/Components/Dialog.vue";
-
-    import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { alertError, confirm, toastSuccess } from "@/Utils/Alert";
     import { formatDate } from "@/Utils/Common";
 
     const ICONS = {
@@ -83,13 +64,17 @@
     };
 
     const devices = ref([]);
-    const selectedDevice = ref(null);
-    const dialog = ref(false);
     const loading = ref(false);
 
-    function selectDevice(device) {
-        selectedDevice.value = device;
-        dialog.value = true;
+    async function confirmRevokeSession(device) {
+        const { isConfirmed } = await confirm(
+            "Revogar Sessão",
+            "Tem certeza que deseja revogar a sessão?",
+        );
+
+        if( !isConfirmed ) return;
+
+        await revokeSession(device);
     }
 
     async function getDevices() {
@@ -110,14 +95,11 @@
         }
     }
 
-    async function revokeSession() {
-        dialog.value = false;
+    async function revokeSession(device) {
         loading.value = true;
 
-        const { id: session_id } = selectedDevice.value;
-
         try {
-            const url = route("api.account.sessions.destroy", session_id);
+            const url = route("api.account.sessions.destroy", device.id);
             await api.delete(url);
 
             toastSuccess("Ok", "Sessão revogada com sucesso");

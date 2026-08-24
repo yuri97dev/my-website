@@ -22,6 +22,10 @@ a {
     z-index: 9999 !important;
 }
 
+.swal2-actions {
+    gap: 0.625em;
+}
+
 .splitpanes__splitter {
     border-color: rgb(var(--v-theme-surface-light)) !important;
     background: rgb(var(--v-theme-surface-light)) !important;

@@ -160,26 +160,9 @@
             size="large"
             color="error"
             :disabled="loading"
-            @click="isClearLogsDialogOpen = true"
+            @click="confirmClearLogs"
         ></v-fab>
 
-        <Dialog
-            overlay-id="logs-clear"
-            title="Limpar Logs"
-            message="Limpar os logs?"
-            max-width="400px"
-            v-model="isClearLogsDialogOpen"
-        >
-            <template #actions>
-                <v-btn
-                    variant="tonal"
-                    color="error"
-                    prepend-icon="mdi-delete-sweep"
-                    text="Limpar"
-                    @click="clearLogs"
-                ></v-btn>
-            </template>
-        </Dialog>
     </Container>
 </template>
 
@@ -190,10 +173,9 @@
 
     import Container from "@/Components/Container.vue";
     import DateField from "@/Components/DateField.vue";
-    import Dialog from "@/Components/Dialog.vue";
     import LogFileSelect from "@/Components/Inputs/LogFileSelect.vue";
 
-    import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
     import { parseLogEntries, parseLogLines, logLevelColor } from "@/Utils/ParseLogs";
     import { formatDate, formatText } from "@/Utils/Common";
 
@@ -203,7 +185,6 @@
     const content = ref("");
     const loading = ref(false);
     const expandedTraces = ref(new Set());
-    const isClearLogsDialogOpen = ref(false);
 
     const logEntries = computed(() => parseLogEntries(content.value));
 
@@ -269,6 +250,18 @@
         }
     }
 
+    async function confirmClearLogs() {
+        const { isConfirmed } = await confirmDelete(
+            "Limpar Logs",
+            "Limpar os logs?",
+            { confirmButtonText: "Limpar" },
+        );
+
+        if( !isConfirmed ) return;
+
+        await clearLogs();
+    }
+
     async function clearLogs() {
         loading.value = true;
         expandedTraces.value = new Set();
@@ -281,7 +274,6 @@
             await api.delete(url);
 
             content.value = "";
-            isClearLogsDialogOpen.value = false;
 
             toastSuccess("Ok", "Logs limpos com sucesso.");
         } catch (e) {

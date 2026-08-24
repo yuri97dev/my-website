@@ -79,7 +79,7 @@
                 color="error"
                 prepend-icon="mdi-delete"
                 text="Excluir"
-                @click="confirmRemove"
+                @click="removeScrapeHttpProfile"
             ></v-btn>
 
             <v-spacer></v-spacer>
@@ -100,27 +100,6 @@
             ></v-btn>
         </template>
     </BottomSheet>
-
-    <Dialog
-        overlay-id="scrape-http-profile-confirm-remove"
-        title="Excluir Perfil HTTP"
-        max-width="500"
-        v-model="isConfirmRemoveDialogOpen"
-    >
-        O perfil <strong class="text-primary">{{ scrapeHttpProfile?.name ?? "" }}</strong>
-        será removido permanentemente. Essa ação não pode ser desfeita.
-
-        <template #actions>
-            <v-btn
-                variant="tonal"
-                color="error"
-                prepend-icon="mdi-delete"
-                :loading="loading"
-                text="Excluir"
-                @click="removeScrapeHttpProfile"
-            ></v-btn>
-        </template>
-    </Dialog>
 </template>
 
 <script setup>
@@ -129,16 +108,14 @@
     import api from "@/api";
 
     import BottomSheet from "@/Components/BottomSheet.vue";
-    import Dialog from "@/Components/Dialog.vue";
 
-    import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
 
     const emit = defineEmits([
         "form-closed",
     ]);
 
     const isDialogOpen = ref(false);
-    const isConfirmRemoveDialogOpen = ref(false);
 
     const loading = ref(false);
     const errors = ref({});
@@ -234,6 +211,13 @@
     }
 
     async function removeScrapeHttpProfile() {
+        const { isConfirmed } = await confirmDelete(
+            "Excluir Perfil HTTP",
+            `O perfil "${scrapeHttpProfile.value?.name ?? ""}" será removido permanentemente. Essa ação não pode ser desfeita.`,
+        );
+
+        if( !isConfirmed ) return;
+
         loading.value = true;
 
         try {
@@ -242,7 +226,6 @@
 
             toastSuccess("Ok", "Perfil HTTP removido com sucesso");
 
-            isConfirmRemoveDialogOpen.value = false;
             isDialogOpen.value = false;
         } catch (e) {
             const { message } = e?.response?.data || {};
@@ -268,11 +251,6 @@
         if( headers.value.length <= 1 ) return;
         headers.value.splice(index, 1);
     }
-
-    function confirmRemove() {
-        isConfirmRemoveDialogOpen.value = true;
-    }
-
     function open(data = {}) {
         scrapeHttpProfile.value = data;
 
@@ -288,7 +266,6 @@
 
     function reset() {
         errors.value = {};
-        isConfirmRemoveDialogOpen.value = false;
 
         scrapeHttpProfile.value = {};
 

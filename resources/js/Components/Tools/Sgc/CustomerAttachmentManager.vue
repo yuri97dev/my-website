@@ -70,28 +70,6 @@
         </v-list>
     </div>
 
-    <Dialog
-        overlay-id="sgc-customer-attachment-confirm-remove"
-        title="Excluir Anexo"
-        max-width="500"
-        v-model="isConfirmRemoveDialogOpen"
-    >
-        O arquivo
-        <strong class="text-primary">{{ selectedAttachment?.original_name ?? "" }}</strong>
-        será removido permanentemente. Essa ação não pode ser desfeita.
-
-        <template #actions>
-            <v-btn
-                variant="tonal"
-                color="error"
-                prepend-icon="mdi-delete"
-                :loading="saving"
-                text="Excluir"
-                @click="handleRemove"
-            ></v-btn>
-        </template>
-    </Dialog>
-
     <ImageViewerDialog
         ref="imageViewerDialogRef"
     ></ImageViewerDialog>
@@ -102,10 +80,9 @@
 
     import api from "@/api";
 
-    import Dialog from "@/Components/Dialog.vue";
     import ImageViewerDialog from "@/Components/ImageViewerDialog.vue";
 
-    import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
     import { formatBytes, formatDate } from "@/Utils/Common";
 
     const props = defineProps({
@@ -129,7 +106,6 @@
         typeOptions.map(option => [ option.value, option.title ])
     );
 
-    const isConfirmRemoveDialogOpen = ref(false);
     const imageViewerDialogRef = ref(null);
     const loading = ref(false);
     const saving = ref(false);
@@ -256,9 +232,16 @@
         window.open(url, "_blank", "noopener,noreferrer");
     }
 
-    function confirmRemove(attachment) {
+    async function confirmRemove(attachment) {
+        const { isConfirmed } = await confirmDelete(
+            "Excluir Anexo",
+            `O arquivo "${attachment.original_name}" será removido permanentemente. Essa ação não pode ser desfeita.`,
+        );
+
+        if( !isConfirmed ) return;
+
         selectedAttachment.value = attachment;
-        isConfirmRemoveDialogOpen.value = true;
+        await handleRemove();
     }
 
     async function handleRemove() {
@@ -276,7 +259,6 @@
 
             toastSuccess("Ok", "Anexo removido com sucesso");
 
-            isConfirmRemoveDialogOpen.value = false;
             selectedAttachment.value = null;
 
             await loadAttachments();
@@ -289,7 +271,6 @@
     }
 
     function reset() {
-        isConfirmRemoveDialogOpen.value = false;
         selectedAttachment.value = null;
         attachments.value = [];
         resetForm();

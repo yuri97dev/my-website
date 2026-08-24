@@ -145,26 +145,6 @@
         </template>
     </Dialog>
 
-    <Dialog
-        overlay-id="ai-prompt-confirm-remove"
-        title="Excluir Prompt"
-        max-width="500"
-        v-model="isConfirmRemoveDialogOpen"
-    >
-        O prompt <strong class="text-primary">{{ selectedPrompt?.key ?? "" }}</strong>
-        será removido permanentemente. Essa ação não pode ser desfeita.
-
-        <template #actions>
-            <v-btn
-                variant="tonal"
-                color="error"
-                prepend-icon="mdi-delete"
-                :loading="saving"
-                text="Excluir"
-                @click="removePrompt(selectedPrompt)"
-            ></v-btn>
-        </template>
-    </Dialog>
 </template>
 
 <script setup>
@@ -174,7 +154,7 @@
 
     import Dialog from "@/Components/Dialog.vue";
 
-    import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
 
     const emits = defineEmits([
         "update",
@@ -193,12 +173,10 @@
 
     const isDialogListOpen = ref(false);
     const isDialogFormOpen = ref(false);
-    const isConfirmRemoveDialogOpen = ref(false);
 
     const hasChanges = ref(false);
 
     const prompts = ref([]);
-    const selectedPrompt = ref(null);
 
     const loading = ref(false);
     const loadingTemplate = ref(false);
@@ -306,10 +284,7 @@
 
             toastSuccess("Ok", "Prompt removido com sucesso");
 
-            isConfirmRemoveDialogOpen.value = false;
             hasChanges.value = true;
-
-            selectedPrompt.value = null;
         } catch (e) {
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao remover prompt");
@@ -337,9 +312,15 @@
         }
     }
 
-    function confirmRemovePrompt(prompt) {
-        selectedPrompt.value = prompt;
-        isConfirmRemoveDialogOpen.value = true;
+    async function confirmRemovePrompt(prompt) {
+        const { isConfirmed } = await confirmDelete(
+            "Excluir Prompt",
+            `O prompt "${prompt.key}" será removido permanentemente. Essa ação não pode ser desfeita.`,
+        );
+
+        if( !isConfirmed ) return;
+
+        await removePrompt(prompt);
     }
 
     function openList(provider) {
