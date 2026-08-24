@@ -59,12 +59,14 @@
         <div
             v-if="pagination.total > 0"
             class="d-flex justify-center mt-4"
+            style="position: sticky; bottom: 0"
         >
             <v-pagination
                 v-model="pagination.page"
                 :length="pagination.lastPage"
                 :total-visible="7"
                 :disabled="loading"
+                class="bg-surface px-2 rounded-lg"
                 @update:model-value="handlePaginationUpdate"
             ></v-pagination>
         </div>
