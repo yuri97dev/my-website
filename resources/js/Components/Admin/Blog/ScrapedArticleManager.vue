@@ -6,13 +6,34 @@
         :loading="listLoading"
         v-model="isOpen"
     >
-        <SearchField
-            :fields="searchFields"
-            variant="tonal"
-            @refresh="handleSearch"
-            @update:model-value="handleSearch"
-            v-model="search"
-        ></SearchField>
+        <v-row>
+            <v-col cols="12" lg="8">
+                <SearchField
+                    :fields="searchFields"
+                    variant="tonal"
+                    @refresh="handleSearch"
+                    @update:model-value="handleSearch"
+                    v-model="search"
+                ></SearchField>
+            </v-col>
+
+            <v-col cols="12" lg="4">
+                <v-card hover variant="tonal">
+                    <v-select
+                        label="Status"
+                        variant="solo"
+                        multiple
+                        clearable
+                        chips
+                        closable-chips
+                        :items="statusFilterOptions"
+                        @click:clear="handleStatusFiltersClear"
+                        @update:model-value="handleSearch"
+                        v-model="statusFilters"
+                    ></v-select>
+                </v-card>
+            </v-col>
+        </v-row>
 
         <v-row class="mt-4">
             <v-col
@@ -292,6 +313,21 @@
     const articleSource = ref(null);
     const search = ref(null);
 
+    const DEFAULT_STATUS_FILTERS = ["active", "unpublished"];
+
+    const statusFilters = ref([...DEFAULT_STATUS_FILTERS]);
+
+    const statusFilterOptions = [
+        { value: "active", title: "Ativos" },
+        { value: "inactive", title: "Inativos" },
+        { value: "published", title: "Publicados" },
+        { value: "unpublished", title: "Não publicados" },
+        { value: "translated", title: "Traduzidos" },
+        { value: "untranslated", title: "Não traduzidos" },
+        { value: "rejected", title: "Rejeitados" },
+        { value: "not_rejected", title: "Não rejeitados" },
+    ];
+
     const searchFields = ref([
         {
             key: "id",
@@ -359,13 +395,18 @@
     }
 
     function buildSearchParams() {
-        if( !search.value ) return {};
+        const params = {};
 
-        const { key, search: searchValue } = search.value;
+        if( search.value ) {
+            const { key, search: searchValue } = search.value;
+            params[key] = searchValue;
+        }
 
-        return {
-            [key]: searchValue,
-        };
+        if( statusFilters.value.length > 0 ) {
+            params.status_filters = statusFilters.value;
+        }
+
+        return params;
     }
 
     async function getScrapedArticles() {
@@ -531,6 +572,13 @@
         await getScrapedArticles();
     }
 
+    function handleStatusFiltersClear() {
+        nextTick(() => {
+            statusFilters.value = [...DEFAULT_STATUS_FILTERS];
+            handleSearch();
+        });
+    }
+
     function handleSearch() {
         pagination.page = 1;
 
@@ -648,6 +696,7 @@
         articleSource.value = data;
         pagination.page = 1;
         search.value = null;
+        statusFilters.value = [...DEFAULT_STATUS_FILTERS];
 
         isOpen.value = true;
 

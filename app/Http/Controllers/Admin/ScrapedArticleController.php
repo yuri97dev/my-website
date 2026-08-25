@@ -8,6 +8,7 @@ use App\Http\Requests\ScrapedArticle\BulkDeleteScrapedArticlesRequest;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\Rule;
 use App\Jobs\ScrapeArticleSourcesJob;
 use App\Models\ScrapedArticle;
 
@@ -22,6 +23,17 @@ class ScrapedArticleController extends Controller
             "translated_title" => ["nullable", "string", "max:255"],
             "url" => ["nullable", "string", "max:255"],
             "search" => ["nullable", "string", "max:255"],
+            "status_filters" => ["nullable", "array"],
+            "status_filters.*" => ["string", Rule::in([
+                "active",
+                "inactive",
+                "published",
+                "unpublished",
+                "translated",
+                "untranslated",
+                "rejected",
+                "not_rejected",
+            ])],
         ]);
 
         $per_page = min($request->integer("per_page", 15), 100);
@@ -77,6 +89,8 @@ class ScrapedArticleController extends Controller
                     $request->input("search")
                 );
             });
+
+        $this->applyStatusFilters($query, $request->input("status_filters", []));
 
         $paginator = $query->paginate($per_page);
 
@@ -180,6 +194,45 @@ class ScrapedArticleController extends Controller
             "deleted_count" => $deleted_count,
             "message" => "Artigos excluídos com sucesso.",
         ], 200);
+    }
+
+    private function applyStatusFilters(Builder $query, array $status_filters): void
+    {
+        $active = in_array("active", $status_filters, true);
+        $inactive = in_array("inactive", $status_filters, true);
+
+        if( $active && !$inactive ) {
+            $query->where("is_enabled", true);
+        } elseif( $inactive && !$active ) {
+            $query->where("is_enabled", false);
+        }
+
+        $published = in_array("published", $status_filters, true);
+        $unpublished = in_array("unpublished", $status_filters, true);
+
+        if( $published && !$unpublished ) {
+            $query->whereNotNull("post_id");
+        } elseif( $unpublished && !$published ) {
+            $query->whereNull("post_id");
+        }
+
+        $translated = in_array("translated", $status_filters, true);
+        $untranslated = in_array("untranslated", $status_filters, true);
+
+        if( $translated && !$untranslated ) {
+            $query->whereNotNull("translated_title");
+        } elseif( $untranslated && !$translated ) {
+            $query->whereNull("translated_title");
+        }
+
+        $rejected = in_array("rejected", $status_filters, true);
+        $not_rejected = in_array("not_rejected", $status_filters, true);
+
+        if( $rejected && !$not_rejected ) {
+            $query->whereNotNull("translation_rejected_at");
+        } elseif( $not_rejected && !$rejected ) {
+            $query->whereNull("translation_rejected_at");
+        }
     }
 
     private function buildBulkDeleteQuery(BulkDeleteScrapedArticlesRequest $request): Builder
