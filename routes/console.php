@@ -41,7 +41,7 @@ Schedule::job(new ScrapeArticleSourcesJob(driver: ArticleSource::DRIVER_JSON))
     ->unlessBetween("01:00", "06:00")
     ->withoutOverlapping();
 
-Schedule::call(new ProcessScrapedArticlesWithAi)
+/* Schedule::call(new ProcessScrapedArticlesWithAi)
     ->name("process-scraped-articles-with-ai")
     ->everyMinute()
-    ->withoutOverlapping(15);
+    ->withoutOverlapping(15); */

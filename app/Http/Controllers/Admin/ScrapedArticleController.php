@@ -9,7 +9,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
+use App\Actions\TranslateScrapedArticle;
 use App\Jobs\ScrapeArticleSourcesJob;
+use App\Jobs\TranslateScrapedArticleJob;
 use App\Models\ScrapedArticle;
 
 class ScrapedArticleController extends Controller
@@ -175,6 +177,48 @@ class ScrapedArticleController extends Controller
             "scraped_article" => $scraped_article->fresh(),
             "message" => "Contagem de tentativas de tradução reiniciada com sucesso.",
         ], 200);
+    }
+
+    public function translate(ScrapedArticle $scraped_article)
+    {
+        if( !$scraped_article->is_enabled ) return response()->json([
+            "message" => "O artigo está desativado.",
+        ], 422);
+
+        if( $scraped_article->translation_rejected_at ) return response()->json([
+            "message" => "A tradução deste artigo foi rejeitada permanentemente.",
+        ], 422);
+
+        if( $scraped_article->translated_content ) return response()->json([
+            "message" => "O artigo já possui tradução.",
+        ], 422);
+
+        if( $scraped_article->translation_attempts >= TranslateScrapedArticle::MAX_TRANSLATION_ATTEMPTS ) return response()->json([
+            "message" => "O número máximo de tentativas de tradução foi atingido.",
+        ], 422);
+
+        $scraped_article->load("source.aiPrompts.aiProvider");
+
+        if( $scraped_article->source->aiPrompts->isEmpty() ) return response()->json([
+            "message" => "A fonte do artigo não possui prompts de tradução configurados.",
+        ], 422);
+
+        if( $scraped_article->source->aiPrompts->contains(fn ($prompt) => !$prompt->aiProvider?->is_enabled) ) return response()->json([
+            "message" => "Um ou mais provedores de IA estão desativados.",
+        ], 422);
+
+        $lock_key = TranslateScrapedArticleJob::cacheLockKey($scraped_article->id);
+        $lock_acquired = Cache::add($lock_key, true, TranslateScrapedArticleJob::CACHE_LOCK_TTL);
+
+        if( !$lock_acquired ) return response()->json([
+            "message" => "A tradução deste artigo já está em andamento.",
+        ], 409);
+
+        TranslateScrapedArticleJob::dispatch($scraped_article->id)->afterResponse();
+
+        return response()->json([
+            "message" => "Tradução iniciada com sucesso.",
+        ], 202);
     }
 
     public function bulkDeleteCount(BulkDeleteScrapedArticlesRequest $request)

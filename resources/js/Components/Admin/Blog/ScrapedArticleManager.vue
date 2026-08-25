@@ -183,6 +183,15 @@
 
                 <v-list border slim>
                     <v-list-item
+                        v-if="canStartTranslation"
+                        prepend-icon="mdi-translate"
+                        title="Traduzir"
+                        class="text-primary"
+                        :disabled="translating"
+                        @click="startTranslation"
+                    ></v-list-item>
+
+                    <v-list-item
                         v-if="!readOnly"
                         prepend-icon="mdi-block-helper"
                         title="Desativar"
@@ -286,7 +295,7 @@
 </template>
 
 <script setup>
-    import { ref, reactive, computed, nextTick } from "vue";
+    import { ref, reactive, computed, nextTick, onUnmounted, watch } from "vue";
 
     import api from "@/api";
 
@@ -354,6 +363,14 @@
     const contentLoading = ref(false);
     const rejectLoading = ref(false);
     const scraping = ref(false);
+    const translating = ref(false);
+
+    const TRANSLATION_POLL_INTERVAL = 3000;
+    const TRANSLATION_POLL_MAX_ATTEMPTS = 200;
+
+    let translationPollInterval = null;
+    let translationPollAttempts = 0;
+    let translationInitialAttempts = 0;
 
     const pagination = reactive({
         page: 1,
@@ -375,6 +392,13 @@
     const canResetTranslationAttempts = computed(() => (
         !readOnly.value &&
         (selectedScrapedArticle.value?.translation_attempts ?? 0) > 0
+    ));
+
+    const canStartTranslation = computed(() => (
+        !readOnly.value &&
+        !hasTranslation.value &&
+        !selectedScrapedArticle.value?.translation_rejected_at &&
+        (selectedScrapedArticle.value?.translation_attempts ?? 0) < 3
     ));
 
     const selectedScrapedArticleTitle = computed(() => {
@@ -447,26 +471,38 @@
         }
     }
 
-    async function getScrapedArticleById(id) {
-        contentLoading.value = true;
+    async function getScrapedArticleById(id, { silent = false } = {}) {
+        if( !silent ) contentLoading.value = true;
 
         try {
             const url = route("api.scraped-articles.show", id);
+
             const { data } = await api.get(url);
 
             selectedScrapedArticle.value = data.scraped_article;
 
-            nextTick(() => {
-                const { translated_content } = selectedScrapedArticle.value;
-                contentTab.value = !!translated_content ? "translated" : "original";
-            });
+            if( !silent ) {
+                nextTick(() => {
+                    const { translated_content } = selectedScrapedArticle.value;
+                    contentTab.value = !!translated_content ? "translated" : "original";
+                });
+            }
+
+            return data.scraped_article;
         } catch (e) {
             console.error(e);
+
             const { message } = e?.response?.data || {};
+
             alertError("Ooops", message || "Erro ao buscar artigo");
-            isScrapedArticleContentDialogOpen.value = false;
+
+            if( !silent ) {
+                isScrapedArticleContentDialogOpen.value = false;
+            }
+
+            return null;
         } finally {
-            contentLoading.value = false;
+            if( !silent ) contentLoading.value = false;
         }
     }
 
@@ -475,6 +511,7 @@
 
         try {
             const url = route("api.scraped-articles.disable", selectedScrapedArticle.value.id);
+
             await api.patch(url);
 
             toastSuccess("Ok", "Artigo desativado com sucesso");
@@ -541,6 +578,103 @@
             alertError("Ooops", message || "Erro ao reiniciar tentativas de tradução");
         } finally {
             contentLoading.value = false;
+        }
+    }
+
+    function stopTranslationPolling() {
+        if( translationPollInterval ) {
+            clearInterval(translationPollInterval);
+            translationPollInterval = null;
+        }
+
+        translationPollAttempts = 0;
+        translating.value = false;
+    }
+
+    async function pollTranslationStatus() {
+        const article = selectedScrapedArticle.value;
+
+        if( !article ) {
+            stopTranslationPolling();
+            return;
+        }
+
+        translationPollAttempts++;
+
+        if( translationPollAttempts > TRANSLATION_POLL_MAX_ATTEMPTS ) {
+            stopTranslationPolling();
+
+            alertError(
+                "Ooops",
+                "A tradução está demorando mais que o esperado. Atualize o artigo manualmente.",
+            );
+
+            return;
+        }
+
+        const updatedArticle = await getScrapedArticleById(article.id, { silent: true });
+
+        if( !updatedArticle ) {
+            stopTranslationPolling();
+            return;
+        }
+
+        if( updatedArticle.translated_content ) {
+            stopTranslationPolling();
+
+            contentTab.value = "translated";
+
+            toastSuccess("Ok", "Tradução concluída com sucesso");
+
+            await getScrapedArticles();
+
+            return;
+        }
+
+        if( (updatedArticle.translation_attempts ?? 0) > translationInitialAttempts ) {
+            stopTranslationPolling();
+
+            alertError(
+                "Ooops",
+                "Não foi possível traduzir o artigo. Tente novamente mais tarde.",
+            );
+        }
+    }
+
+    function startTranslationPolling() {
+        stopTranslationPolling();
+
+        translating.value = true;
+
+        translationInitialAttempts = selectedScrapedArticle.value?.translation_attempts ?? 0;
+        translationPollAttempts = 0;
+
+        translationPollInterval = setInterval(pollTranslationStatus, TRANSLATION_POLL_INTERVAL);
+    }
+
+    async function startTranslation() {
+        if( !canStartTranslation.value || translating.value ) return;
+
+        translating.value = true;
+
+        try {
+            const url = route(
+                "api.scraped-articles.translate",
+                selectedScrapedArticle.value.id,
+            );
+
+            await api.post(url);
+
+            toastSuccess("Ok", "Tradução iniciada com sucesso");
+
+            startTranslationPolling();
+        } catch (e) {
+            console.error(e);
+
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao iniciar tradução");
+
+            translating.value = false;
         }
     }
 
@@ -706,9 +840,18 @@
     }
 
     function close() {
+        stopTranslationPolling();
         isScrapedArticleContentDialogOpen.value = false;
         isOpen.value = false;
     }
+
+    onUnmounted(() => {
+        stopTranslationPolling();
+    });
+
+    watch(isScrapedArticleContentDialogOpen, (isDialogOpen) => {
+        if( !isDialogOpen ) stopTranslationPolling();
+    });
 
     defineExpose({
         open,

@@ -224,6 +224,10 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             ScrapedArticleController::class, "resetTranslationAttempts",
         ])->name("api.scraped-articles.reset-translation-attempts");
 
+        Route::post("/scraped-articles/{scraped_article}/translate", [
+            ScrapedArticleController::class, "translate",
+        ])->name("api.scraped-articles.translate");
+
         Route::get("/scrape-http-profiles", [
             ScrapeHttpProfileController::class, "index",
         ])->name("api.scrape-http-profiles.index");
