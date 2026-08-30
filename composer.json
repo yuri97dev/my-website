@@ -15,6 +15,7 @@
         "ark4ne/xl-reader": "*",
         "droath/laravel-text-chunker": "*",
         "inertiajs/inertia-laravel": "*",
+        "intervention/image": "*",
         "laravel/framework": "^13.8",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
