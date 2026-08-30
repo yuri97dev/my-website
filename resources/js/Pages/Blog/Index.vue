@@ -26,9 +26,18 @@
 
         <div v-else>
             <v-row>
+                <v-col
+                    v-for="post in posts"
+                    :key="post.id"
+                    cols="12"
+                    lg="6" xl="4"
+                >
+                    <PostCard :post="post" />
+                </v-col>
+
                 <template v-if="loading">
                     <v-col
-                        v-for="n in 3"
+                        v-for="n in 6"
                         :key="n"
                         cols="12"
                         lg="6" xl="4"
@@ -46,15 +55,6 @@
                         </v-card>
                     </v-col>
                 </template>
-
-                <v-col
-                    v-for="post in posts"
-                    :key="post.id"
-                    cols="12"
-                    lg="6" xl="4"
-                >
-                    <PostCard :post="post" />
-                </v-col>
             </v-row>
 
             <div
