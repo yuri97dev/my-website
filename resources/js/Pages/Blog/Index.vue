@@ -1,5 +1,5 @@
 <template>
-    <Container title="Blog" gapped>
+    <Container :title="pageTitle" gapped>
         <SearchField
             :fields="searchFields"
             multiple
@@ -8,22 +8,10 @@
             v-model="search"
         ></SearchField>
 
-        <h2 v-if="!!category" class="text-grey my-0">
-            Categoria:
-
-            <strong class="text-primary text-decoration-underline">
-                {{ category }}
-            </strong>
-
-            <v-icon
-                role="button"
-                size="small"
-                icon="mdi-close"
-                class="ms-2"
-                title="Limpar filtro"
-                @click="goTo(route('blog.index'))"
-            ></v-icon>
-        </h2>
+        <PostCategoryChips
+            :category="category"
+            @loaded="handleCategoriesLoaded"
+        ></PostCategoryChips>
 
         <div
             v-if="!loading && posts.length === 0"
@@ -92,12 +80,12 @@
 
     import Container from "@/Components/Container.vue";
     import PostCard from "@/Components/PostCard.vue";
+    import PostCategoryChips from "@/Components/PostCategoryChips.vue";
     import SearchField from "@/Components/SearchField.vue";
 
     import api from "@/api";
 
     import { alertError } from "@/Utils/Alert";
-    import { goTo } from "@/Utils/Common";
 
     const props = defineProps({
         category: {
@@ -107,15 +95,26 @@
     });
 
     const posts = ref([]);
+    const categories = ref([]);
     const loading = ref(false);
 
     const search = ref([]);
 
     const pagination = reactive({
         page: 1,
-        perPage: 50,
+        perPage: 20,
         lastPage: 1,
         total: 0,
+    });
+
+    const pageTitle = computed(() => {
+        if( !props.category ) return "Blog";
+
+        const selected = categories.value.find(
+            category => category.slug === props.category,
+        );
+
+        return selected?.name || "Blog";
     });
 
     const searchFields = computed(() => {
@@ -143,6 +142,10 @@
 
         return "Tente ajustar a pesquisa ou os filtros para ampliar os resultados.";
     });
+
+    function handleCategoriesLoaded(items) {
+        categories.value = items;
+    }
 
     async function getPosts() {
         loading.value = true;
@@ -211,7 +214,5 @@
         });
     }
 
-    onMounted(async () => {
-        await getPosts();
-    });
+    onMounted(getPosts);
 </script>

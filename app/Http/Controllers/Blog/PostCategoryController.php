@@ -12,13 +12,21 @@ class PostCategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $categories = PostCategory::query()
-            ->select(["id", "slug", "name"])
-            ->orderBy("name")
-            ->get();
+        $query = PostCategory::query()
+            ->select(["id", "slug", "name"]);
+
+        if( $request->has("posts_count") ) {
+            $query
+                ->withCount([
+                    "posts" => fn ($q) => $q->published(),
+                ])
+                ->orderByDesc("posts_count");
+        } else {
+            $query->orderBy("name");
+        }
 
         return response()->json([
-            "categories" => $categories,
+            "categories" => $query->get(),
         ], 200);
     }
 
