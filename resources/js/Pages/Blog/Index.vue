@@ -102,7 +102,7 @@
 
     const pagination = reactive({
         page: 1,
-        perPage: 20,
+        perPage: 18,
         lastPage: 1,
         total: 0,
     });
