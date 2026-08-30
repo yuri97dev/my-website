@@ -297,6 +297,7 @@
     import ImageCropperDialog from "@/Components/ImageCropperDialog.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
+    import { compressImageFile } from "@/Utils/ImageCompression";
 
     const emit = defineEmits([
         "close",
@@ -557,9 +558,11 @@
     async function handleThumbnailCropConfirm(file) {
         loading.value.thumbnail = true;
 
+        const uploadFile = await compressImageFile(file);
+
         const formData = new FormData();
 
-        formData.append("image", file);
+        formData.append("image", uploadFile);
 
         if( isEditing.value ) {
             formData.append("post_id", post.value.id);

@@ -84,6 +84,7 @@
 
     import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
     import { formatBytes, formatDate } from "@/Utils/Common";
+    import { compressImageFile, isCompressibleImage } from "@/Utils/ImageCompression";
 
     const props = defineProps({
         customerId: {
@@ -184,12 +185,17 @@
 
         const file = resolveFile(form.file);
 
+        const uploadFile = file && isCompressibleImage(file)
+            ? await compressImageFile(file)
+            : file;
+
         const formData = new FormData();
+
         formData.append("company_id", props.companyId);
         formData.append("type", form.type || "");
 
-        if( file ) {
-            formData.append("file", file);
+        if( uploadFile ) {
+            formData.append("file", uploadFile);
         }
 
         try {

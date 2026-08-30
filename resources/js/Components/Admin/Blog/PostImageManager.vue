@@ -98,6 +98,7 @@
     import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
 
     import { copyText } from "@/Utils/Common";
+    import { compressImageFiles, isCompressibleImage } from "@/Utils/ImageCompression";
 
     const isOpen = ref(false);
 
@@ -140,10 +141,16 @@
     async function sendImages(files) {
         loading.value = true;
 
-        const filteredImages = files
-            .filter(file => file.type.startsWith("image/"));
+        const imageFiles = files.filter(file => file.type.startsWith("image/"));
 
-        for(const file of filteredImages) {
+        const skippedImages = imageFiles.filter(file => !isCompressibleImage(file));
+
+        const preparedImages = [
+            ...await compressImageFiles(imageFiles.filter(isCompressibleImage)),
+            ...skippedImages,
+        ];
+
+        for(const file of preparedImages) {
             const formData = new FormData();
 
             formData.append("image", file);
