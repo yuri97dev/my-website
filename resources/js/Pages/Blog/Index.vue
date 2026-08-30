@@ -2,6 +2,7 @@
     <Container :title="pageTitle" gapped>
         <SearchField
             :fields="searchFields"
+            :loading="loading"
             multiple
             @refresh="handleSearch"
             @update:model-value="handleSearch"

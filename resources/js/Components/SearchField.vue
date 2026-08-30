@@ -13,6 +13,7 @@
             placeholder="Pesquisar"
             variant="solo"
             item-title="rawTitle"
+            :loading="loading"
             :multiple="multiple"
             :menu-props="{
                 offset: 8,
@@ -83,6 +84,7 @@
 
     const props = defineProps({
         multiple: Boolean,
+        loading: Boolean,
         fields: {
             type: Array,
             default: () => [],
