@@ -115,7 +115,11 @@ class DownloadScrapedArticleImages
             $image = ScrapedArticleImage::create([
                 "scraped_article_id" => $article->id,
                 "path" => "/" . ltrim($storage_path, "/"),
+                "size_bytes" => strlen($body),
+                "original_size_bytes" => strlen($body),
             ]);
+
+            $image->dispatchImageOptimization();
 
             return route("blog.scraped-images.show", $image->id, false);
 

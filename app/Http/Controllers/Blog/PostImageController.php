@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Blog;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\Blog\AssociatePostImagesRequest;
 use App\Http\Requests\Blog\StorePostImageRequest;
 use App\Models\PostImage;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 class PostImageController extends Controller
@@ -51,7 +51,11 @@ class PostImageController extends Controller
         $image = PostImage::create([
             "post_id" => $request->input("post_id"),
             "path" => "/" . ltrim($stored_path, "/"),
+            "size_bytes" => $file->getSize(),
+            "original_size_bytes" => $file->getSize(),
         ]);
+
+        $image->dispatchImageOptimization();
 
         return response()->json([
             "image" => $image->only(["id", "post_id", "path", "created_at", "updated_at"]),

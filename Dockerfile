@@ -10,16 +10,23 @@ RUN apt-get update && apt-get install -y \
         libpq-dev \
         libzip-dev \
         libtidy-dev \
+        libjpeg62-turbo-dev \
+        libpng-dev \
+        libwebp-dev \
+        libfreetype6-dev \
     && apt-get install -y --no-install-recommends \
         chromium \
         chromium-driver \
         fonts-liberation \
+    && docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype \
     && docker-php-ext-install \
         pdo_pgsql \
         bcmath \
         zip \
         pcntl \
         tidy \
+        gd \
+        exif \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && rm -rf /var/lib/apt/lists/*

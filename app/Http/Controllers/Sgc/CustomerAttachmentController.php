@@ -43,8 +43,8 @@ class CustomerAttachmentController extends Controller
 
         $file = $request->file("file");
         $extension = mb_strtolower($file->getClientOriginalExtension());
-        $filename = Str::uuid()->toString() . ($extension !== "" ? ".{$extension}" : "");
-        $directory = "sgc/customers/{$sgc_customer->id}/attachments/" . date("Y/m/d");
+        $filename = Str::uuid()->toString().($extension !== "" ? ".{$extension}" : "");
+        $directory = "sgc/customers/{$sgc_customer->id}/attachments/".date("Y/m/d");
         $stored_path = $file->storeAs($directory, $filename);
 
         abort_unless(
@@ -59,7 +59,12 @@ class CustomerAttachmentController extends Controller
             "path" => $stored_path,
             "mime_type" => $file->getMimeType(),
             "size_bytes" => $file->getSize(),
+            "original_size_bytes" => $file->getSize(),
         ]);
+
+        if( Str::startsWith((string) $attachment->mime_type, "image/") ) {
+            $attachment->dispatchImageOptimization();
+        }
 
         return response()->json([
             "attachment" => $attachment->only($this->attachmentColumns()),
