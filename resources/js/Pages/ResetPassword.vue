@@ -85,6 +85,7 @@
 
 <script setup>
     import { ref, reactive, computed } from "vue";
+    import { usePage } from "@inertiajs/vue3";
 
     import api from "@/api";
 
@@ -94,7 +95,13 @@
     import { goTo, validEmail } from "@/Utils/Common";
     import { alertError, toastSuccess } from "@/Utils/Alert";
 
-    const params = new URLSearchParams(window.location.search);
+    const page = usePage();
+
+    const query = page.url.includes("?")
+        ? page.url.slice(page.url.indexOf("?"))
+        : "";
+
+    const params = new URLSearchParams(query);
 
     const form = reactive({
         token: params.get("token") ?? "",

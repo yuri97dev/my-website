@@ -1,10 +1,14 @@
+import { route } from "ziggy-js";
+
 export const sgcSections = [
     {
         key: "companies",
         title: "Empresas",
         subtitle: "Gerencie empresas e filiais",
         icon: "mdi-domain",
-        href: route("tools.sgc.companies"),
+        get href() {
+            return route("tools.sgc.companies");
+        },
         features: [
             "Matriz e filiais",
             "Endereço",
@@ -16,7 +20,9 @@ export const sgcSections = [
         title: "Funcionários",
         subtitle: "Equipe vinculada às empresas",
         icon: "mdi-badge-account-horizontal-outline",
-        href: route("tools.sgc.employees"),
+        get href() {
+            return route("tools.sgc.employees");
+        },
         features: [
             "Vínculo por empresa",
             "Cargos",
@@ -28,7 +34,9 @@ export const sgcSections = [
         title: "Clientes",
         subtitle: "Cadastro de clientes por empresa",
         icon: "mdi-account-group",
-        href: route("tools.sgc.customers"),
+        get href() {
+            return route("tools.sgc.customers");
+        },
         features: [
             "Dados pessoais",
             "Endereços",
@@ -40,7 +48,9 @@ export const sgcSections = [
         title: "Produtos",
         subtitle: "Catálogo de produtos por empresa",
         icon: "mdi-package-variant-closed",
-        href: route("tools.sgc.products"),
+        get href() {
+            return route("tools.sgc.products");
+        },
         features: [
             "Marcas",
             "Categorias",
@@ -52,7 +62,9 @@ export const sgcSections = [
         title: "Pedidos",
         subtitle: "Vendas e pedidos por empresa",
         icon: "mdi-clipboard-list-outline",
-        href: route("tools.sgc.orders"),
+        get href() {
+            return route("tools.sgc.orders");
+        },
         features: [
             "Cliente e empresa",
             "Formas de pagamento",

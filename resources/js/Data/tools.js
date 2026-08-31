@@ -1,10 +1,14 @@
+import { route } from "ziggy-js";
+
 export const tools = [
     {
         key: "spreadsheet-formatter",
         title: "Formatador de CSV e XLSX",
         subtitle: "Limpe e padronize textos de planilhas em poucos cliques",
         icon: "mdi-table-edit",
-        href: route("tools.spreadsheet-formatter"),
+        get href() {
+            return route("tools.spreadsheet-formatter");
+        },
         features: [
             "Remove HTML",
             "Padroniza texto",
@@ -16,7 +20,9 @@ export const tools = [
         title: "SGC",
         subtitle: "Sistema de gestão comercial",
         icon: "mdi-storefront-outline",
-        href: route("tools.sgc"),
+        get href() {
+            return route("tools.sgc");
+        },
         features: [
             "Empresas",
             "Clientes",

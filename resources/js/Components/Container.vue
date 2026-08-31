@@ -54,7 +54,7 @@
 </template>
 
 <script setup>
-    import { ref, computed, watch } from "vue";
+    import { ref, computed, watch, onMounted } from "vue";
 
     import { usePage, Head } from "@inertiajs/vue3";
     import { useTheme, useDisplay } from "vuetify";
@@ -79,7 +79,7 @@
         return `${appName.value} - ${props.title}`;
     });
 
-    const drawer = ref(lgAndUp.value ? true : false);
+    const drawer = ref(false);
 
     const appName = computed(() => page.props.appName);
 
@@ -91,12 +91,15 @@
         },
     ]);
 
-    theme.change(localStorage.getItem("theme") || "system");
+    onMounted(() => {
+        theme.change(localStorage.getItem("theme") || "system");
+
+        if( lgAndUp.value ) {
+            drawer.value = true;
+        }
+    });
 
     watch(theme.name, (newTheme) => {
         localStorage.setItem("theme", newTheme);
-    }, {
-        deep: true,
-        immediate: true,
     });
 </script>
