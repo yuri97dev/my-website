@@ -2,6 +2,10 @@ import Swal from "sweetalert2";
 
 import "sweetalert2/dist/sweetalert2.min.css";
 
+function getTheme() {
+    return document.cookie.match(/(?:^|; )theme=(dark|light)/)?.[1] || "light";
+}
+
 function fire(options) {
     const buttonClasses = `v-btn v-btn--density-default v-btn--size-large`;
 
@@ -10,7 +14,7 @@ function fire(options) {
         cancelButtonText: "Cancelar",
         allowOutsideClick: false,
         buttonsStyling: false,
-        theme: localStorage.getItem("theme") || "light",
+        theme: getTheme(),
         customClass: {
             closeButton: buttonClasses,
             confirmButton: `${buttonClasses} bg-primary`,
@@ -29,7 +33,7 @@ function toastFire(options) {
         showConfirmButton: false,
         timer: 3000,
         timerProgressBar: true,
-        theme: localStorage.getItem("theme") || "light",
+        theme: getTheme(),
         didOpen: (toast) => {
             toast.addEventListener("mouseenter", Swal.stopTimer);
             toast.addEventListener("mouseleave", Swal.resumeTimer);

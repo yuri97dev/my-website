@@ -4,11 +4,11 @@ import { blueGrey } from "vuetify/util/colors";
 import "vuetify/styles";
 import "@mdi/font/css/materialdesignicons.css";
 
-export default function createVuetifyInstance() {
+export default function createVuetifyInstance(defaultTheme = "system") {
     return createVuetify({
         ssr: true,
         theme: {
-            defaultTheme: "system",
+            defaultTheme,
             themes: {
                 light: {
                     colors: {

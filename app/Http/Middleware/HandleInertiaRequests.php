@@ -37,8 +37,13 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $theme = $request->cookie("theme");
+
         return array_merge(parent::share($request), [
             "appName" => config("app.name"),
+            "theme" => in_array($theme, ["light", "dark", "system"], true)
+                ? $theme
+                : "system",
             "flash" => fn () => [
                 "success" => $request->hasSession()
                     ? $request->session()->get("success")

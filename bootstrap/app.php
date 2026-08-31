@@ -37,6 +37,10 @@ return Application::configure(basePath: dirname(__DIR__))
             "role" => EnsureUserHasRole::class,
         ]);
 
+        $middleware->encryptCookies(except: [
+            "theme",
+        ]);
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
         ]);

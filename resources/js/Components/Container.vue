@@ -92,14 +92,13 @@
     ]);
 
     onMounted(() => {
-        theme.change(localStorage.getItem("theme") || "system");
-
         if( lgAndUp.value ) {
             drawer.value = true;
         }
     });
 
     watch(theme.name, (newTheme) => {
-        localStorage.setItem("theme", newTheme);
+        if( typeof document === "undefined" ) return;
+        document.cookie = `theme=${newTheme};path=/;max-age=31536000;SameSite=Lax`;
     });
 </script>
