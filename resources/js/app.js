@@ -16,4 +16,10 @@ createInertiaApp({
         app.use(createVuetify(page.props.theme));
         app.use(ZiggyVue, ziggy);
     },
+}).then(() => {
+    const loadingContainer = document.querySelector("#loading-container");
+
+    if( loadingContainer ) {
+        loadingContainer.classList.remove("opened");
+    }
 });
