@@ -1,53 +1,24 @@
 <template>
     <Container title="Início" gapped>
-        <section class="d-flex flex-column align-center text-center py-8">
-            <v-img
-                src="/images/logo.webp"
-                :alt="appName"
-                width="120"
-                height="120"
-                class="mb-4"
-            ></v-img>
-
-            <h1 class="text-primary mb-2">
-                {{ appName }}
-            </h1>
-
-            <p class="text-grey mb-6" style="max-width: 480px;">
-                Bem-vindo ao meu site. Explore artigos do blog e ferramentas práticas para o dia a dia.
-            </p>
-
-            <div class="d-flex flex-wrap ga-3 justify-center">
-                <v-btn
-                    color="primary"
-                    prepend-icon="mdi-newspaper"
-                    text="Ver o Blog"
-                    @click.prevent="goTo(route('blog.index'))"
-                ></v-btn>
-
-                <v-btn
-                    variant="tonal"
-                    prepend-icon="mdi-tools"
-                    text="Ferramentas"
-                    @click.prevent="goTo(route('tools'))"
-                ></v-btn>
-            </div>
-        </section>
+        <v-spacer></v-spacer>
 
         <section v-if="loadingPosts || posts.length > 0">
-            <div class="d-flex align-center justify-space-between mb-4">
-                <h2 class="text-h5 my-0">
-                    Posts recentes
+            <div class="d-flex align-center justify-space-between">
+                <h2 class="d-flex align-center ga-4 ma-0">
+                    <v-icon icon="mdi-newspaper" size="24"></v-icon>
+                    Posts Recentes
                 </h2>
 
                 <v-btn
-                    variant="text"
+                    variant="tonal"
                     color="primary"
                     append-icon="mdi-arrow-right"
-                    text="Ver todos"
+                    text="Ver Todos"
                     @click.prevent="goTo(route('blog.index'))"
                 ></v-btn>
             </div>
+
+            <v-divider class="my-4"></v-divider>
 
             <v-row>
                 <template v-if="loadingPosts">
@@ -82,20 +53,25 @@
             </v-row>
         </section>
 
+        <v-spacer></v-spacer>
+
         <section>
-            <div class="d-flex align-center justify-space-between mb-4">
-                <h2 class="text-h5 my-0">
+            <div class="d-flex align-center justify-space-between">
+                <h2 class="d-flex align-center ga-4 ma-0">
+                    <v-icon icon="mdi-tools" size="24"></v-icon>
                     Ferramentas
                 </h2>
 
                 <v-btn
-                    variant="text"
+                    variant="tonal"
                     color="primary"
                     append-icon="mdi-arrow-right"
-                    text="Ver todas"
+                    text="Ver Todas"
                     @click.prevent="goTo(route('tools'))"
                 ></v-btn>
             </div>
+
+            <v-divider class="my-4"></v-divider>
 
             <v-row>
                 <v-col
@@ -109,6 +85,8 @@
                 </v-col>
             </v-row>
         </section>
+
+        <v-spacer></v-spacer>
     </Container>
 </template>
 
