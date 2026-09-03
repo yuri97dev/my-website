@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\GenerateLlmsTxt;
 use App\Actions\GeneratePostChunks;
 use App\Actions\GenerateSitemap;
 use App\Actions\OptimizePendingImages;
@@ -17,8 +18,11 @@ Artisan::command("inspire", function () {
 
 Artisan::command("sitemap:generate", function () {
     (new GenerateSitemap)();
+    (new GenerateLlmsTxt)();
+
     $this->info("Sitemap gerado em public/sitemap.xml");
-})->purpose("Gera o arquivo estático do sitemap");
+    $this->info("llms.txt gerado em public/llms.txt");
+})->purpose("Gera o arquivo estático do sitemap e llms.txt");
 
 Artisan::command("images:optimize {--limit=50 : Quantidade máxima de imagens por execução} {--sync : Processa de forma síncrona em vez de enfileirar}", function () {
     $limit = max(1, (int) $this->option("limit"));
@@ -31,7 +35,10 @@ Artisan::command("images:optimize {--limit=50 : Quantidade máxima de imagens po
     $this->info("{$dispatched} imagem(ns) {$mode}.");
 })->purpose("Otimiza imagens pendentes convertendo-as para WebP");
 
-Schedule::call(new GenerateSitemap)
+Schedule::call(function () {
+    (new GenerateSitemap)();
+    (new GenerateLlmsTxt)();
+})
     ->name("generate-sitemap")
     ->dailyAt("03:00")
     ->withoutOverlapping(15);

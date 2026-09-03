@@ -4,7 +4,6 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Blog\PostController;
 use App\Http\Controllers\Blog\PostImageController;
 use App\Http\Controllers\Blog\ScrapedArticleImageController;
-use App\Http\Controllers\LlmsController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\Sgc\CustomerAttachmentController as SgcCustomerAttachmentController;
 use App\Http\Controllers\SpreadsheetFormatterController;
@@ -12,7 +11,6 @@ use App\Models\Role;
 use Illuminate\Support\Facades\Route;
 
 Route::get("/robots.txt", RobotsController::class)->name("robots");
-Route::get("/llms.txt", LlmsController::class)->name("llms");
 
 Route::inertia("/", "Home")->name("home");
 Route::inertia("/tools", "Tools/Index")->name("tools");

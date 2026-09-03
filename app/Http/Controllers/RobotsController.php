@@ -6,7 +6,7 @@ class RobotsController extends Controller
 {
     public function __invoke()
     {
-        $sitemap_url = rtrim(config("app.url"), "/")."/sitemap.xml";
+        $base_url = rtrim(config("app.url"), "/");
 
         $content = implode("\n", [
             "User-agent: *",
@@ -14,7 +14,8 @@ class RobotsController extends Controller
             "Disallow: /account",
             "Disallow: /tools/sgc",
             "",
-            "Sitemap: {$sitemap_url}",
+            "Sitemap: {$base_url}/sitemap.xml",
+            "# llms.txt: {$base_url}/llms.txt",
         ]);
 
         return response($content, 200, [

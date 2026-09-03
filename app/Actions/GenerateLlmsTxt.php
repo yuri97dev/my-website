@@ -7,7 +7,12 @@ use App\Models\PostCategory;
 
 class GenerateLlmsTxt
 {
-    public function __invoke(): string
+    public function __invoke(): void
+    {
+        file_put_contents(public_path("llms.txt"), $this->build());
+    }
+
+    private function build(): string
     {
         $base_url = rtrim(config("app.url"), "/");
         $site_name = config("app.name");
