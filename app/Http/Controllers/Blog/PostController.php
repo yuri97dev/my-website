@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Blog;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Http\Requests\Blog\StorePostRequest;
 use App\Http\Requests\Blog\UpdatePostRequest;
 use League\HTMLToMarkdown\HtmlConverter;
@@ -15,9 +14,9 @@ use App\Models\PostChunk;
 use App\Models\SearchEmbeddingCache;
 use App\Models\ScrapedArticle;
 use App\Helpers\Meta;
-use App\Helpers\Ollama;
+use App\Helpers\SearchQuery;
+use App\Jobs\GenerateSearchEmbeddingJob;
 use Inertia\Inertia;
-use Exception;
 
 class PostController extends Controller
 {
@@ -135,11 +134,12 @@ class PostController extends Controller
         $search = trim($search);
 
         if( !empty($search) ) {
+            $search_language = SearchQuery::language($search);
             $embedding = $this->resolveSearchEmbedding($search);
 
             $query_lexical_similarity = "ts_rank(
-                to_tsvector('portuguese', content),
-                websearch_to_tsquery('portuguese', ?)
+                to_tsvector('{$search_language}', content),
+                websearch_to_tsquery('{$search_language}', ?)
             )";
 
             $query_semantic_similarity = !!$embedding
@@ -316,7 +316,7 @@ class PostController extends Controller
 
     private function resolveSearchEmbedding(string $search): ?string
     {
-        $normalized_query = $this->normalizeSearchQuery($search);
+        $normalized_query = SearchQuery::normalize($search);
         $embed_model = config("services.ollama.embed_model");
 
         $cached = SearchEmbeddingCache::query()
@@ -328,38 +328,8 @@ class PostController extends Controller
             return $cached->embedding;
         }
 
-        try {
-            $ollama_response = Ollama::embed($search);
+        GenerateSearchEmbeddingJob::dispatch($search, $normalized_query);
 
-            if( empty($ollama_response["embeddings"]) ) {
-                return null;
-            }
-
-            $embedding = json_encode($ollama_response["embeddings"][0]);
-
-            SearchEmbeddingCache::updateOrCreate(
-                [
-                    "normalized_query" => $normalized_query,
-                    "embedding_model" => $embed_model,
-                ],
-                [
-                    "embedding" => $embedding,
-                ]
-            );
-
-            return $embedding;
-        } catch(Exception $e) {
-            report($e);
-            return null;
-        }
-    }
-
-    private function normalizeSearchQuery(string $search): string
-    {
-        $normalized_query = DB::scalar("
-            SELECT websearch_to_tsquery('portuguese', ?)::text
-        ", [$search]);
-
-        return $normalized_query ?: mb_strtolower($search);
+        return null;
     }
 }
