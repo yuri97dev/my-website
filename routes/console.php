@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\GeneratePostChunks;
+use App\Actions\GenerateSitemap;
 use App\Actions\OptimizePendingImages;
 use App\Actions\ProcessScrapedArticlesWithAi;
 use App\Actions\RemoveExpiredSpreadsheetFiles;
@@ -14,6 +15,11 @@ Artisan::command("inspire", function () {
     $this->comment(Inspiring::quote());
 })->purpose("Display an inspiring quote");
 
+Artisan::command("sitemap:generate", function () {
+    (new GenerateSitemap)();
+    $this->info("Sitemap gerado em public/sitemap.xml");
+})->purpose("Gera o arquivo estático do sitemap");
+
 Artisan::command("images:optimize {--limit=50 : Quantidade máxima de imagens por execução} {--sync : Processa de forma síncrona em vez de enfileirar}", function () {
     $limit = max(1, (int) $this->option("limit"));
     $sync = (bool) $this->option("sync");
@@ -24,6 +30,11 @@ Artisan::command("images:optimize {--limit=50 : Quantidade máxima de imagens po
 
     $this->info("{$dispatched} imagem(ns) {$mode}.");
 })->purpose("Otimiza imagens pendentes convertendo-as para WebP");
+
+Schedule::call(new GenerateSitemap)
+    ->name("generate-sitemap")
+    ->dailyAt("03:00")
+    ->withoutOverlapping(15);
 
 Schedule::call(new RemoveExpiredSpreadsheetFiles)
     ->name("remove-expired-spreadsheet-files")

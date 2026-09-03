@@ -1,13 +1,16 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AccountController;
-use App\Http\Controllers\SpreadsheetFormatterController;
 use App\Http\Controllers\Blog\PostController;
 use App\Http\Controllers\Blog\PostImageController;
 use App\Http\Controllers\Blog\ScrapedArticleImageController;
+use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\Sgc\CustomerAttachmentController as SgcCustomerAttachmentController;
+use App\Http\Controllers\SpreadsheetFormatterController;
 use App\Models\Role;
+use Illuminate\Support\Facades\Route;
+
+Route::get("/robots.txt", RobotsController::class)->name("robots");
 
 Route::inertia("/", "Home")->name("home");
 Route::inertia("/tools", "Tools/Index")->name("tools");
@@ -30,15 +33,15 @@ Route::middleware("auth")->group(function () {
 
 Route::prefix("tools")->group(function () {
     Route::get("/spreadsheet-formatter", [
-        SpreadsheetFormatterController::class, "index"
+        SpreadsheetFormatterController::class, "index",
     ])->name("tools.spreadsheet-formatter");
 
     Route::get("/spreadsheet-formatter/files", [
-        SpreadsheetFormatterController::class, "files"
+        SpreadsheetFormatterController::class, "files",
     ])->name("tools.spreadsheet-formatter.files");
 
     Route::get("/spreadsheet-formatter/files/{uuid}/download", [
-        SpreadsheetFormatterController::class, "download"
+        SpreadsheetFormatterController::class, "download",
     ])->name("tools.spreadsheet-formatter.download");
 
     Route::middleware("auth")->prefix("sgc")->group(function () {
@@ -65,15 +68,15 @@ Route::prefix("blog")->group(function () {
     ])->name("blog.scraped-images.show");
 
     Route::get("/{category?}", [
-        PostController::class, "index"
+        PostController::class, "index",
     ])->name("blog.index");
 
     Route::get("/{category}/{slug}", [
-        PostController::class, "show"
+        PostController::class, "show",
     ])->name("blog.show");
 });
 
-Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
+Route::middleware(["auth", "role:".Role::SYSTEM_ADMIN])
     ->prefix("admin")
     ->group(function () {
         Route::inertia("/blog/posts", "Admin/Blog/Posts")->name("admin.blog.posts");

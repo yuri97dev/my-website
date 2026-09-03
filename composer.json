@@ -24,6 +24,7 @@
         "masterminds/html5": "*",
         "matomo/device-detector": "*",
         "mk-j/php_xlsxwriter": "*",
+        "spatie/laravel-sitemap": "*",
         "symfony/ai-deep-seek-platform": "*",
         "symfony/ai-gemini-platform": "*",
         "symfony/ai-open-ai-platform": "*",
