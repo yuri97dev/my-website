@@ -26,6 +26,10 @@ class Meta
             $meta["og_description"] = $meta["description"];
         }
 
+        if( !empty($meta["og_image"]) && !preg_match("#^https?://#i", $meta["og_image"]) ) {
+            $meta["og_image"] = url($meta["og_image"]);
+        }
+
         return $meta;
     }
 
