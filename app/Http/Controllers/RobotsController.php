@@ -19,7 +19,7 @@ class RobotsController extends Controller
         ]);
 
         return response($content, 200, [
-            "Content-Type" => "text/plain",
+            "Content-Type" => "text/plain; charset=utf-8",
         ]);
     }
 }
