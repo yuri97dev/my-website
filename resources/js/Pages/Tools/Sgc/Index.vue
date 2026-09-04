@@ -5,15 +5,15 @@
             variant="tonal"
             icon="mdi-flask-outline"
         >
-            Projeto em beta. Recursos ainda estão em desenvolvimento e podem mudar ou apresentar falhas.
+            Projeto em beta. Recursos em desenvolvimento e sujeitos a mudanças ou falhas.
         </v-alert>
 
-        <p class="text-body-1">
-            Sistema de Gestão Comercial para operação multiempresa: cadastre matriz e filiais,
-            equipe com cargos de administrador e vendedor, clientes com endereços e anexos,
-            catálogo de produtos com estoque e preços por empresa, e pedidos com formas de pagamento,
-            parcelas e controle automático de estoque. Os dados ficam isolados por empresa,
-            com acesso por proprietário ou funcionário vinculado.
+        <h1 class="my-0">
+            Sistema de Gestão Comercial (SGC)
+        </h1>
+
+        <p class="my-0">
+            Gerencie matriz e filiais, equipe, clientes, produtos, estoque, preços e pedidos. Controle pagamentos, parcelas e estoque automaticamente, com dados isolados por empresa e acesso seguro para proprietários e funcionários.
         </p>
 
         <div class="w-100">
