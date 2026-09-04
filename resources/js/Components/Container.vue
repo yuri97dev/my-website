@@ -2,7 +2,13 @@
     <v-app>
         <Head :title="pageTitle" />
 
-        <v-app-bar elevation="0" class="border-b">
+        <NavigationDrawer v-model="drawer" />
+
+        <v-app-bar
+            elevation="0"
+            class="border-b"
+            :extended="extended"
+        >
             <v-app-bar-nav-icon
                 variant="text"
                 @click.stop="drawer = !drawer"
@@ -15,7 +21,7 @@
                 :href="route('home')"
                 @click="goTo"
             >
-                {{ pageTitle }}
+                {{ appName }}
             </v-app-bar-title>
 
             <v-spacer></v-spacer>
@@ -27,9 +33,13 @@
             ></v-btn>
 
             <AuthMenu />
-        </v-app-bar>
 
-        <NavigationDrawer v-model="drawer" />
+            <template #extension>
+                <slot name="app-bar-extension">
+                    <AppBarTabs />
+                </slot>
+            </template>
+        </v-app-bar>
 
         <v-main>
             <v-container class="h-100">
@@ -54,15 +64,26 @@
 </template>
 
 <script setup>
-    import { ref, computed, watch, onMounted } from "vue";
+    import { ref, computed, watch, onMounted, nextTick, useSlots } from "vue";
 
     import { usePage, Head } from "@inertiajs/vue3";
     import { useTheme, useDisplay } from "vuetify";
 
+    import AppBarTabs from "@/Components/AppBarTabs.vue";
     import AuthMenu from "@/Components/AuthMenu.vue";
     import NavigationDrawer from "@/Components/NavigationDrawer.vue";
 
+    import { useTabs } from "@/Composables/useTabs";
     import { goTo } from "@/Utils/Common";
+
+    const { list } = useTabs();
+    const slots = useSlots();
+
+    const showAppBarExtension = computed(() => {
+        return "app-bar-extension" in slots || list.value.length > 0;
+    });
+
+    const extended = ref(showAppBarExtension.value);
 
     const props = defineProps({
         centered: Boolean,
@@ -91,14 +112,33 @@
         },
     ]);
 
+    watch(theme.name, (newTheme) => {
+        if( typeof document === "undefined" ) return;
+        document.cookie = `theme=${newTheme};path=/;max-age=31536000;SameSite=Lax`;
+    });
+
+    watch(showAppBarExtension, (value) => {
+        if( !value ) {
+            extended.value = false;
+            return;
+        }
+
+        if( !extended.value ) {
+            nextTick(() => {
+                extended.value = true;
+            });
+        }
+    });
+
     onMounted(() => {
         if( lgAndUp.value ) {
             drawer.value = true;
         }
-    });
 
-    watch(theme.name, (newTheme) => {
-        if( typeof document === "undefined" ) return;
-        document.cookie = `theme=${newTheme};path=/;max-age=31536000;SameSite=Lax`;
+        if( !extended.value && showAppBarExtension.value ) {
+            nextTick(() => {
+                extended.value = true;
+            });
+        }
     });
 </script>

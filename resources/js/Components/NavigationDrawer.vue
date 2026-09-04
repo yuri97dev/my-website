@@ -1,5 +1,11 @@
 <template>
     <v-navigation-drawer v-model="drawer">
+        <template #prepend>
+            <AppBrand />
+        </template>
+
+        <v-divider></v-divider>
+
         <v-list nav :opened="opened">
             <v-list-group v-if="isAdmin" value="admin">
                 <template v-slot:activator="{ props }">
@@ -33,26 +39,15 @@
                 @click.prevent="goTo(link.href)"
             ></v-list-item>
 
-            <v-list-group v-if="isAuthenticated" value="sgc">
-                <template v-slot:activator="{ props }">
-                    <v-list-item
-                        prepend-icon="mdi-storefront-outline"
-                        title="SGC"
-                        v-bind="props"
-                    ></v-list-item>
-                </template>
-
-                <v-list-item
-                    v-for="link in sgcLinks"
-                    :key="link.key"
-                    :prepend-icon="link.icon"
-                    :title="link.text"
-                    :href="link.href"
-                    :active="link.active"
-                    color="primary"
-                    @click.prevent="goTo(link.href)"
-                ></v-list-item>
-            </v-list-group>
+            <v-list-item
+                v-if="isAuthenticated"
+                prepend-icon="mdi-storefront-outline"
+                title="SGC (Beta)"
+                :href="route('tools.sgc')"
+                :active="isSgcRoute()"
+                color="primary"
+                @click.prevent="goTo(route('tools.sgc'))"
+            ></v-list-item>
         </v-list>
     </v-navigation-drawer>
 </template>
@@ -61,17 +56,17 @@
     import { computed } from "vue";
     import { usePage } from "@inertiajs/vue3";
 
+    import AppBrand from "@/Components/AppBrand.vue";
+
     import { goTo } from "@/Utils/Common";
+    import { isSgcRoute } from "@/Data/sgc";
     import { tools } from "@/Data/tools";
-    import { sgcSections, getSgcLinks } from "@/Data/sgc";
 
     const drawer = defineModel();
     const page = usePage();
 
     const isAdmin = computed(() => page.props?.auth?.isSysAdmin);
     const isAuthenticated = computed(() => !!page.props?.auth?.user);
-
-    const sgcLinks = computed(() => getSgcLinks());
 
     const links = computed(() => [
         {
@@ -156,13 +151,6 @@
 
         if( isAdmin.value && adminLinks.value.some(link => link.active) ) {
             groups.push("admin");
-        }
-
-        if(
-            route().current("tools.sgc") ||
-            route().current("tools.sgc.*")
-        ) {
-            groups.push("sgc");
         }
 
         return groups;

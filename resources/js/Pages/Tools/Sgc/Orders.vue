@@ -75,6 +75,7 @@
 
     import { formatDate } from "@/Utils/Common";
     import { formatMoney } from "@/Utils/Money";
+    import { registerSgcTabs } from "@/Data/sgc";
 
     const orderFormRef = ref(null);
     const orderDetailsRef = ref(null);
@@ -175,4 +176,6 @@
     function refresh() {
         tableRef.value?.fetchItems(1);
     }
+
+    registerSgcTabs();
 </script>

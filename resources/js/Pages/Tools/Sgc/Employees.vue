@@ -62,6 +62,7 @@
     import VirtualRemoteTable from "@/Components/VirtualRemoteTable.vue";
 
     import { formatDate } from "@/Utils/Common";
+    import { registerSgcTabs } from "@/Data/sgc";
 
     const employeeFormRef = ref(null);
     const tableRef = ref(null);
@@ -154,4 +155,6 @@
     function refresh() {
         tableRef.value?.fetchItems(1);
     }
+
+    registerSgcTabs();
 </script>

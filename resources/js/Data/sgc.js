@@ -1,4 +1,10 @@
+import { onUnmounted, watch } from "vue";
+import { usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
+
+import { useTabs } from "@/Composables/useTabs";
+
+let leaveWatchRegistered = false;
 
 export const sgcSections = [
     {
@@ -73,12 +79,54 @@ export const sgcSections = [
     },
 ];
 
-export function getSgcLinks() {
-    return sgcSections.map(section => ({
-        key: section.key,
-        icon: section.icon,
-        text: section.title,
-        href: section.href,
-        active: route().current(`tools.sgc.${section.key}`),
-    }));
+export function isSgcRoute() {
+    return route().current("tools.sgc") || route().current("tools.sgc.*");
+}
+
+export function registerSgcTabs() {
+    const { sync, clear } = useTabs();
+
+    const items = [
+        {
+            id: "index",
+            title: "Início",
+            icon: "mdi-view-dashboard-outline",
+            href: route("tools.sgc"),
+            seq: 1,
+        },
+        ...sgcSections.map((section, index) => ({
+            id: section.key,
+            title: section.title,
+            icon: section.icon,
+            href: section.href,
+            seq: index + 2,
+        })),
+    ];
+
+    let activeId = "index";
+
+    if( !route().current("tools.sgc") ) {
+        const section = sgcSections.find(item => route().current(`tools.sgc.${item.key}`));
+        activeId = section?.key ?? "index";
+    }
+
+    sync(items, activeId);
+
+    if( !leaveWatchRegistered ) {
+        leaveWatchRegistered = true;
+
+        const page = usePage();
+
+        watch(() => page.url, () => {
+            if( !isSgcRoute() ) {
+                clear();
+            }
+        });
+    }
+
+    onUnmounted(() => {
+        if( !isSgcRoute() ) {
+            clear();
+        }
+    });
 }
