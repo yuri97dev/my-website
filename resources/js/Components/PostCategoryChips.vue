@@ -1,36 +1,28 @@
 <template>
-    <v-slide-group
+    <v-chip-group
         v-if="categories.length > 0"
-        :model-value="selectedSlug"
-        center-active
+        color="primary"
+        class="py-1"
+        mandatory
         show-arrows
+        center-active
+        :model-value="selectedSlug"
+        @update:model-value="selectCategory"
     >
-        <v-slide-group-item :value="ALL_VALUE">
-            <v-chip
-                :color="!category ? 'primary' : undefined"
-                :variant="!category ? 'flat' : 'outlined'"
-                class="ma-1"
-                @click="goToCategory()"
-            >
-                Ver todos
-            </v-chip>
-        </v-slide-group-item>
+        <v-chip
+            :value="ALL_VALUE"
+            :variant="selectedSlug === ALL_VALUE ? 'flat' : 'outlined'"
+            class="my-0"
+        >Ver todos</v-chip>
 
-        <v-slide-group-item
+        <v-chip
             v-for="item in categories"
             :key="item.id"
             :value="item.slug"
-        >
-            <v-chip
-                :color="item.slug === category ? 'primary' : undefined"
-                :variant="item.slug === category ? 'flat' : 'outlined'"
-                class="ma-1"
-                @click="goToCategory(item)"
-            >
-                {{ item.name }} ({{ item.posts_count }})
-            </v-chip>
-        </v-slide-group-item>
-    </v-slide-group>
+            :variant="item.slug === selectedSlug ? 'flat' : 'outlined'"
+            class="my-0"
+        >{{ item.name }} ({{ item.posts_count }})</v-chip>
+    </v-chip-group>
 </template>
 
 <script setup>
@@ -42,18 +34,29 @@
 
     const ALL_VALUE = "__all__";
 
-    const props = defineProps({
-        category: {
-            type: String,
-            required: false,
-        },
+    const category = defineModel("category", {
+        type: String,
     });
 
-    const emit = defineEmits(["loaded"]);
+    const emit = defineEmits([
+        "loaded",
+    ]);
 
     const categories = ref([]);
 
-    const selectedSlug = computed(() => props.category || ALL_VALUE);
+    const selectedSlug = computed(() => category.value || ALL_VALUE);
+
+    function selectCategory(value) {
+        if( !value || value === ALL_VALUE ) {
+            category.value = undefined;
+            goTo(route("blog.index"));
+            return;
+        }
+
+        category.value = value;
+
+        goTo(route("blog.index", { category: value }));
+    }
 
     async function getCategories() {
         try {
@@ -64,22 +67,13 @@
             });
 
             categories.value = data.categories.filter(
-                category => category.posts_count > 0,
+                item => item.posts_count > 0,
             );
 
             emit("loaded", categories.value);
         } catch (e) {
             console.log(e);
         }
-    }
-
-    function goToCategory(item = null) {
-        if( !item ) {
-            goTo(route("blog.index"));
-            return;
-        }
-
-        goTo(route("blog.index", { category: item.slug }));
     }
 
     onMounted(getCategories);
