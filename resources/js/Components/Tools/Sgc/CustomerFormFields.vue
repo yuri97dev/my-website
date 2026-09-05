@@ -224,9 +224,11 @@
                 variant: "tonal",
                 prependIcon: "mdi-delete",
                 loading: deleting.value,
-                text: "Remover",
+                text: "Excluir Cliente",
                 onClick: handleDelete,
             });
+
+            actions.push({ key: "spacer", spacer: true });
         }
 
         if( currentStep.value === "addresses" ) {
@@ -248,8 +250,6 @@
                 onClick: () => attachmentManagerRef.value?.load(),
             });
         }
-
-        actions.push({ key: "spacer", spacer: true });
 
         if( currentStep.value === "documents" || currentStep.value === "data" ) {
             actions.push({

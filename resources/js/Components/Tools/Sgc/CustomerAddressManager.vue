@@ -5,16 +5,27 @@
             type="list-item-two-line@4"
         ></v-skeleton-loader>
 
-        <div
+        <v-card
             v-else-if="addresses.length === 0"
-            class="d-flex align-center justify-center py-8"
+            border
+            variant="tonal"
+            class="text-center pa-8"
         >
-            <v-empty-state
+            <v-icon
                 icon="mdi-map-marker-outline"
-                title="Nenhum endereço cadastrado"
-                text="Adicione um novo endereço para este cliente."
-            ></v-empty-state>
-        </div>
+                size="48"
+                color="primary"
+                class="mb-4"
+            ></v-icon>
+
+            <div class="text-subtitle-1 font-weight-medium mb-1">
+                Nenhum endereço
+            </div>
+
+            <div class="text-body-2 text-medium-emphasis">
+                Use “Novo Endereço” no rodapé.
+            </div>
+        </v-card>
 
         <v-row v-else>
             <v-col

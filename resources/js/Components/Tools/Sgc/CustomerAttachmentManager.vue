@@ -14,20 +14,32 @@
             type="list-item-two-line@4"
         ></v-skeleton-loader>
 
-        <div
+        <v-card
             v-else-if="attachments.length === 0"
-            class="d-flex align-center justify-center py-8"
+            border
+            variant="tonal"
+            class="text-center pa-8"
         >
-            <v-empty-state
+            <v-icon
                 icon="mdi-paperclip"
-                title="Nenhum anexo"
-                text="Envie um arquivo para vincular a este cliente nesta empresa."
-            ></v-empty-state>
-        </div>
+                size="48"
+                color="primary"
+                class="mb-4"
+            ></v-icon>
+
+            <div class="text-subtitle-1 font-weight-medium mb-1">
+                Nenhum anexo
+            </div>
+
+            <div class="text-body-2 text-medium-emphasis">
+                Use “Adicionar Arquivo” no rodapé.
+            </div>
+        </v-card>
 
         <v-list
             v-else
             lines="two"
+            class="py-0"
             style="max-height: 40dvh; overflow-y: auto;"
         >
             <v-list-item
