@@ -28,8 +28,9 @@
             }
 
             #loading-container img {
-                width: 50dvw;
-                max-width: 280px;
+                width: 30dvw;
+                min-width: 200px;
+                max-width: 300px;
                 user-select: none;
                 animation: float-effect 3s ease-in-out infinite;
             }

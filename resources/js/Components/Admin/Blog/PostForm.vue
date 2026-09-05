@@ -78,6 +78,18 @@
     function openScrapedArticleManager() {
         scrapedArticleManagerRef.value?.open();
     }
+    function formatExcerpt(text) {
+        if( !text ) return null;
+
+        return String(text)
+            .trim()
+            .split("\n")
+            .map(line => line.trim())
+            .join(" ")
+            .split(" ")
+            .map(word => word.trim())
+            .join(" ");
+    }
 
     function handleImportScrapedArticle() {
         const {
@@ -106,6 +118,7 @@
         div.innerHTML = content;
 
         const firstImage = div.querySelector("img");
+        const firstParagraph = div.querySelector("p");
 
         open({
             title,
@@ -114,6 +127,7 @@
                 new URL(firstImage.src).pathname :
                 null,
             scraped_article_id: selectedScrapedArticle.id,
+            excerpt: formatExcerpt(firstParagraph?.textContent),
         });
     }
 

@@ -135,7 +135,9 @@
                                                     label="Resumo"
                                                     class="mb-4"
                                                     rows="1"
+                                                    counter="500"
                                                     auto-grow
+                                                    :rules="[v => v?.length <= 500 || 'Máximo de 500 caracteres']"
                                                     v-model="form.excerpt"
                                                 ></v-textarea>
 
@@ -649,7 +651,7 @@
             thumbnail_path: data?.thumbnail_path || null,
             category_id: null,
             slug: null,
-            excerpt: null,
+            excerpt: data?.excerpt || null,
             status: "draft",
             tags: [],
         };
