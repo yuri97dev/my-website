@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Sgc;
 
 use App\Models\SgcCustomer;
-use App\Models\SgcCustomerAttachment;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -21,11 +20,6 @@ class StoreCustomerAttachmentRequest extends SgcFormRequest
                 "integer",
                 Rule::exists("sgc_companies", "id"),
             ],
-            "type" => [
-                "required",
-                "string",
-                Rule::in(SgcCustomerAttachment::types()),
-            ],
             "file" => [
                 "required",
                 "file",
@@ -41,8 +35,6 @@ class StoreCustomerAttachmentRequest extends SgcFormRequest
             "company_id.required" => "A empresa é obrigatória.",
             "company_id.integer" => "A empresa deve ser um número inteiro.",
             "company_id.exists" => "A empresa selecionada é inválida.",
-            "type.required" => "O tipo do anexo é obrigatório.",
-            "type.in" => "O tipo do anexo é inválido.",
             "file.required" => "O arquivo é obrigatório.",
             "file.file" => "O arquivo enviado é inválido.",
             "file.max" => "O arquivo não pode ter mais de 10 MB.",

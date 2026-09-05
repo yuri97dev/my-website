@@ -1,18 +1,5 @@
 <template>
     <div>
-        <v-row>
-            <v-col cols="12" lg="5">
-                <v-select
-                    label="Tipo"
-                    :items="typeOptions"
-                    item-title="title"
-                    item-value="value"
-                    :error-messages="errors.type"
-                    v-model="form.type"
-                ></v-select>
-            </v-col>
-        </v-row>
-
         <input
             ref="fileInputRef"
             type="file"
@@ -52,6 +39,13 @@
             >
                 <template #append>
                     <v-btn
+                        icon="mdi-tag-outline"
+                        variant="text"
+                        :disabled="saving"
+                        @click="openTypeDialog(attachment)"
+                    ></v-btn>
+
+                    <v-btn
                         icon="mdi-open-in-new"
                         variant="text"
                         @click="openAttachment(attachment)"
@@ -68,6 +62,35 @@
         </v-list>
     </div>
 
+    <Dialog
+        overlay-id="sgc-customer-attachment-type"
+        title="Tipo do anexo"
+        max-width="400"
+        :loading="savingType"
+        @close="resetTypeForm"
+        v-model="isTypeDialogOpen"
+    >
+        <v-select
+            label="Tipo"
+            :items="typeOptions"
+            item-title="title"
+            item-value="value"
+            :error-messages="typeErrors.type"
+            v-model="typeForm.type"
+        ></v-select>
+
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                color="primary"
+                prepend-icon="mdi-content-save"
+                text="Salvar"
+                :loading="savingType"
+                @click="handleSaveType"
+            ></v-btn>
+        </template>
+    </Dialog>
+
     <ImageViewerDialog
         ref="imageViewerDialogRef"
     ></ImageViewerDialog>
@@ -78,6 +101,7 @@
 
     import api from "@/api";
 
+    import Dialog from "@/Components/Dialog.vue";
     import ImageViewerDialog from "@/Components/ImageViewerDialog.vue";
 
     import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
@@ -101,29 +125,47 @@
         { value: "other", title: "Outro" },
     ];
 
-    const typeLabels = Object.fromEntries(
-        typeOptions.map(option => [ option.value, option.title ])
-    );
-
     const imageViewerDialogRef = ref(null);
     const fileInputRef = ref(null);
     const loading = ref(false);
     const saving = ref(false);
+    const savingType = ref(false);
+    const isTypeDialogOpen = ref(false);
     const errors = ref({});
+    const typeErrors = ref({});
     const attachments = ref([]);
     const selectedAttachment = ref(null);
 
-    const form = reactive(emptyForm());
+    const typeForm = reactive({
+        attachment: null,
+        type: "other",
+    });
 
-    function emptyForm() {
-        return {
-            type: "other",
-        };
+    function typeLabel(type) {
+        return typeOptions.find(option => option.value === type)?.title || type;
     }
 
-    function resetForm() {
-        form.type = "other";
-        errors.value = {};
+    function openTypeDialog(attachment) {
+        typeForm.attachment = attachment;
+        typeForm.type = attachment.type;
+        typeErrors.value = {};
+        isTypeDialogOpen.value = true;
+    }
+
+    function resetTypeForm() {
+        typeForm.attachment = null;
+        typeForm.type = "other";
+        typeErrors.value = {};
+    }
+
+    async function handleSaveType() {
+        if( !typeForm.attachment ) return;
+
+        const saved = await updateType(typeForm.attachment, typeForm.type);
+
+        if( saved ) {
+            isTypeDialogOpen.value = false;
+        }
     }
 
     function pickFile() {
@@ -150,7 +192,7 @@
 
     function attachmentSubtitle(attachment) {
         const parts = [
-            typeLabels[attachment.type] || attachment.type,
+            typeLabel(attachment.type),
             formatBytes(attachment.size_bytes),
             formatDate(attachment.created_at, "dd/MM/yyyy HH:mm"),
         ].filter(Boolean);
@@ -194,7 +236,6 @@
         const formData = new FormData();
 
         formData.append("company_id", props.companyId);
-        formData.append("type", form.type || "");
         formData.append("file", preparedFile);
 
         try {
@@ -211,6 +252,39 @@
             alertError("Ooops", message || "Erro ao adicionar anexo");
         } finally {
             saving.value = false;
+        }
+    }
+
+    async function updateType(attachment, type) {
+        if( !props.customerId || !attachment?.id || type === attachment.type ) {
+            return true;
+        }
+
+        savingType.value = true;
+        typeErrors.value = {};
+
+        try {
+            const url = route("api.tools.sgc.customers.attachments.update", {
+                sgc_customer: props.customerId,
+                sgc_customer_attachment: attachment.id,
+            });
+
+            await api.put(url, { type });
+
+            toastSuccess("Ok", "Tipo do anexo atualizado");
+
+            await loadAttachments();
+
+            return true;
+        } catch (e) {
+            const { message, errors: responseErrors } = e?.response?.data || {};
+
+            typeErrors.value = responseErrors || {};
+            alertError("Ooops", message || "Erro ao atualizar tipo do anexo");
+
+            return false;
+        } finally {
+            savingType.value = false;
         }
     }
 
@@ -277,7 +351,7 @@
     function reset() {
         selectedAttachment.value = null;
         attachments.value = [];
-        resetForm();
+        errors.value = {};
     }
 
     watch(

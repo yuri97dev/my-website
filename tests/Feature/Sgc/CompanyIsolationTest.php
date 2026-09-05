@@ -250,6 +250,15 @@ describe("isolamento entre empresas (LGPD)", function () {
             )
         );
 
+        assertTenantDenied(
+            asTenant($actor)->putJson(
+                "/api/tools/sgc/customers/{$foreign["customer"]->id}/attachments/{$attachment->id}",
+                [
+                    "type" => SgcCustomerAttachment::TYPE_CONTRACT,
+                ]
+            )
+        );
+
         expect(SgcCustomerAttachment::query()->whereKey($attachment->id)->exists())->toBeTrue();
     })->with("pares_empresas_distintas");
 
@@ -291,12 +300,23 @@ describe("isolamento entre empresas (LGPD)", function () {
             "/api/tools/sgc/customers/{$tenant["customer"]->id}/attachments",
             [
                 "company_id" => $tenant["company"]->id,
-                "type" => SgcCustomerAttachment::TYPE_CONTRACT,
                 "file" => UploadedFile::fake()->image("contrato.jpg"),
             ]
         )->assertCreated();
 
         $attachment_id = $create->json("attachment.id");
+
+        expect($create->json("attachment.type"))->toBe(SgcCustomerAttachment::TYPE_OTHER);
+
+        asTenant($key)
+            ->putJson(
+                "/api/tools/sgc/customers/{$tenant["customer"]->id}/attachments/{$attachment_id}",
+                [
+                    "type" => SgcCustomerAttachment::TYPE_CONTRACT,
+                ]
+            )
+            ->assertOk()
+            ->assertJsonPath("attachment.type", SgcCustomerAttachment::TYPE_CONTRACT);
 
         $list = asTenant($key)
             ->getJson(

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Sgc;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sgc\StoreCustomerAttachmentRequest;
+use App\Http\Requests\Sgc\UpdateCustomerAttachmentRequest;
 use App\Models\SgcCompanyCustomer;
 use App\Models\SgcCustomer;
 use App\Models\SgcCustomerAttachment;
@@ -54,7 +55,7 @@ class CustomerAttachmentController extends Controller
         );
 
         $attachment = $pivot->attachments()->create([
-            "type" => $request->input("type"),
+            "type" => SgcCustomerAttachment::TYPE_OTHER,
             "original_name" => $file->getClientOriginalName(),
             "path" => $stored_path,
             "mime_type" => $file->getMimeType(),
@@ -100,6 +101,25 @@ class CustomerAttachmentController extends Controller
             $headers,
             "inline",
         );
+    }
+
+    public function update(
+        UpdateCustomerAttachmentRequest $request,
+        SgcCustomer $sgc_customer,
+        SgcCustomerAttachment $sgc_customer_attachment,
+    ) {
+        $this->assertAttachmentBelongsToCustomer($sgc_customer, $sgc_customer_attachment);
+
+        abort_unless(
+            $sgc_customer_attachment->isAccessibleBy($request->user()),
+            Response::HTTP_FORBIDDEN
+        );
+
+        $sgc_customer_attachment->update($request->validated());
+
+        return response()->json([
+            "attachment" => $sgc_customer_attachment->fresh()->only($this->attachmentColumns()),
+        ], 200);
     }
 
     public function destroy(
