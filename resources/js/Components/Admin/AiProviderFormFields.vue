@@ -124,7 +124,7 @@
             const url = route("api.ai-providers.update", aiProvider.value.id);
             const { data } = await api.put(url, buildPayload());
 
-            toastSuccess("Ok", "Provedor de IA atualizado com sucesso");
+            toastSuccess("Provedor de IA atualizado com sucesso");
 
             aiProvider.value = data.ai_provider;
 
@@ -150,7 +150,7 @@
             const url = route("api.ai-providers.store");
             const { data } = await api.post(url, buildPayload());
 
-            toastSuccess("Ok", "Provedor de IA criado com sucesso");
+            toastSuccess("Provedor de IA criado com sucesso");
 
             aiProvider.value = data.ai_provider;
 

@@ -205,7 +205,7 @@
             const url = route("api.blog.posts.images.destroy", selectedImage.value.id);
             await api.delete(url);
 
-            toastSuccess("Ok", "Imagem removida com sucesso");
+            toastSuccess("Imagem removida com sucesso");
         } catch (e) {
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao remover imagem");
@@ -230,7 +230,7 @@
         if( !success ) {
             alertError("Ooops", error || "Erro ao copiar imagem");
         } else {
-            toastSuccess("Ok", "Imagem copiada com sucesso");
+            toastSuccess("Imagem copiada com sucesso");
         }
     }
 

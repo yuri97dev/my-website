@@ -519,7 +519,7 @@
 
             await api.patch(url);
 
-            toastSuccess("Ok", "Artigo desativado com sucesso");
+            toastSuccess("Artigo desativado com sucesso");
 
             isScrapedArticleContentDialogOpen.value = false;
 
@@ -547,7 +547,7 @@
 
             contentTab.value = "original";
 
-            toastSuccess("Ok", data.message || "Tradução rejeitada com sucesso");
+            toastSuccess(data.message || "Tradução rejeitada com sucesso");
 
             isRejectTranslationDialogOpen.value = false;
 
@@ -574,7 +574,7 @@
 
             selectedScrapedArticle.value = data.scraped_article;
 
-            toastSuccess("Ok", data.message || "Contagem de tentativas reiniciada com sucesso");
+            toastSuccess(data.message || "Contagem de tentativas reiniciada com sucesso");
 
             await getScrapedArticles();
         } catch (e) {
@@ -629,7 +629,7 @@
 
             contentTab.value = "translated";
 
-            toastSuccess("Ok", "Tradução concluída com sucesso");
+            toastSuccess("Tradução concluída com sucesso");
 
             await getScrapedArticles();
 
@@ -670,7 +670,7 @@
 
             await api.post(url);
 
-            toastSuccess("Ok", "Tradução iniciada com sucesso");
+            toastSuccess("Tradução iniciada com sucesso");
 
             startTranslationPolling();
         } catch (e) {
@@ -696,7 +696,7 @@
 
             await api.post(url, payload);
 
-            toastSuccess("Ok", "Scraping iniciado com sucesso");
+            toastSuccess("Scraping iniciado com sucesso");
         } catch (e) {
             console.error(e);
             const { message } = e?.response?.data || {};
@@ -797,7 +797,7 @@
         if( !success ) {
             alertError("Ooops", error || "Erro ao copiar texto");
         } else {
-            toastSuccess("Ok", "Texto copiado com sucesso");
+            toastSuccess("Texto copiado com sucesso");
         }
     }
 
@@ -827,7 +827,7 @@
         if( !success ) {
             alertError("Ooops", error || "Erro ao copiar texto");
         } else {
-            toastSuccess("Ok", "Texto copiado com sucesso");
+            toastSuccess("Texto copiado com sucesso");
         }
     }
 

@@ -273,7 +273,7 @@
                 data: getPayload(),
             });
 
-            toastSuccess("Ok", data.message || "Artigos excluídos com sucesso");
+            toastSuccess(data.message || "Artigos excluídos com sucesso");
 
             isDialogOpen.value = false;
 

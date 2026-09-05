@@ -204,7 +204,7 @@
             const url = route("api.tools.sgc.companies.update", company.value.id);
             const { data } = await api.put(url, buildPayload());
 
-            toastSuccess("Ok", "Empresa atualizada com sucesso");
+            toastSuccess("Empresa atualizada com sucesso");
 
             company.value = data.company;
 
@@ -229,7 +229,7 @@
             const url = route("api.tools.sgc.companies.store");
             const { data } = await api.post(url, buildPayload());
 
-            toastSuccess("Ok", "Empresa criada com sucesso");
+            toastSuccess("Empresa criada com sucesso");
 
             company.value = data.company;
 
@@ -263,7 +263,7 @@
 
             await api.delete(url);
 
-            toastSuccess("Ok", "Empresa removida com sucesso");
+            toastSuccess("Empresa removida com sucesso");
 
             isDialogOpen.value = false;
 

@@ -528,7 +528,7 @@
             const url = route("api.tools.sgc.products.update", product.value.id);
             const { data } = await api.put(url, payload);
 
-            toastSuccess("Ok", "Produto atualizado com sucesso");
+            toastSuccess("Produto atualizado com sucesso");
 
             product.value = data.product;
             form.value = {
@@ -557,7 +557,7 @@
             const url = route("api.tools.sgc.products.store");
             const { data } = await api.post(url, buildPayload());
 
-            toastSuccess("Ok", "Produto criado com sucesso");
+            toastSuccess("Produto criado com sucesso");
 
             product.value = data.product;
 
@@ -588,7 +588,7 @@
                 },
             });
 
-            toastSuccess("Ok", "Produto removido com sucesso");
+            toastSuccess("Produto removido com sucesso");
 
             isConfirmRemoveDialogOpen.value = false;
             isDialogOpen.value = false;

@@ -224,7 +224,7 @@
                 content: form.content,
             });
 
-            toastSuccess("Ok", "Prompt criado com sucesso");
+            toastSuccess("Prompt criado com sucesso");
 
             isDialogFormOpen.value = false;
             hasChanges.value = true;
@@ -252,7 +252,7 @@
                 content: form.content,
             });
 
-            toastSuccess("Ok", "Prompt atualizado com sucesso");
+            toastSuccess("Prompt atualizado com sucesso");
 
             isDialogFormOpen.value = false;
             hasChanges.value = true;
@@ -282,7 +282,7 @@
             const url = route("api.ai-prompts.destroy", prompt.id);
             await api.delete(url);
 
-            toastSuccess("Ok", "Prompt removido com sucesso");
+            toastSuccess("Prompt removido com sucesso");
 
             hasChanges.value = true;
         } catch (e) {

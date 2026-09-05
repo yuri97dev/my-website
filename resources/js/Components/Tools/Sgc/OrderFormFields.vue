@@ -442,7 +442,7 @@
             const url = route("api.tools.sgc.orders.store");
             const { data } = await api.post(url, buildPayload());
 
-            toastSuccess("Ok", "Pedido criado com sucesso");
+            toastSuccess("Pedido criado com sucesso");
 
             order.value = data.order;
             isDialogOpen.value = false;

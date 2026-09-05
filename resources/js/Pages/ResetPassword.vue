@@ -134,7 +134,7 @@
         try {
             await api.post("/api/account/reset-password", form);
             reset.value = true;
-            toastSuccess("Ok", "Sua senha foi redefinida com sucesso");
+            toastSuccess("Sua senha foi redefinida com sucesso");
         } catch (e) {
             const { message, errors: responseErrors } = e.response?.data || {};
             errors.value = responseErrors || {};

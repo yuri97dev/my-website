@@ -157,7 +157,7 @@
 
             await api.post(url, form);
 
-            toastSuccess("Ok", "Unidade criada com sucesso");
+            toastSuccess("Unidade criada com sucesso");
 
             isDialogFormOpen.value = false;
             hasChanges.value = true;
@@ -179,7 +179,7 @@
 
             await api.put(url, form);
 
-            toastSuccess("Ok", "Unidade atualizada com sucesso");
+            toastSuccess("Unidade atualizada com sucesso");
 
             isDialogFormOpen.value = false;
             hasChanges.value = true;
@@ -209,7 +209,7 @@
 
             await api.delete(url);
 
-            toastSuccess("Ok", "Unidade removida com sucesso");
+            toastSuccess("Unidade removida com sucesso");
 
             hasChanges.value = true;
         } catch (e) {

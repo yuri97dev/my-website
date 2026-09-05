@@ -279,7 +279,7 @@
 
             await api.post(url, formData);
 
-            toastSuccess("Ok", "Anexo adicionado com sucesso");
+            toastSuccess("Anexo adicionado com sucesso");
 
             await loadAttachments();
         } catch (e) {
@@ -307,7 +307,7 @@
 
             await api.put(url, { type });
 
-            toastSuccess("Ok", "Tipo do anexo atualizado");
+            toastSuccess("Tipo do anexo atualizado");
 
             await loadAttachments();
 
@@ -371,7 +371,7 @@
 
             await api.delete(url);
 
-            toastSuccess("Ok", "Anexo removido com sucesso");
+            toastSuccess("Anexo removido com sucesso");
 
             selectedAttachment.value = null;
 

@@ -468,7 +468,7 @@
 
             await associatePostImages(post.value.id);
 
-            toastSuccess("Ok", "Post salvo com sucesso");
+            toastSuccess("Post salvo com sucesso");
         } catch (e) {
             console.error(e);
             const { message } = e?.response?.data || {};
@@ -496,7 +496,7 @@
 
             await associatePostImages(data.post.id);
 
-            toastSuccess("Ok", "Post criado com sucesso");
+            toastSuccess("Post criado com sucesso");
 
             nextTick(async () => {
                 await getPost();
@@ -576,7 +576,7 @@
 
             form.value.thumbnail_path = route("blog.images.show", data.image.id, false);
 
-            toastSuccess("Ok", "Thumbnail salva com sucesso");
+            toastSuccess("Thumbnail salva com sucesso");
         } catch (e) {
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao salvar thumbnail");

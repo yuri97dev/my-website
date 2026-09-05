@@ -149,7 +149,7 @@
             const url = route("api.blog.posts.tags.store");
             await api.post(url, form);
 
-            toastSuccess("Ok", "Tag criada com sucesso");
+            toastSuccess("Tag criada com sucesso");
 
             isDialogFormOpen.value = false;
             hasChanges.value = true;
@@ -170,7 +170,7 @@
             const url = route("api.blog.posts.tags.update", form.id);
             await api.put(url, form);
 
-            toastSuccess("Ok", "Tag atualizada com sucesso");
+            toastSuccess("Tag atualizada com sucesso");
 
             isDialogFormOpen.value = false;
             hasChanges.value = true;
@@ -199,7 +199,7 @@
             const url = route("api.blog.posts.tags.destroy", tag.id);
             await api.delete(url);
 
-            toastSuccess("Ok", "Tag removida com sucesso");
+            toastSuccess("Tag removida com sucesso");
 
             hasChanges.value = true;
         } catch (e) {

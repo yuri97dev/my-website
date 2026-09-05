@@ -573,7 +573,7 @@
             isPayDialogOpen.value = false;
             selectedInstallment.value = null;
 
-            toastSuccess("Ok", "Baixa registrada com sucesso");
+            toastSuccess("Baixa registrada com sucesso");
             emit("updated");
         } catch (e) {
             const { message, errors } = e?.response?.data || {};
@@ -607,7 +607,7 @@
             isConfirmCancelDialogOpen.value = false;
             cancelReason.value = "";
 
-            toastSuccess("Ok", "Pedido cancelado com sucesso");
+            toastSuccess("Pedido cancelado com sucesso");
             emit("updated");
         } catch (e) {
             const { message, errors } = e?.response?.data || {};

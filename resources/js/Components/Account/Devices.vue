@@ -102,7 +102,7 @@
             const url = route("api.account.sessions.destroy", device.id);
             await api.delete(url);
 
-            toastSuccess("Ok", "Sessão revogada com sucesso");
+            toastSuccess("Sessão revogada com sucesso");
         } catch (e) {
             alertError("Ooops", "Erro ao revogar sessão");
         }

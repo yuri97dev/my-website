@@ -155,7 +155,7 @@
             const url = route("api.tools.sgc.brands.store");
             await api.post(url, form);
 
-            toastSuccess("Ok", "Marca criada com sucesso");
+            toastSuccess("Marca criada com sucesso");
 
             isDialogFormOpen.value = false;
             hasChanges.value = true;
@@ -176,7 +176,7 @@
             const url = route("api.tools.sgc.brands.update", form.id);
             await api.put(url, form);
 
-            toastSuccess("Ok", "Marca atualizada com sucesso");
+            toastSuccess("Marca atualizada com sucesso");
 
             isDialogFormOpen.value = false;
             hasChanges.value = true;
@@ -205,7 +205,7 @@
             const url = route("api.tools.sgc.brands.destroy", brand.id);
             await api.delete(url);
 
-            toastSuccess("Ok", "Marca removida com sucesso");
+            toastSuccess("Marca removida com sucesso");
 
             hasChanges.value = true;
         } catch (e) {

@@ -366,7 +366,7 @@
 
             if( data.customer ) {
                 applyMatchedCustomer(data.customer);
-                toastSuccess("Ok", "Cliente encontrado. Os dados foram preenchidos.");
+                toastSuccess("Cliente encontrado. Os dados foram preenchidos.");
             } else if( matchedCustomer.value ) {
                 form.value.name = null;
                 form.value.nickname = null;
@@ -444,7 +444,7 @@
             const url = route("api.tools.sgc.customers.update", customer.value.id);
             const { data } = await api.put(url, buildPayload());
 
-            toastSuccess("Ok", "Cliente atualizado com sucesso");
+            toastSuccess("Cliente atualizado com sucesso");
 
             customer.value = data.customer;
 
@@ -473,7 +473,6 @@
             const { data } = await api.post(url, buildPayload());
 
             toastSuccess(
-                "Ok",
                 associating
                     ? "Cliente associado com sucesso"
                     : "Cliente criado com sucesso"
@@ -515,7 +514,7 @@
                 },
             });
 
-            toastSuccess("Ok", "Cliente removido com sucesso");
+            toastSuccess("Cliente removido com sucesso");
 
             isDialogOpen.value = false;
 

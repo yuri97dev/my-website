@@ -179,7 +179,7 @@
                 role: form.value.role,
             });
 
-            toastSuccess("Ok", "Funcionário atualizado com sucesso");
+            toastSuccess("Funcionário atualizado com sucesso");
 
             employee.value = data.employee;
 
@@ -204,7 +204,7 @@
             const url = route("api.tools.sgc.employees.store");
             const { data } = await api.post(url, buildPayload());
 
-            toastSuccess("Ok", "Funcionário adicionado com sucesso");
+            toastSuccess("Funcionário adicionado com sucesso");
 
             employee.value = data.employee;
 
@@ -239,7 +239,7 @@
 
             await api.delete(url);
 
-            toastSuccess("Ok", "Funcionário removido com sucesso");
+            toastSuccess("Funcionário removido com sucesso");
 
             isDialogOpen.value = false;
 

@@ -138,7 +138,7 @@
         try {
             await api.put("/api/account/personal-data", form);
             router.reload({ preserveScroll: true });
-            toastSuccess("Ok", "Dados pessoais atualizados com sucesso");
+            toastSuccess("Dados pessoais atualizados com sucesso");
         } catch (e) {
             const { message, errors: responseErrors } = e.response.data;
             errors.value = responseErrors || {};
@@ -160,7 +160,7 @@
             form.password = "";
             form.password_confirmation = "";
 
-            toastSuccess("Ok", "Senha alterada com sucesso");
+            toastSuccess("Senha alterada com sucesso");
         } catch (e) {
             const { message, errors: responseErrors } = e.response.data;
             errors.value = responseErrors || {};

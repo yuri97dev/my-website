@@ -188,13 +188,13 @@
 
                 await api.put(url, buildPayload());
 
-                toastSuccess("Ok", "Endereço atualizado com sucesso");
+                toastSuccess("Endereço atualizado com sucesso");
             } else {
                 const url = route("api.tools.sgc.customers.addresses.store", customerId.value);
 
                 await api.post(url, buildPayload());
 
-                toastSuccess("Ok", "Endereço adicionado com sucesso");
+                toastSuccess("Endereço adicionado com sucesso");
             }
 
             isOpen.value = false;
@@ -230,7 +230,7 @@
 
             await api.delete(url);
 
-            toastSuccess("Ok", "Endereço removido com sucesso");
+            toastSuccess("Endereço removido com sucesso");
 
             isOpen.value = false;
 

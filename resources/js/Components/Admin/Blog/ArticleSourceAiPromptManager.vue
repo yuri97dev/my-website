@@ -224,7 +224,7 @@
                 ai_prompt_ids: linkedPrompts.value.map((prompt) => prompt.id),
             });
 
-            toastSuccess("Ok", "Prompts de IA atualizados com sucesso");
+            toastSuccess("Prompts de IA atualizados com sucesso");
 
             hasChanges.value = true;
             isDialogOpen.value = false;

@@ -149,7 +149,7 @@
             const url = route("api.blog.posts.categories.store");
             await api.post(url, form);
 
-            toastSuccess("Ok", "Categoria criada com sucesso");
+            toastSuccess("Categoria criada com sucesso");
 
             isDialogFormOpen.value = false;
             hasChanges.value = true;
@@ -170,7 +170,7 @@
             const url = route("api.blog.posts.categories.update", form.id);
             await api.put(url, form);
 
-            toastSuccess("Ok", "Categoria atualizada com sucesso");
+            toastSuccess("Categoria atualizada com sucesso");
 
             isDialogFormOpen.value = false;
             hasChanges.value = true;
@@ -199,7 +199,7 @@
             const url = route("api.blog.posts.categories.destroy", category.id);
             await api.delete(url);
 
-            toastSuccess("Ok", "Categoria removida com sucesso");
+            toastSuccess("Categoria removida com sucesso");
 
             hasChanges.value = true;
         } catch (e) {

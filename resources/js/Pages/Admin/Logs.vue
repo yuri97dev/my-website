@@ -275,7 +275,7 @@
 
             content.value = "";
 
-            toastSuccess("Ok", "Logs limpos com sucesso.");
+            toastSuccess("Logs limpos com sucesso.");
         } catch (e) {
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao limpar logs");

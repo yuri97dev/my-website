@@ -29,8 +29,9 @@ function fire(options) {
 function toastFire(options) {
     const defaults = {
         toast: true,
-        position: "top-end",
+        position: "bottom",
         showConfirmButton: false,
+        showCloseButton: true,
         timer: 3000,
         timerProgressBar: true,
         theme: getTheme(),
@@ -43,20 +44,20 @@ function toastFire(options) {
     return Swal.fire({ ...defaults, ...options });
 }
 
-export function toastSuccess(title, text) {
-    return toastFire({ icon: "success", title, text });
+export function toastSuccess(text) {
+    return toastFire({ icon: "success", title: text });
 }
 
-export function toastError(title, text) {
-    return toastFire({ icon: "error", title, text });
+export function toastError(text) {
+    return toastFire({ icon: "error", title: text });
 }
 
-export function toastWarning(title, text) {
-    return toastFire({ icon: "warning", title, text });
+export function toastWarning(text) {
+    return toastFire({ icon: "warning", title: text });
 }
 
-export function toastInfo(title, text) {
-    return toastFire({ icon: "info", title, text });
+export function toastInfo(text) {
+    return toastFire({ icon: "info", title: text });
 }
 
 export function alertSuccess(title, text) {

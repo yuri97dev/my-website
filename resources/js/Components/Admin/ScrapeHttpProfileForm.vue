@@ -173,7 +173,7 @@
             const url = route("api.scrape-http-profiles.store");
             const { data } = await api.post(url, buildPayload());
 
-            toastSuccess("Ok", "Perfil HTTP criado com sucesso");
+            toastSuccess("Perfil HTTP criado com sucesso");
 
             scrapeHttpProfile.value = data.scrape_http_profile;
 
@@ -200,7 +200,7 @@
             const url = route("api.scrape-http-profiles.update", scrapeHttpProfile.value.id);
             const { data } = await api.put(url, buildPayload());
 
-            toastSuccess("Ok", "Perfil HTTP atualizado com sucesso");
+            toastSuccess("Perfil HTTP atualizado com sucesso");
 
             scrapeHttpProfile.value = data.scrape_http_profile;
 
@@ -233,7 +233,7 @@
             const url = route("api.scrape-http-profiles.destroy", scrapeHttpProfile.value.id);
             await api.delete(url);
 
-            toastSuccess("Ok", "Perfil HTTP removido com sucesso");
+            toastSuccess("Perfil HTTP removido com sucesso");
 
             isDialogOpen.value = false;
         } catch (e) {

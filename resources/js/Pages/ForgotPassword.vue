@@ -63,7 +63,7 @@
             });
 
             sent.value = true;
-            toastSuccess("Ok", "Um link para redefinir sua senha foi enviado para o seu e-mail.");
+            toastSuccess("Um link para redefinir sua senha foi enviado para o seu e-mail.");
         } catch (err) {
             const { message } = err?.response?.data || {};
             alertError("Ooops", message || "Falha ao enviar e-mail de recuperação");

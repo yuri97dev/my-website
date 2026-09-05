@@ -237,7 +237,7 @@
             const url = route("api.article-sources.update", articleSource.value.id);
             const { data } = await api.put(url, form.value);
 
-            toastSuccess("Ok", "Site atualizado com sucesso");
+            toastSuccess("Site atualizado com sucesso");
 
             articleSource.value = data.article_source;
 
@@ -262,7 +262,7 @@
             const url = route("api.article-sources.store");
             const { data } = await api.post(url, form.value);
 
-            toastSuccess("Ok", "Site criado com sucesso");
+            toastSuccess("Site criado com sucesso");
 
             articleSource.value = data.article_source;
 
