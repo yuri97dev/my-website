@@ -61,7 +61,6 @@
                     <v-col cols="12" lg="6">
                         <v-text-field
                             label="RG"
-                            hint="Documento de identidade"
                             persistent-hint
                             :error-messages="errors.identity_document"
                             v-model="form.identity_document"

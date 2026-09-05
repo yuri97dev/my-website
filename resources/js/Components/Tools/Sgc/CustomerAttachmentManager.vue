@@ -52,21 +52,47 @@
                 @click="openAttachment(attachment)"
             >
                 <template #append>
-                    <div class="d-flex align-center ga-2">
-                        <v-btn
-                            icon="mdi-tag-outline"
-                            variant="tonal"
-                            :disabled="saving"
-                            @click.stop="openTypeDialog(attachment)"
-                        ></v-btn>
+                    <v-menu offset="8" location="bottom end">
+                        <template #activator="{ props }">
+                            <v-btn
+                                icon
+                                variant="tonal"
+                                color="primary"
+                                class="rounded"
+                                v-bind="props"
+                                @click.stop
+                            >
+                                <v-progress-circular
+                                    v-if="saving"
+                                    color="primary"
+                                    indeterminate
+                                ></v-progress-circular>
 
-                        <v-btn
-                            icon="mdi-delete"
-                            variant="tonal"
-                            color="error"
-                            @click.stop="confirmRemove(attachment)"
-                        ></v-btn>
-                    </div>
+                                <v-icon
+                                    v-else
+                                    icon="mdi-dots-vertical"
+                                ></v-icon>
+                            </v-btn>
+                        </template>
+
+                        <v-list
+                            v-if="!saving"
+                            slim
+                            border
+                        >
+                            <v-list-item
+                                prepend-icon="mdi-tag-outline"
+                                title="Alterar Tipo"
+                                @click="openTypeDialog(attachment)"
+                            ></v-list-item>
+
+                            <v-list-item
+                                prepend-icon="mdi-delete"
+                                title="Excluir"
+                                @click="confirmRemove(attachment)"
+                            ></v-list-item>
+                        </v-list>
+                    </v-menu>
                 </template>
             </v-list-item>
         </v-list>
@@ -130,7 +156,7 @@
     });
 
     const typeOptions = [
-        { value: "identity_document", title: "Documento de identidade" },
+        { value: "identity_document", title: "Documento de Identidade" },
         { value: "contract", title: "Contrato" },
         { value: "other", title: "Outro" },
     ];
