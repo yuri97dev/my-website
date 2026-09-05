@@ -50,13 +50,6 @@
                         :actions="actions"
                         :disabled="loading"
                     ></OverlayActions>
-
-                    <v-btn
-                        prepend-icon="mdi-close"
-                        text="Fechar"
-                        :disabled="loading"
-                        @click="close"
-                    ></v-btn>
                 </v-card-actions>
             </template>
         </v-card>
