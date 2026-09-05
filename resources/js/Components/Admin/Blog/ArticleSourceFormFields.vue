@@ -163,7 +163,7 @@
 </template>
 
 <script setup>
-    import { ref, computed, nextTick } from "vue";
+    import { ref, computed, nextTick, watch } from "vue";
 
     import api from "@/api";
 
@@ -179,6 +179,12 @@
     ];
 
     const HTTP_METHODS = [ "GET", "POST" ];
+
+    const RSS_SELECTOR_DEFAULTS = {
+        list_item_selector: "channel.item",
+        item_title_selector: "title",
+        item_link_selector: "link",
+    };
 
     const emit = defineEmits([
         "close",
@@ -205,6 +211,25 @@
 
     const isEditing = computed(() => !!articleSource.value.id);
     const isBrowserDriver = computed(() => form.value.driver === "browser");
+
+    const rssAutoFilledFields = ref(new Set());
+
+    watch(() => form.value.driver, (driver, previousDriver) => {
+        if( driver === "rss" ) {
+            for( const [field, value] of Object.entries(RSS_SELECTOR_DEFAULTS) ) {
+                if( !form.value[field] ) {
+                    form.value[field] = value;
+                    rssAutoFilledFields.value.add(field);
+                }
+            }
+        } else if( previousDriver === "rss" ) {
+            for( const field of rssAutoFilledFields.value ) {
+                form.value[field] = null;
+            }
+
+            rssAutoFilledFields.value = new Set();
+        }
+    });
 
     const sheetActions = computed(() => [
         ...(isEditing.value ? props.prependActions : []),
@@ -338,6 +363,8 @@
 
         testResult.value = null;
         isTestDialogOpen.value = false;
+
+        rssAutoFilledFields.value = new Set();
 
         articleSource.value = {};
 
