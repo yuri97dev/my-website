@@ -46,6 +46,11 @@
                 <v-card-actions class="flex-wrap">
                     <slot name="actions"></slot>
 
+                    <OverlayActions
+                        :actions="actions"
+                        :disabled="loading"
+                    ></OverlayActions>
+
                     <v-btn
                         prepend-icon="mdi-close"
                         text="Fechar"
@@ -60,6 +65,8 @@
 
 <script setup>
     import { computed, useAttrs } from "vue";
+
+    import OverlayActions from "@/Components/OverlayActions.vue";
 
     const attrs = useAttrs();
 
@@ -83,6 +90,10 @@
         hideFooter: Boolean,
         noBody: Boolean,
         loading: Boolean,
+        actions: {
+            type: Array,
+            default: () => [],
+        },
     });
 
     const emit = defineEmits([

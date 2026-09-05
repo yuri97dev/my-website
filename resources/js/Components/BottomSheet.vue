@@ -47,6 +47,11 @@
 
                 <v-card-actions class="flex-wrap">
                     <slot name="actions"></slot>
+
+                    <OverlayActions
+                        :actions="actions"
+                        :disabled="loading"
+                    ></OverlayActions>
                 </v-card-actions>
             </template>
         </v-card>
@@ -55,6 +60,8 @@
 
 <script setup>
     import { ref, useAttrs } from "vue";
+
+    import OverlayActions from "@/Components/OverlayActions.vue";
 
     const attrs = useAttrs();
 
@@ -82,6 +89,10 @@
         loading: Boolean,
         hideFooter: Boolean,
         noBody: Boolean,
+        actions: {
+            type: Array,
+            default: () => [],
+        },
     });
 
     const emit = defineEmits([
