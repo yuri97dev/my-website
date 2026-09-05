@@ -8,6 +8,7 @@
         v-model="isOpen"
     >
         <v-card
+            ref="cardRef"
             :height="height"
             :min-height="minHeight"
             :loading="loading"
@@ -53,7 +54,7 @@
 </template>
 
 <script setup>
-    import { useAttrs } from "vue";
+    import { ref, useAttrs } from "vue";
 
     const attrs = useAttrs();
 
@@ -89,6 +90,8 @@
 
     const isOpen = defineModel();
 
+    const cardRef = ref(null);
+
     function open() {
         isOpen.value = true;
     }
@@ -101,8 +104,16 @@
         emit("close");
     }
 
+    function scrollToTop() {
+        cardRef.value?.$el?.querySelector(".v-card-text")?.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
+    }
+
     defineExpose({
         open,
         close,
+        scrollToTop,
     });
 </script>

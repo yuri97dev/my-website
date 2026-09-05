@@ -1,5 +1,6 @@
 <template>
     <BottomSheet
+        ref="bottomSheetRef"
         overlay-id="scraped-article-list"
         title="Posts Baixados"
         height="90dvh"
@@ -85,20 +86,15 @@
             </v-col>
         </v-row>
 
-        <div
+        <SimplePagination
             v-if="pagination.total > 0"
-            class="d-flex justify-center mt-4"
-            style="position: sticky; bottom: 0"
-        >
-            <v-pagination
-                v-model="pagination.page"
-                :length="pagination.lastPage"
-                :total-visible="7"
-                :disabled="listLoading"
-                class="bg-surface px-2 rounded-lg"
-                @update:model-value="handlePaginationUpdate"
-            ></v-pagination>
-        </div>
+            sticky
+            class="mt-4"
+            :disabled="listLoading"
+            :length="pagination.lastPage"
+            @update:model-value="handlePaginationUpdate"
+            v-model="pagination.page"
+        />
 
         <template #actions>
             <v-btn
@@ -302,6 +298,7 @@
     import BottomSheet from "@/Components/BottomSheet.vue";
     import Dialog from "@/Components/Dialog.vue";
     import SearchField from "@/Components/SearchField.vue";
+    import SimplePagination from "@/Components/SimplePagination.vue";
     import ScrapedArticleBulkDeleteDialog from "@/Components/Admin/Blog/ScrapedArticleBulkDeleteDialog.vue";
 
     import { copyText, formatDate } from "@/Utils/Common";
@@ -311,6 +308,8 @@
         confirm,
         toastSuccess,
     } from "@/Utils/Alert";
+
+    const bottomSheetRef = ref(null);
 
     const isOpen = ref(false);
     const isScrapedArticleContentDialogOpen = ref(false);
@@ -462,6 +461,10 @@
             pagination.perPage = data.per_page;
             pagination.total = data.total;
             pagination.lastPage = data.last_page;
+
+            nextTick(() => {
+                bottomSheetRef.value?.scrollToTop();
+            });
         } catch (e) {
             console.error(e);
             const { message } = e?.response?.data || {};
