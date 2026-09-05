@@ -26,7 +26,7 @@
         <v-divider class="mb-4"></v-divider>
 
         <v-tabs-window v-model="currentStep">
-            <v-tabs-window-item value="documents">
+            <!-- <v-tabs-window-item value="documents">
                 <v-row>
                     <v-col cols="12" lg="6">
                         <v-text-field
@@ -46,7 +46,7 @@
                         ></v-text-field>
                     </v-col>
                 </v-row>
-            </v-tabs-window-item>
+            </v-tabs-window-item> -->
 
             <v-tabs-window-item value="data">
                 <v-alert
@@ -58,6 +58,24 @@
                 ></v-alert>
 
                 <v-row>
+                    <v-col cols="12" lg="6">
+                        <v-text-field
+                            label="RG"
+                            hint="Documento de identidade"
+                            persistent-hint
+                            :error-messages="errors.identity_document"
+                            v-model="form.identity_document"
+                        ></v-text-field>
+                    </v-col>
+
+                    <v-col cols="12" lg="6">
+                        <v-text-field
+                            label="CPF/CNPJ"
+                            :error-messages="errors.tax_id"
+                            v-model="form.tax_id"
+                        ></v-text-field>
+                    </v-col>
+
                     <v-col cols="12" lg="6">
                         <CompanyAutocomplete
                             auto-select-single
@@ -168,7 +186,7 @@
     const isEditing = computed(() => !!customer.value.id);
 
     const steps = computed(() => [
-        { value: "documents", title: "Documentos", icon: "mdi-card-account-details-outline" },
+        // { value: "documents", title: "Documentos", icon: "mdi-card-account-details-outline" },
         { value: "data", title: "Dados", icon: "mdi-account-details" },
         { value: "addresses", title: "Endereços", icon: "mdi-map-marker-outline", disabled: !isEditing.value },
         { value: "attachments", title: "Anexos", icon: "mdi-paperclip", disabled: !isEditing.value },
@@ -233,19 +251,7 @@
 
         actions.push({ key: "spacer", spacer: true });
 
-        if( currentStep.value === "documents" ) {
-            actions.push({
-                key: "next",
-                color: "primary",
-                variant: "tonal",
-                appendIcon: "mdi-chevron-right",
-                loading: lookingUp.value,
-                text: "Próximo",
-                onClick: goToNextStep,
-            });
-        }
-
-        if( currentStep.value === "data" ) {
+        if( currentStep.value === "documents" || currentStep.value === "data" ) {
             actions.push({
                 key: "save",
                 variant: "tonal",
@@ -276,8 +282,8 @@
                 prependIcon: "mdi-plus",
                 loading: attachmentManagerRef.value?.saving,
                 disabled: attachmentManagerRef.value?.loading,
-                text: "Adicionar",
-                onClick: () => attachmentManagerRef.value?.save(),
+                text: "Adicionar Arquivo",
+                onClick: () => attachmentManagerRef.value?.pickFile(),
             });
         }
 

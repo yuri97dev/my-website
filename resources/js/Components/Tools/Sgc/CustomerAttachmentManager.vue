@@ -11,18 +11,16 @@
                     v-model="form.type"
                 ></v-select>
             </v-col>
-
-            <v-col cols="12" lg="7">
-                <v-file-input
-                    label="Arquivo"
-                    accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
-                    prepend-icon="mdi-paperclip"
-                    show-size
-                    :error-messages="errors.file"
-                    v-model="form.file"
-                ></v-file-input>
-            </v-col>
         </v-row>
+
+        <input
+            ref="fileInputRef"
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+            multiple
+            class="d-none"
+            @change="handleFileSelect"
+        />
 
         <v-skeleton-loader
             v-if="loading"
@@ -108,6 +106,7 @@
     );
 
     const imageViewerDialogRef = ref(null);
+    const fileInputRef = ref(null);
     const loading = ref(false);
     const saving = ref(false);
     const errors = ref({});
@@ -119,14 +118,26 @@
     function emptyForm() {
         return {
             type: "other",
-            file: null,
         };
     }
 
     function resetForm() {
         form.type = "other";
-        form.file = null;
         errors.value = {};
+    }
+
+    function pickFile() {
+        fileInputRef.value?.click();
+    }
+
+    async function handleFileSelect(event) {
+        const files = Array.from(event.target.files || []);
+
+        event.target.value = "";
+
+        for( const file of files ) {
+            await uploadFile(file);
+        }
     }
 
     function typeIcon(type) {
@@ -147,14 +158,6 @@
         return parts.join(" · ");
     }
 
-    function resolveFile(file) {
-        if( Array.isArray(file) ) {
-            return file[0] || null;
-        }
-
-        return file || null;
-    }
-
     async function loadAttachments() {
         if( !props.customerId || props.companyId == null ) return;
 
@@ -162,6 +165,7 @@
 
         try {
             const url = route("api.tools.sgc.customers.attachments.index", props.customerId);
+
             const { data } = await api.get(url, {
                 params: {
                     company_id: props.companyId,
@@ -177,15 +181,13 @@
         }
     }
 
-    async function handleSave() {
-        if( !props.customerId || props.companyId == null ) return;
+    async function uploadFile(file) {
+        if( !props.customerId || props.companyId == null || !file ) return;
 
         errors.value = {};
         saving.value = true;
 
-        const file = resolveFile(form.file);
-
-        const uploadFile = file && isCompressibleImage(file)
+        const preparedFile = isCompressibleImage(file)
             ? await compressImageFile(file)
             : file;
 
@@ -193,10 +195,7 @@
 
         formData.append("company_id", props.companyId);
         formData.append("type", form.type || "");
-
-        if( uploadFile ) {
-            formData.append("file", uploadFile);
-        }
+        formData.append("file", preparedFile);
 
         try {
             const url = route("api.tools.sgc.customers.attachments.store", props.customerId);
@@ -205,7 +204,6 @@
 
             toastSuccess("Ok", "Anexo adicionado com sucesso");
 
-            resetForm();
             await loadAttachments();
         } catch (e) {
             const { message, errors: responseErrors } = e?.response?.data || {};
@@ -297,7 +295,7 @@
 
     defineExpose({
         load: loadAttachments,
-        save: handleSave,
+        pickFile,
         reset,
         loading,
         saving,
