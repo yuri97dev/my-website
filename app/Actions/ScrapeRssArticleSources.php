@@ -44,7 +44,7 @@ class ScrapeRssArticleSources
         $item = $this->fetchItems($source)->first();
 
         if( !$item ) {
-            throw new Exception("List selector not found.");
+            throw new Exception("No valid items found in feed.");
         }
 
         return $this->buildArticle($source, $item);
@@ -64,7 +64,7 @@ class ScrapeRssArticleSources
             ->{$source->http_method}($source->list_url)
             ->throw();
 
-        $xml = simplexml_load_string($response->body());
+        $xml = simplexml_load_string($response->body(), "SimpleXMLElement", LIBXML_NOCDATA);
 
         if( $xml === false ) {
             throw new Exception("Invalid XML.");
