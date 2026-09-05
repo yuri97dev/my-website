@@ -3,6 +3,7 @@
         overlay-id="sgc-customer-address-form"
         :title="isEditing ? 'Editar Endereço' : 'Novo Endereço'"
         max-width="700"
+        max-height="70dvh"
         no-body
         scrollable
         @close="resetForm"
