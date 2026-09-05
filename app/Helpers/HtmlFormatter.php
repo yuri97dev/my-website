@@ -122,17 +122,41 @@ class HtmlFormatter
     public static function resolveLazyLoadedImages(string $html): string
     {
         return self::transformHtmlFragment($html, function($node) {
-            if(
-                $node instanceof \DOMElement &&
-                $node->tagName === "img" &&
-                $node->hasAttribute("data-src")
-            ) {
+            if( !($node instanceof \DOMElement) || $node->tagName !== "img" ) {
+                return;
+            }
+
+            if( $node->hasAttribute("data-src") ) {
                 $src = trim($node->getAttribute("data-src"));
 
                 if( !empty($src) ) {
                     $node->setAttribute("src", $src);
                     $node->removeAttribute("data-src");
                 }
+            }
+
+            $src = trim($node->getAttribute("src"));
+
+            if( !empty($src) && !str_starts_with($src, "data:image") ) {
+                return;
+            }
+
+            $parent = $node->parentNode;
+
+            if( !($parent instanceof \DOMElement) || $parent->tagName !== "a" ) {
+                return;
+            }
+
+            $figure = $parent->parentNode;
+
+            if( !($figure instanceof \DOMElement) || $figure->tagName !== "figure" ) {
+                return;
+            }
+
+            $href = trim($parent->getAttribute("href"));
+
+            if( preg_match("/^https?:\/\//i", $href) ) {
+                $node->setAttribute("src", $href);
             }
         });
     }
