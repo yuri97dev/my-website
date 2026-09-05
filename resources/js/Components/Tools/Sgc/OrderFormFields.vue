@@ -4,6 +4,7 @@
         height="80dvh"
         max-width="960"
         title="Novo Pedido"
+        :actions="sheetActions"
         @close="handleClose"
         v-model="isDialogOpen"
     >
@@ -76,44 +77,6 @@
                 ></OrderFormSummaryStep>
             </v-tabs-window-item>
         </v-tabs-window>
-
-        <template #actions>
-            <div class="d-flex align-center w-100 ga-2">
-                <div class="d-flex align-center ga-2">
-                    <v-btn
-                        v-if="currentStepIndex > 0"
-                        variant="text"
-                        prepend-icon="mdi-chevron-left"
-                        text="Anterior"
-                        @click="goToPreviousStep"
-                    ></v-btn>
-                </div>
-
-                <div class="flex-grow-1"></div>
-
-                <div class="d-flex align-center ga-2">
-                    <v-btn
-                        v-if="currentStep !== 'summary'"
-                        color="primary"
-                        variant="tonal"
-                        append-icon="mdi-chevron-right"
-                        text="Próximo"
-                        :disabled="!canGoNext"
-                        @click="goToNextStep"
-                    ></v-btn>
-
-                    <v-btn
-                        v-if="currentStep === 'summary'"
-                        color="primary"
-                        prepend-icon="mdi-check"
-                        :loading="loading"
-                        :disabled="!canFinalize"
-                        text="Finalizar"
-                        @click="handleFinalize"
-                    ></v-btn>
-                </div>
-            </div>
-        </template>
     </BottomSheet>
 </template>
 
@@ -247,6 +210,48 @@
 
     const canFinalize = computed(() => {
         return !hasInstallmentMismatch.value;
+    });
+
+    const sheetActions = computed(() => {
+        const actions = [];
+
+        if( currentStepIndex.value > 0 ) {
+            actions.push({
+                key: "prev",
+                variant: "text",
+                prependIcon: "mdi-chevron-left",
+                text: "Anterior",
+                onClick: goToPreviousStep,
+            });
+        }
+
+        actions.push({ key: "spacer", spacer: true });
+
+        if( currentStep.value !== "summary" ) {
+            actions.push({
+                key: "next",
+                color: "primary",
+                variant: "tonal",
+                appendIcon: "mdi-chevron-right",
+                text: "Próximo",
+                disabled: !canGoNext.value,
+                onClick: goToNextStep,
+            });
+        }
+
+        if( currentStep.value === "summary" ) {
+            actions.push({
+                key: "finalize",
+                color: "primary",
+                prependIcon: "mdi-check",
+                loading: loading.value,
+                disabled: !canFinalize.value,
+                text: "Finalizar",
+                onClick: handleFinalize,
+            });
+        }
+
+        return actions;
     });
 
     function canAccessStep(stepValue) {

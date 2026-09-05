@@ -2,6 +2,7 @@
     <BottomSheet
         overlay-id="ai-provider-form"
         :title="isEditing ? 'Editar Provedor de IA' : 'Novo Provedor de IA'"
+        :actions="sheetActions"
         @close="handleClose"
         v-model="isDialogOpen"
     >
@@ -45,22 +46,6 @@
                 ></v-switch>
             </v-col>
         </v-row>
-
-        <template #actions>
-            <slot
-                v-if="isEditing"
-                name="action-buttons"
-            ></slot>
-
-            <v-btn
-                variant="tonal"
-                color="primary"
-                prepend-icon="mdi-content-save"
-                :loading="loading"
-                text="Salvar"
-                @click="handleSave"
-            ></v-btn>
-        </template>
     </BottomSheet>
 </template>
 
@@ -86,6 +71,13 @@
         "close",
     ]);
 
+    const props = defineProps({
+        prependActions: {
+            type: Array,
+            default: () => [],
+        },
+    });
+
     const isDialogOpen = ref(false);
     const showApiKey = ref(false);
 
@@ -96,6 +88,19 @@
     const form = ref({});
 
     const isEditing = computed(() => !!aiProvider.value.id);
+
+    const sheetActions = computed(() => [
+        ...(isEditing.value ? props.prependActions : []),
+        {
+            key: "save",
+            variant: "tonal",
+            color: "primary",
+            prependIcon: "mdi-content-save",
+            loading: loading.value,
+            text: "Salvar",
+            onClick: handleSave,
+        },
+    ]);
 
     function buildPayload() {
         const payload = {

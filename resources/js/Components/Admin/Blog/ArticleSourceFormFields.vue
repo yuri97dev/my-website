@@ -2,6 +2,7 @@
     <BottomSheet
         overlay-id="article-source-form"
         :title="isEditing ? 'Editar Fonte' : 'Nova Fonte'"
+        :actions="sheetActions"
         @close="handleClose"
         v-model="isDialogOpen"
     >
@@ -131,32 +132,6 @@
                 ></v-switch>
             </v-col>
         </v-row>
-
-        <template #actions>
-            <slot
-                v-if="isEditing"
-                name="action-buttons"
-            ></slot>
-
-            <v-btn
-                variant="tonal"
-                color="secondary"
-                prepend-icon="mdi-play-circle-outline"
-                text="Testar"
-                :loading="testing"
-                :disabled="loading"
-                @click="handleTest"
-            ></v-btn>
-
-            <v-btn
-                variant="tonal"
-                color="primary"
-                prepend-icon="mdi-content-save"
-                text="Salvar"
-                :disabled="testing"
-                @click="handleSave"
-            ></v-btn>
-        </template>
     </BottomSheet>
 
     <Dialog
@@ -209,6 +184,13 @@
         "close",
     ]);
 
+    const props = defineProps({
+        prependActions: {
+            type: Array,
+            default: () => [],
+        },
+    });
+
     const isDialogOpen = ref(false);
 
     const loading = ref(false);
@@ -223,6 +205,29 @@
 
     const isEditing = computed(() => !!articleSource.value.id);
     const isBrowserDriver = computed(() => form.value.driver === "browser");
+
+    const sheetActions = computed(() => [
+        ...(isEditing.value ? props.prependActions : []),
+        {
+            key: "test",
+            variant: "tonal",
+            color: "secondary",
+            prependIcon: "mdi-play-circle-outline",
+            text: "Testar",
+            loading: testing.value,
+            disabled: loading.value,
+            onClick: handleTest,
+        },
+        {
+            key: "save",
+            variant: "tonal",
+            color: "primary",
+            prependIcon: "mdi-content-save",
+            text: "Salvar",
+            disabled: testing.value,
+            onClick: handleSave,
+        },
+    ]);
 
     async function updateArticleSource() {
         errors.value = {};

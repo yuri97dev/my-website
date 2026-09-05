@@ -2,6 +2,7 @@
     <BottomSheet
         overlay-id="sgc-company-form"
         :title="isEditing ? 'Editar Empresa' : 'Nova Empresa'"
+        :actions="sheetActions"
         @close="handleClose"
         v-model="isDialogOpen"
     >
@@ -109,29 +110,6 @@
                 ></v-text-field>
             </v-col>
         </v-row>
-
-        <template #actions>
-            <v-btn
-                v-if="isEditing && isCompanyOwner(company.id)"
-                color="error"
-                variant="tonal"
-                prepend-icon="mdi-delete"
-                :loading="deleting"
-                text="Remover"
-                @click="handleDelete"
-            ></v-btn>
-
-            <v-spacer></v-spacer>
-
-            <v-btn
-                variant="tonal"
-                color="primary"
-                prepend-icon="mdi-content-save"
-                :loading="loading"
-                text="Salvar"
-                @click="handleSave"
-            ></v-btn>
-        </template>
     </BottomSheet>
 </template>
 
@@ -162,6 +140,36 @@
     const form = ref({});
 
     const isEditing = computed(() => !!company.value.id);
+
+    const sheetActions = computed(() => {
+        const actions = [];
+
+        if( isEditing.value && isCompanyOwner(company.value.id) ) {
+            actions.push({
+                key: "delete",
+                color: "error",
+                variant: "tonal",
+                prependIcon: "mdi-delete",
+                loading: deleting.value,
+                text: "Remover",
+                onClick: handleDelete,
+            });
+        }
+
+        actions.push({ key: "spacer", spacer: true });
+
+        actions.push({
+            key: "save",
+            variant: "tonal",
+            color: "primary",
+            prependIcon: "mdi-content-save",
+            loading: loading.value,
+            text: "Salvar",
+            onClick: handleSave,
+        });
+
+        return actions;
+    });
 
     function fillAddressFromPostalCode(address) {
         form.value.address_street = address.address_street ?? form.value.address_street;

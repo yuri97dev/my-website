@@ -3,6 +3,7 @@
         overlay-id="sgc-customer-form"
         max-width="960"
         :title="isEditing ? 'Editar Cliente' : 'Novo Cliente'"
+        :actions="sheetActions"
         @close="handleClose"
         v-model="isDialogOpen"
     >
@@ -120,84 +121,6 @@
                 />
             </v-tabs-window-item>
         </v-tabs-window>
-
-        <template #actions>
-            <v-btn
-                v-if="currentStep === 'data' && isEditing && canManageCompany(form.company_id)"
-                color="error"
-                variant="tonal"
-                prepend-icon="mdi-delete"
-                :loading="deleting"
-                text="Remover"
-                @click="handleDelete"
-            ></v-btn>
-
-            <v-btn
-                v-if="currentStep === 'addresses'"
-                prepend-icon="mdi-refresh"
-                text="Atualizar"
-                :disabled="addressManagerRef?.loading"
-                @click="addressManagerRef?.load()"
-            ></v-btn>
-
-            <v-btn
-                v-if="currentStep === 'attachments'"
-                prepend-icon="mdi-refresh"
-                text="Atualizar"
-                :disabled="attachmentManagerRef?.loading || attachmentManagerRef?.saving"
-                @click="attachmentManagerRef?.load()"
-            ></v-btn>
-
-            <v-spacer></v-spacer>
-
-            <!-- <v-btn
-                v-if="currentStep === 'data'"
-                variant="text"
-                prepend-icon="mdi-file-multiple"
-                text="Documentos"
-                @click="goToPreviousStep"
-            ></v-btn> -->
-
-            <v-btn
-                v-if="currentStep === 'documents'"
-                color="primary"
-                variant="tonal"
-                append-icon="mdi-chevron-right"
-                :loading="lookingUp"
-                text="Próximo"
-                @click="goToNextStep"
-            ></v-btn>
-
-            <v-btn
-                v-if="currentStep === 'data'"
-                variant="tonal"
-                color="primary"
-                prepend-icon="mdi-content-save"
-                :loading="loading"
-                text="Salvar"
-                @click="handleSave"
-            ></v-btn>
-
-            <v-btn
-                v-if="currentStep === 'addresses'"
-                variant="tonal"
-                color="primary"
-                prepend-icon="mdi-plus"
-                text="Novo Endereço"
-                @click="addressManagerRef?.create()"
-            ></v-btn>
-
-            <v-btn
-                v-if="currentStep === 'attachments'"
-                variant="tonal"
-                color="primary"
-                prepend-icon="mdi-plus"
-                :loading="attachmentManagerRef?.saving"
-                :disabled="attachmentManagerRef?.loading"
-                text="Adicionar"
-                @click="attachmentManagerRef?.save()"
-            ></v-btn>
-        </template>
     </BottomSheet>
 
 </template>
@@ -271,6 +194,94 @@
 
     const currentStepIndex = computed(() => {
         return steps.value.findIndex(step => step.value === currentStep.value);
+    });
+
+    const sheetActions = computed(() => {
+        const actions = [];
+
+        if( currentStep.value === "data" && isEditing.value && canManageCompany(form.value.company_id) ) {
+            actions.push({
+                key: "delete",
+                color: "error",
+                variant: "tonal",
+                prependIcon: "mdi-delete",
+                loading: deleting.value,
+                text: "Remover",
+                onClick: handleDelete,
+            });
+        }
+
+        if( currentStep.value === "addresses" ) {
+            actions.push({
+                key: "refresh-addresses",
+                prependIcon: "mdi-refresh",
+                text: "Atualizar",
+                disabled: addressManagerRef.value?.loading,
+                onClick: () => addressManagerRef.value?.load(),
+            });
+        }
+
+        if( currentStep.value === "attachments" ) {
+            actions.push({
+                key: "refresh-attachments",
+                prependIcon: "mdi-refresh",
+                text: "Atualizar",
+                disabled: attachmentManagerRef.value?.loading || attachmentManagerRef.value?.saving,
+                onClick: () => attachmentManagerRef.value?.load(),
+            });
+        }
+
+        actions.push({ key: "spacer", spacer: true });
+
+        if( currentStep.value === "documents" ) {
+            actions.push({
+                key: "next",
+                color: "primary",
+                variant: "tonal",
+                appendIcon: "mdi-chevron-right",
+                loading: lookingUp.value,
+                text: "Próximo",
+                onClick: goToNextStep,
+            });
+        }
+
+        if( currentStep.value === "data" ) {
+            actions.push({
+                key: "save",
+                variant: "tonal",
+                color: "primary",
+                prependIcon: "mdi-content-save",
+                loading: loading.value,
+                text: "Salvar",
+                onClick: handleSave,
+            });
+        }
+
+        if( currentStep.value === "addresses" ) {
+            actions.push({
+                key: "new-address",
+                variant: "tonal",
+                color: "primary",
+                prependIcon: "mdi-plus",
+                text: "Novo Endereço",
+                onClick: () => addressManagerRef.value?.create(),
+            });
+        }
+
+        if( currentStep.value === "attachments" ) {
+            actions.push({
+                key: "add-attachment",
+                variant: "tonal",
+                color: "primary",
+                prependIcon: "mdi-plus",
+                loading: attachmentManagerRef.value?.saving,
+                disabled: attachmentManagerRef.value?.loading,
+                text: "Adicionar",
+                onClick: () => attachmentManagerRef.value?.save(),
+            });
+        }
+
+        return actions;
     });
 
     function formatBirthDate(value) {

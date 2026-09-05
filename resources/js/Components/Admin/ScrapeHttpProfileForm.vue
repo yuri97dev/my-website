@@ -2,6 +2,7 @@
     <BottomSheet
         overlay-id="scrape-http-profile-form"
         :title="isEditing ? 'Editar Perfil HTTP' : 'Novo Perfil HTTP'"
+        :actions="sheetActions"
         @close="handleClose"
         v-model="isDialogOpen"
     >
@@ -71,34 +72,6 @@
                 </v-card>
             </v-col>
         </v-row>
-
-        <template #actions>
-            <v-btn
-                v-if="isEditing"
-                variant="tonal"
-                color="error"
-                prepend-icon="mdi-delete"
-                text="Excluir"
-                @click="removeScrapeHttpProfile"
-            ></v-btn>
-
-            <v-spacer></v-spacer>
-
-            <v-btn
-                prepend-icon="mdi-plus"
-                text="Adicionar"
-                @click="addHeader"
-            ></v-btn>
-
-            <v-btn
-                variant="tonal"
-                color="primary"
-                prepend-icon="mdi-content-save"
-                :loading="loading"
-                text="Salvar"
-                @click="handleSave"
-            ></v-btn>
-        </template>
     </BottomSheet>
 </template>
 
@@ -125,6 +98,42 @@
     const headers = ref([]);
 
     const isEditing = computed(() => !!scrapeHttpProfile.value.id);
+
+    const sheetActions = computed(() => {
+        const actions = [];
+
+        if( isEditing.value ) {
+            actions.push({
+                key: "delete",
+                variant: "tonal",
+                color: "error",
+                prependIcon: "mdi-delete",
+                text: "Excluir",
+                onClick: removeScrapeHttpProfile,
+            });
+        }
+
+        actions.push({ key: "spacer", spacer: true });
+
+        actions.push({
+            key: "add-header",
+            prependIcon: "mdi-plus",
+            text: "Adicionar",
+            onClick: addHeader,
+        });
+
+        actions.push({
+            key: "save",
+            variant: "tonal",
+            color: "primary",
+            prependIcon: "mdi-content-save",
+            loading: loading.value,
+            text: "Salvar",
+            onClick: handleSave,
+        });
+
+        return actions;
+    });
 
     function buildPayload() {
         return {

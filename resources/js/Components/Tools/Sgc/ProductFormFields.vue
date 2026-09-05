@@ -2,6 +2,7 @@
     <BottomSheet
         overlay-id="sgc-product-form"
         :title="isEditing ? 'Editar Produto' : 'Novo Produto'"
+        :actions="sheetActions"
         @close="handleClose"
         v-model="isDialogOpen"
     >
@@ -170,37 +171,6 @@
                 ></v-textarea>
             </v-col>
         </v-row>
-
-        <template #actions>
-            <v-btn
-                v-if="isEditing && canManageCompany(form.company_id)"
-                color="error"
-                variant="tonal"
-                prepend-icon="mdi-delete"
-                :loading="loading.delete"
-                text="Remover"
-                @click="openDeleteDialog"
-            ></v-btn>
-
-            <v-spacer></v-spacer>
-
-            <v-btn
-                v-if="isEditing"
-                variant="tonal"
-                prepend-icon="mdi-history"
-                text="Movimentações"
-                @click="openStockMovements"
-            ></v-btn>
-
-            <v-btn
-                variant="tonal"
-                color="primary"
-                prepend-icon="mdi-content-save"
-                :loading="loading.save"
-                text="Salvar"
-                @click="handleSave"
-            ></v-btn>
-        </template>
     </BottomSheet>
 
     <Dialog
@@ -346,6 +316,46 @@
     const stockMovementListRef = ref(null);
 
     const isEditing = computed(() => !!product.value.id);
+
+    const sheetActions = computed(() => {
+        const actions = [];
+
+        if( isEditing.value && canManageCompany(form.value.company_id) ) {
+            actions.push({
+                key: "delete",
+                color: "error",
+                variant: "tonal",
+                prependIcon: "mdi-delete",
+                loading: loading.delete,
+                text: "Remover",
+                onClick: openDeleteDialog,
+            });
+        }
+
+        actions.push({ key: "spacer", spacer: true });
+
+        if( isEditing.value ) {
+            actions.push({
+                key: "stock-movements",
+                variant: "tonal",
+                prependIcon: "mdi-history",
+                text: "Movimentações",
+                onClick: openStockMovements,
+            });
+        }
+
+        actions.push({
+            key: "save",
+            variant: "tonal",
+            color: "primary",
+            prependIcon: "mdi-content-save",
+            loading: loading.save,
+            text: "Salvar",
+            onClick: handleSave,
+        });
+
+        return actions;
+    });
 
     const hasSerialNumber = computed(() => {
         const serial = form.value.serial_number;

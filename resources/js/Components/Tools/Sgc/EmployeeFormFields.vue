@@ -2,6 +2,7 @@
     <BottomSheet
         overlay-id="sgc-employee-form"
         :title="isEditing ? 'Editar Funcionário' : 'Novo Funcionário'"
+        :actions="sheetActions"
         @close="handleClose"
         v-model="isDialogOpen"
     >
@@ -44,30 +45,6 @@
                 ></v-select>
             </v-col>
         </v-row>
-
-        <template #actions>
-            <v-btn
-                v-if="isEditing && !isOwner && canManageCompany(form.company_id)"
-                color="error"
-                variant="tonal"
-                prepend-icon="mdi-delete"
-                :loading="deleting"
-                text="Remover"
-                @click="handleDelete"
-            ></v-btn>
-
-            <v-spacer></v-spacer>
-
-            <v-btn
-                variant="tonal"
-                color="primary"
-                prepend-icon="mdi-content-save"
-                :loading="loading"
-                :disabled="isOwner"
-                text="Salvar"
-                @click="handleSave"
-            ></v-btn>
-        </template>
     </BottomSheet>
 </template>
 
@@ -122,6 +99,37 @@
         }
 
         return employee.value.company.owner_id === employee.value.user_id;
+    });
+
+    const sheetActions = computed(() => {
+        const actions = [];
+
+        if( isEditing.value && !isOwner.value && canManageCompany(form.value.company_id) ) {
+            actions.push({
+                key: "delete",
+                color: "error",
+                variant: "tonal",
+                prependIcon: "mdi-delete",
+                loading: deleting.value,
+                text: "Remover",
+                onClick: handleDelete,
+            });
+        }
+
+        actions.push({ key: "spacer", spacer: true });
+
+        actions.push({
+            key: "save",
+            variant: "tonal",
+            color: "primary",
+            prependIcon: "mdi-content-save",
+            loading: loading.value,
+            disabled: isOwner.value,
+            text: "Salvar",
+            onClick: handleSave,
+        });
+
+        return actions;
     });
 
     function buildPayload() {

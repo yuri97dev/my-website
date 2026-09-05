@@ -5,6 +5,7 @@
         title="Posts Baixados"
         height="90dvh"
         :loading="listLoading"
+        :actions="listSheetActions"
         v-model="isOpen"
     >
         <v-row>
@@ -95,33 +96,6 @@
             @update:model-value="handlePaginationUpdate"
             v-model="pagination.page"
         />
-
-        <template #actions>
-            <v-btn
-                prepend-icon="mdi-refresh"
-                text="Atualizar"
-                :disabled="listLoading"
-                @click="handlePaginationUpdate(pagination.page)"
-            ></v-btn>
-
-            <v-btn
-                variant="tonal"
-                color="error"
-                prepend-icon="mdi-delete-sweep"
-                text="Excluir em Massa"
-                :disabled="listLoading"
-                @click="bulkDeleteDialogRef?.open(articleSource)"
-            ></v-btn>
-
-            <v-btn
-                variant="tonal"
-                color="primary"
-                prepend-icon="mdi-cloud-download"
-                text="Iniciar Scraping"
-                :loading="scraping"
-                @click="startScraping"
-            ></v-btn>
-        </template>
     </BottomSheet>
 
     <Dialog
@@ -377,6 +351,34 @@
         lastPage: 1,
         total: 0,
     });
+
+    const listSheetActions = computed(() => [
+        {
+            key: "refresh",
+            prependIcon: "mdi-refresh",
+            text: "Atualizar",
+            disabled: listLoading.value,
+            onClick: () => handlePaginationUpdate(pagination.page),
+        },
+        {
+            key: "bulk-delete",
+            variant: "tonal",
+            color: "error",
+            prependIcon: "mdi-delete-sweep",
+            text: "Excluir em Massa",
+            disabled: listLoading.value,
+            onClick: () => bulkDeleteDialogRef.value?.open(articleSource.value),
+        },
+        {
+            key: "start-scraping",
+            variant: "tonal",
+            color: "primary",
+            prependIcon: "mdi-cloud-download",
+            text: "Iniciar Scraping",
+            loading: scraping.value,
+            onClick: startScraping,
+        },
+    ]);
 
     const readOnly = computed(() => (
         !!selectedScrapedArticle.value?.post_id ||

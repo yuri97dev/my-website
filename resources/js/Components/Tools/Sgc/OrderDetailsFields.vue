@@ -6,6 +6,7 @@
         :title="sheetTitle"
         :loading="loading"
         :hide-footer="!canCancel"
+        :actions="sheetActions"
         @close="handleClose"
         v-model="isDialogOpen"
     >
@@ -186,20 +187,6 @@
                 </tr>
             </tfoot>
         </v-table>
-
-        <template
-            v-if="canCancel"
-            #actions
-        >
-            <v-btn
-                color="error"
-                variant="tonal"
-                prepend-icon="mdi-cancel"
-                :loading="cancelling"
-                text="Cancelar pedido"
-                @click="openCancelDialog"
-            ></v-btn>
-        </template>
     </BottomSheet>
 
     <Dialog
@@ -378,6 +365,24 @@
         return !!order.value.id
             && !isCancelled.value
             && canManageCompany(order.value.company_id);
+    });
+
+    const sheetActions = computed(() => {
+        if( !canCancel.value ) {
+            return [];
+        }
+
+        return [
+            {
+                key: "cancel",
+                color: "error",
+                variant: "tonal",
+                prependIcon: "mdi-cancel",
+                loading: cancelling.value,
+                text: "Cancelar pedido",
+                onClick: openCancelDialog,
+            },
+        ];
     });
 
     const canConfirmPay = computed(() => {

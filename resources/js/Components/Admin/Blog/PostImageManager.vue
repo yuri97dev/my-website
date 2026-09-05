@@ -3,6 +3,7 @@
         overlay-id="post-image-list"
         title="Imagens Disponíveis"
         :loading="loading"
+        :actions="sheetActions"
         v-model="isOpen"
     >
         <v-row>
@@ -69,22 +70,6 @@
                 @change="handleFileChange"
             ></v-file-input>
         </v-card-item>
-
-        <template #actions>
-            <v-btn
-                prepend-icon="mdi-refresh"
-                text="Atualizar"
-                @click="getImages"
-            ></v-btn>
-
-            <v-btn
-                variant="tonal"
-                color="primary"
-                prepend-icon="mdi-image-plus"
-                text="Adicionar"
-                @click="fileInput.click()"
-            ></v-btn>
-        </template>
     </BottomSheet>
 </template>
 
@@ -111,6 +96,23 @@
     const loading = ref(false);
 
     const isEditing = computed(() => !!activePostId.value);
+
+    const sheetActions = computed(() => [
+        {
+            key: "refresh",
+            prependIcon: "mdi-refresh",
+            text: "Atualizar",
+            onClick: getImages,
+        },
+        {
+            key: "add",
+            variant: "tonal",
+            color: "primary",
+            prependIcon: "mdi-image-plus",
+            text: "Adicionar",
+            onClick: () => fileInput.value?.click(),
+        },
+    ]);
 
     async function getImages() {
         loading.value = true;

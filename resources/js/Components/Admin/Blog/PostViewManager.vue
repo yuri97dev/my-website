@@ -3,6 +3,7 @@
         overlay-id="blog-post-views"
         title="Visualizações"
         height="80dvh"
+        :actions="sheetActions"
         v-model="isOpen"
     >
         <div>
@@ -96,19 +97,11 @@
                 <span v-else class="text-medium-emphasis">—</span>
             </template>
         </VirtualRemoteTable>
-
-        <template #actions>
-            <v-btn
-                prepend-icon="mdi-refresh"
-                text="Atualizar"
-                @click="refresh"
-            ></v-btn>
-        </template>
     </BottomSheet>
 </template>
 
 <script setup>
-    import { ref } from "vue";
+    import { ref, computed } from "vue";
 
     import BottomSheet from "@/Components/BottomSheet.vue";
     import VirtualRemoteTable from "@/Components/VirtualRemoteTable.vue";
@@ -149,6 +142,15 @@
             sortable: false,
         },
     ];
+
+    const sheetActions = computed(() => [
+        {
+            key: "refresh",
+            prependIcon: "mdi-refresh",
+            text: "Atualizar",
+            onClick: refresh,
+        },
+    ]);
 
     function formatCount(value) {
         return Number(value || 0).toLocaleString("pt-BR");
