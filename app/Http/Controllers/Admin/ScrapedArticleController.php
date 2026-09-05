@@ -126,17 +126,11 @@ class ScrapedArticleController extends Controller
 
     public function scrape(Request $request)
     {
-        $lock_acquired = Cache::add(
-            ScrapeArticleSourcesJob::CACHE_LOCK_KEY,
-            true,
-            ScrapeArticleSourcesJob::CACHE_LOCK_TTL,
-        );
+        $article_source_id = $request->integer("article_source_id") ?: null;
 
-        if( !$lock_acquired ) return response()->json([
+        if( ScrapeArticleSourcesJob::isLocked($article_source_id) ) return response()->json([
             "message" => "Scraping já está em andamento.",
         ], 409);
-
-        $article_source_id = $request->integer("article_source_id") ?: null;
 
         ScrapeArticleSourcesJob::dispatch($article_source_id)->afterResponse();
 
