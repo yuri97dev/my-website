@@ -36,27 +36,25 @@
                 :prepend-icon="typeIcon(attachment.type)"
                 :title="attachment.original_name"
                 :subtitle="attachmentSubtitle(attachment)"
+                class="rounded-lg"
+                @click="openAttachment(attachment)"
             >
                 <template #append>
-                    <v-btn
-                        icon="mdi-tag-outline"
-                        variant="text"
-                        :disabled="saving"
-                        @click="openTypeDialog(attachment)"
-                    ></v-btn>
+                    <div class="d-flex align-center ga-2">
+                        <v-btn
+                            icon="mdi-tag-outline"
+                            variant="tonal"
+                            :disabled="saving"
+                            @click.stop="openTypeDialog(attachment)"
+                        ></v-btn>
 
-                    <v-btn
-                        icon="mdi-open-in-new"
-                        variant="text"
-                        @click="openAttachment(attachment)"
-                    ></v-btn>
-
-                    <v-btn
-                        icon="mdi-delete"
-                        variant="text"
-                        color="error"
-                        @click="confirmRemove(attachment)"
-                    ></v-btn>
+                        <v-btn
+                            icon="mdi-delete"
+                            variant="tonal"
+                            color="error"
+                            @click.stop="confirmRemove(attachment)"
+                        ></v-btn>
+                    </div>
                 </template>
             </v-list-item>
         </v-list>
