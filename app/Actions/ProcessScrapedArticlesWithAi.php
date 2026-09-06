@@ -186,7 +186,7 @@ class ProcessScrapedArticlesWithAi
             $number = $index + 1;
             $excerpt = $this->excerptPreview($article->content);
 
-            return "{$number}. Título: {$article->title}\n   Resumo: {$excerpt}";
+            return "{$number}. Title: {$article->title}\n   Summary: {$excerpt}";
         })->implode("\n\n");
 
         try {

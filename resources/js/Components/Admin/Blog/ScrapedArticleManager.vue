@@ -284,11 +284,14 @@
         title="Prompt do Assistente"
         max-width="800px"
         scrollable
+        no-body
         v-model="isSelectionPromptDialogOpen"
     >
-        <pre
-            class="text-body-2 font-monospace pa-4 ma-0 rounded bg-surface-light text-pre-wrap overflow-x-auto"
-        >{{ selectedScrapedArticle?.assistant_selection_prompt }}</pre>
+        <v-card-text>
+            <pre
+                class="text-body-2 font-monospace pa-4 ma-0 rounded bg-surface-light text-pre-wrap overflow-x-auto"
+            >{{ selectedScrapedArticle?.assistant_selection_prompt }}</pre>
+        </v-card-text>
 
         <template #actions>
             <v-btn
