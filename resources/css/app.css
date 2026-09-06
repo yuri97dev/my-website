@@ -100,3 +100,8 @@ table tr.v-data-table-rows-loading td {
 .v-data-table thead th {
     left: unset !important;
 }
+
+img[data-rm-src],
+figure:has(img[data-rm-src]) {
+    display: none;
+}

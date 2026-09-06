@@ -36,6 +36,10 @@
                                 <v-tab value="links">
                                     Links
                                 </v-tab>
+
+                                <v-tab value="images">
+                                    Imagens
+                                </v-tab>
                             </v-tabs>
                         </div>
 
@@ -219,6 +223,70 @@
                                         </v-list-item>
                                     </v-list>
                                 </v-tabs-window-item>
+
+                                <v-tabs-window-item
+                                    value="images"
+                                    class="h-100"
+                                >
+                                    <v-list
+                                        lines="two"
+                                        class="bg-surface-light rounded-lg"
+                                        style="max-height: 100%; overflow-y: auto"
+                                    >
+                                        <v-list-item
+                                            v-for="(image, index) in images"
+                                            :key="`image-${index}`"
+                                            :title="image.alt || 'Sem descrição'"
+                                            :subtitle="imageSubtitle(image)"
+                                            :class="{ 'opacity-50': !image.src }"
+                                        >
+                                            <template #prepend>
+                                                <v-avatar
+                                                    rounded="lg"
+                                                    size="48"
+                                                    class="cursor-pointer"
+                                                    @click.prevent="openImageViewer(image)"
+                                                >
+                                                    <v-img
+                                                        :src="image.src || image.dataRmSrc"
+                                                        cover
+                                                    ></v-img>
+                                                </v-avatar>
+                                            </template>
+
+                                            <template #append>
+                                                <v-btn
+                                                    size="small"
+                                                    icon="mdi-pencil"
+                                                    variant="tonal"
+                                                    color="primary"
+                                                    class="rounded"
+                                                    @click.prevent="openImageEditDialog(image)"
+                                                ></v-btn>
+
+                                                <v-btn
+                                                    v-if="!!image.src"
+                                                    size="small"
+                                                    icon="mdi-delete"
+                                                    variant="tonal"
+                                                    color="error"
+                                                    class="rounded ms-2"
+                                                    @click.prevent="handleDeleteImage(image)"
+                                                ></v-btn>
+
+                                                <v-btn
+                                                    v-else-if="!!image.dataRmSrc"
+                                                    size="small"
+                                                    icon="mdi-restore"
+                                                    variant="tonal"
+                                                    color="success"
+                                                    class="rounded ms-2"
+                                                    @click.prevent="handleRestoreImage(image)"
+                                                ></v-btn>
+                                            </template>
+                                        </v-list-item>
+                                    </v-list>
+                                </v-tabs-window-item>
                             </v-tabs-window>
                         </div>
                     </div>
@@ -280,6 +348,15 @@
         ref="cropperDialogRef"
         @confirm="handleThumbnailCropConfirm"
     />
+
+    <ImageViewerDialog
+        ref="imageViewerDialogRef"
+    />
+
+    <PostImageEditDialog
+        ref="imageEditDialogRef"
+        @save="handleSaveImageEdit"
+    />
 </template>
 
 <script setup>
@@ -297,6 +374,8 @@
     import CategoryManager from "@/Components/Admin/Blog/CategoryManager.vue";
     import TagManager from "@/Components/Admin/Blog/TagManager.vue";
     import ImageCropperDialog from "@/Components/ImageCropperDialog.vue";
+    import ImageViewerDialog from "@/Components/ImageViewerDialog.vue";
+    import PostImageEditDialog from "@/Components/Admin/Blog/PostImageEditDialog.vue";
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
     import { compressImageFile } from "@/Utils/ImageCompression";
@@ -314,6 +393,8 @@
     const categoryManagerRef = ref(null);
     const tagManagerRef = ref(null);
     const cropperDialogRef = ref(null);
+    const imageViewerDialogRef = ref(null);
+    const imageEditDialogRef = ref(null);
 
     const form = ref({});
     const post = ref({});
@@ -365,6 +446,55 @@
                 return true;
             });
     });
+
+    const images = computed(() => {
+        const div = document.createElement("div");
+
+        div.innerHTML = form.value.content || "";
+
+        const imageElements = div.querySelectorAll("img");
+
+        const duplicates = {};
+
+        return Array.from(imageElements)
+            .map(image => {
+                const figure = image.closest("figure");
+
+                const figcaptions = !figure
+                    ? []
+                    : Array.from(figure.querySelectorAll("figcaption"))
+                        .map(el => el.textContent.trim());
+
+                return {
+                    src: image.getAttribute("src"),
+                    dataRmSrc: image.getAttribute("data-rm-src"),
+                    alt: image.getAttribute("alt") || "",
+                    figcaptions,
+                    hasFigure: !!figure,
+                };
+            })
+            .filter(image => {
+                const key = image.src || image.dataRmSrc;
+
+                if( !key ) return false;
+
+                if( duplicates[key] ) return false;
+
+                duplicates[key] = true;
+
+                return true;
+            });
+    });
+
+    function imageSubtitle(image) {
+        const url = image.src || image.dataRmSrc;
+
+        if( image.figcaptions.length ) {
+            return `${url} — ${image.figcaptions.join(" | ")}`;
+        }
+
+        return url;
+    }
 
     async function getPost() {
         loading.value.post = true;
@@ -511,7 +641,7 @@
     }
 
     async function handleSave() {
-        removeDataRmHrefs();
+        removeMarkedElements();
 
         if( isEditing.value ) {
             await updatePost();
@@ -621,15 +751,123 @@
         form.value.content = div.innerHTML;
     }
 
-    function removeDataRmHrefs() {
+    function handleDeleteImage(image) {
         const div = document.createElement("div");
 
         div.innerHTML = form.value.content;
 
-        const linkElements = div.querySelectorAll("a[data-rm-href]");
+        const imageSelector = `img[src="${image.src}"]`;
+        const imageElements = div.querySelectorAll(imageSelector);
 
-        linkElements.forEach(linkElement => {
+        if( !imageElements.length ) return;
+
+        imageElements.forEach(imageElement => {
+            imageElement.setAttribute("data-rm-src", imageElement.getAttribute("src"));
+            imageElement.removeAttribute("src");
+        });
+
+        form.value.content = div.innerHTML;
+    }
+
+    function handleRestoreImage(image) {
+        const div = document.createElement("div");
+
+        div.innerHTML = form.value.content;
+
+        const imageSelector = `img[data-rm-src="${image.dataRmSrc}"]`;
+        const imageElements = div.querySelectorAll(imageSelector);
+
+        if( !imageElements.length ) return;
+
+        imageElements.forEach(imageElement => {
+            imageElement.setAttribute("src", imageElement.getAttribute("data-rm-src"));
+            imageElement.removeAttribute("data-rm-src");
+        });
+
+        form.value.content = div.innerHTML;
+    }
+
+    function openImageViewer(image) {
+        imageViewerDialogRef.value?.open(image.src || image.dataRmSrc);
+    }
+
+    function openImageEditDialog(image) {
+        imageEditDialogRef.value?.open(image);
+    }
+
+    function handleSaveImageEdit({ image, src, alt, figcaptions, hasFigure }) {
+        const div = document.createElement("div");
+
+        div.innerHTML = form.value.content;
+
+        const originalSrc = image.src || image.dataRmSrc;
+
+        const imageSelector = image.src
+            ? `img[src="${originalSrc}"]`
+            : `img[data-rm-src="${originalSrc}"]`;
+
+        const imageElements = div.querySelectorAll(imageSelector);
+
+        if( !imageElements.length ) return;
+
+        imageElements.forEach(imageElement => {
+            if( image.dataRmSrc ) {
+                imageElement.setAttribute("data-rm-src", src);
+            } else {
+                imageElement.setAttribute("src", src);
+            }
+
+            if( alt.trim() ) {
+                imageElement.setAttribute("alt", alt.trim());
+            } else {
+                imageElement.removeAttribute("alt");
+            }
+
+            if( !hasFigure ) return;
+
+            const figure = imageElement.closest("figure");
+
+            if( !figure ) return;
+
+            const existingFigcaptions = Array.from(figure.querySelectorAll("figcaption"));
+            const captions = figcaptions.map(caption => caption.trim()).filter(Boolean);
+
+            captions.forEach((caption, index) => {
+                if( existingFigcaptions[index] ) {
+                    existingFigcaptions[index].textContent = caption;
+                } else {
+                    const figcaptionElement = document.createElement("figcaption");
+
+                    figcaptionElement.textContent = caption;
+                    figure.appendChild(figcaptionElement);
+                }
+            });
+
+            existingFigcaptions.slice(captions.length).forEach(figcaptionElement => {
+                figcaptionElement.remove();
+            });
+        });
+
+        form.value.content = div.innerHTML;
+    }
+
+    function removeMarkedElements() {
+        const div = document.createElement("div");
+
+        div.innerHTML = form.value.content;
+
+        div.querySelectorAll("a[data-rm-href]").forEach(linkElement => {
             linkElement.replaceWith(...linkElement.childNodes);
+        });
+
+        div.querySelectorAll("img[data-rm-src]").forEach(imageElement => {
+            const figure = imageElement.closest("figure");
+
+            if( figure ) {
+                figure.remove();
+            } else {
+                imageElement.remove();
+            }
         });
 
         form.value.content = div.innerHTML;
