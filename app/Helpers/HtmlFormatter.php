@@ -157,6 +157,8 @@ class HtmlFormatter
 
             if( preg_match("/^https?:\/\//i", $href) ) {
                 $node->setAttribute("src", $href);
+                $figure->insertBefore($node, $parent);
+                $figure->removeChild($parent);
             }
         });
     }

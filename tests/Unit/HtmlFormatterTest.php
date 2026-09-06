@@ -13,7 +13,8 @@ HTML;
 
     $result = HtmlFormatter::resolveLazyLoadedImages($html);
 
-    expect($result)->toContain('src="https://assets-prd.ignimgs.com/2026/09/04/adria-arjona.png"');
+    expect($result)->toContain('src="https://assets-prd.ignimgs.com/2026/09/04/adria-arjona.png"')
+        ->not->toContain("<a ");
 });
 
 it("mantem src real quando img ja tem url http", function () {
