@@ -77,13 +77,16 @@ curl -L -o storage/ai_models/google_gemma-4-E2B-it-Q4_K_M.gguf \
   "https://huggingface.co/bartowski/google_gemma-4-E2B-it-GGUF/resolve/main/google_gemma-4-E2B-it-Q4_K_M.gguf"
 ```
 
-Create a `Modelfile` next to the GGUF and register the model in Ollama. Recreate the container if you changed `docker-compose.yml` so the volume mount takes effect:
+Create a `Modelfile` next to the GGUF and register the model in Ollama. **Recreate** the container so the volume mount from `docker-compose.yml` is applied (`up -d` alone leaves an already-running container unchanged):
 
 ```bash
-printf 'FROM ./google_gemma-4-E2B-it-Q4_K_M.gguf\n' > storage/ai_models/Modelfile
-docker compose up -d ollama-server
+printf 'FROM /models/ai/google_gemma-4-E2B-it-Q4_K_M.gguf\n' > storage/ai_models/Modelfile
+docker compose up -d --force-recreate ollama-server
+docker exec my-website-ollama ls -la /models/ai/
 docker exec my-website-ollama ollama create google_gemma-4-E2B-it -f /models/ai/Modelfile
 ```
+
+The `ls` step should list `Modelfile` and the `.gguf` file. If `/models/ai/` is empty or missing, the container was not recreated with the bind mount.
 
 Set `OLLAMA_CHAT_MODEL=google_gemma-4-E2B-it` in `.env` (already the default in `.env.example`). A GPU is strongly recommended for acceptable chat latency.
 
