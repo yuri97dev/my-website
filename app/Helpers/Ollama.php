@@ -45,4 +45,28 @@ class Ollama
 
         return $response->json();
     }
+
+    public static function chat(string $system, string $user, array $params = []): string
+    {
+        $url = config("services.ollama.base_url");
+        $url = rtrim($url, "/") . "/chat";
+
+        $payload = array_merge([
+            "model" => config("services.ollama.chat_model"),
+            "keep_alive" => config("services.ollama.keep_alive"),
+            "stream" => false,
+            "think" => false,
+            "messages" => [
+                ["role" => "system", "content" => $system],
+                ["role" => "user", "content" => $user],
+            ],
+        ], $params);
+
+        $response = Http::timeout((int) config("services.ollama.timeout", 120))
+            ->post($url, $payload);
+
+        $response->throw();
+
+        return (string) $response->json("message.content");
+    }
 }

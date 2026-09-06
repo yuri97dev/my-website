@@ -19,6 +19,13 @@ class AuthController extends Controller
         unset($credentials["remember_me"]);
 
         if( Auth::attempt($credentials, $remember_me) ) {
+            $user = Auth::user();
+
+            if( !$user instanceof User || !$user->canLogin() ) {
+                Auth::logout();
+                return response()->json([ "message"=> "Credenciais inválidas" ], 401);
+            }
+
             $request->session()->regenerate();
             return response()->json([ "message"=> "Login successful" ], 200);
         }

@@ -13,6 +13,7 @@ use App\Actions\TranslateScrapedArticle;
 use App\Jobs\ScrapeArticleSourcesJob;
 use App\Jobs\TranslateScrapedArticleJob;
 use App\Models\ScrapedArticle;
+use App\Models\User;
 
 class ScrapedArticleController extends Controller
 {
@@ -49,6 +50,8 @@ class ScrapedArticleController extends Controller
                 "title",
                 "translated_title",
                 "is_enabled",
+                "processing_by",
+                "processing_at",
                 "created_at",
                 "updated_at",
             ])
@@ -116,7 +119,11 @@ class ScrapedArticleController extends Controller
 
     public function disable(ScrapedArticle $scraped_article)
     {
-        $scraped_article->update(["is_enabled" => false]);
+        $scraped_article->update([
+            "is_enabled" => false,
+            "processing_by" => null,
+            "processing_at" => null,
+        ]);
 
         return response()->json([
             "scraped_article" => $scraped_article->fresh(),
@@ -146,6 +153,8 @@ class ScrapedArticleController extends Controller
         $data = [
             "translated_title" => null,
             "translated_content" => null,
+            "processing_by" => null,
+            "processing_at" => null,
         ];
 
         if( $permanent ) {
@@ -173,7 +182,7 @@ class ScrapedArticleController extends Controller
         ], 200);
     }
 
-    public function translate(ScrapedArticle $scraped_article)
+    public function translate(Request $request, ScrapedArticle $scraped_article)
     {
         if( !$scraped_article->is_enabled ) return response()->json([
             "message" => "O artigo está desativado.",
@@ -191,6 +200,17 @@ class ScrapedArticleController extends Controller
             "message" => "O número máximo de tentativas de tradução foi atingido.",
         ], 422);
 
+        if( $scraped_article->isProcessedByAssistant() ) return response()->json([
+            "message" => "Este artigo está reservado pelo ajudante automático.",
+        ], 409);
+
+        if(
+            $scraped_article->processing_by !== null &&
+            $scraped_article->processing_by !== $request->user()->id
+        ) return response()->json([
+            "message" => "Este artigo está sendo processado por outro usuário.",
+        ], 409);
+
         $scraped_article->load("source.aiPrompts.aiProvider");
 
         if( $scraped_article->source->aiPrompts->isEmpty() ) return response()->json([
@@ -207,6 +227,11 @@ class ScrapedArticleController extends Controller
         if( !$lock_acquired ) return response()->json([
             "message" => "A tradução deste artigo já está em andamento.",
         ], 409);
+
+        $scraped_article->update([
+            "processing_by" => $request->user()->id,
+            "processing_at" => now(),
+        ]);
 
         TranslateScrapedArticleJob::dispatch($scraped_article->id)->afterResponse();
 

@@ -13,6 +13,7 @@ use App\Models\AiPrompt;
 use App\Models\AiProvider;
 use App\Models\ScrapedArticle;
 use App\Models\ScrapedArticleTranslationCache;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use Throwable;
@@ -70,12 +71,27 @@ class TranslateScrapedArticle
             $article->translated_title = $translated_title;
             $article->translated_content = $translated_content;
 
+            if( $article->processing_by !== null && !$article->isProcessedByAssistant() ) {
+                $article->processing_by = null;
+                $article->processing_at = null;
+            }
+
             $article->save();
 
             $article->translationCaches()->delete();
+
+            if( $article->isProcessedByAssistant() ) {
+                (new ProcessScrapedArticlesWithAi)->structureDraftForArticle($article->fresh());
+            }
         } catch(Throwable $e) {
             Log::error("TranslateScrapedArticle: failed to translate article {$article->id}: {$e->getMessage()}");
+
             $article->increment("translation_attempts");
+            $article->refresh();
+
+            if( $article->translation_attempts >= self::MAX_TRANSLATION_ATTEMPTS ) {
+                ProcessScrapedArticlesWithAi::releaseAssistantLock($article);
+            }
         }
     }
 

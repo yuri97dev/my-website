@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Actions\TranslateScrapedArticle;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,8 @@ class ScrapedArticle extends Model
         "translated_content",
         "translation_rejected_at",
         "translation_attempts",
+        "processing_by",
+        "processing_at",
         "is_enabled",
     ];
 
@@ -27,6 +30,7 @@ class ScrapedArticle extends Model
         return [
             "is_enabled" => "boolean",
             "translation_rejected_at" => "datetime",
+            "processing_at" => "datetime",
         ];
     }
 
@@ -40,6 +44,29 @@ class ScrapedArticle extends Model
     public function scopeEnabled(Builder $query): Builder
     {
         return $query->where("is_enabled", true);
+    }
+
+    public function scopeEligibleForAssistant(Builder $query): Builder
+    {
+        return $query
+            ->enabled()
+            ->whereNull("translation_rejected_at")
+            ->whereNull("translated_content")
+            ->whereNull("post_id")
+            ->whereNull("processing_by")
+            ->where("translation_attempts", "<", TranslateScrapedArticle::MAX_TRANSLATION_ATTEMPTS)
+            ->whereHas("source.aiPrompts")
+            ->whereDoesntHave("source.aiPrompts.aiProvider", fn ($q) => $q->where("is_enabled", false));
+    }
+
+    public function isProcessedByAssistant(): bool
+    {
+        return (int) $this->processing_by === User::ASSISTANT_ID;
+    }
+
+    public function processor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, "processing_by");
     }
 
     public function source(): BelongsTo

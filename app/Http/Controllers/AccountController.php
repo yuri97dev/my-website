@@ -72,6 +72,12 @@ class AccountController extends Controller
                 ->with("error", "Link de verificação inválido.");
         }
 
+        if( !$user->canLogin() ) {
+            return redirect()
+                ->route("login")
+                ->with("error", "Link de verificação inválido.");
+        }
+
         if( !$user->hasVerifiedEmail() ) {
             $user->markEmailAsVerified();
             event(new Verified($user));

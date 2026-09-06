@@ -19,6 +19,10 @@ use App\Notifications\VerifyEmailNotification;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
+    public const ASSISTANT_ID = 0;
+    public const ASSISTANT_NAME = "Nerd IA";
+    public const ASSISTANT_EMAIL = "nerd-ia@internal";
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
 
@@ -56,6 +60,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isSystemAdmin(): bool
     {
         return $this->hasRole(Role::SYSTEM_ADMIN);
+    }
+
+    public function canLogin(): bool
+    {
+        return $this->id !== self::ASSISTANT_ID;
     }
 
     /**
