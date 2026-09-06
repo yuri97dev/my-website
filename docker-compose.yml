@@ -63,6 +63,7 @@ services:
     restart: unless-stopped
     volumes:
       - ollama_data:/root/.ollama
+      - ./storage/ai_models:/models/ai:ro
     ports:
       - "127.0.0.1:${OLLAMA_PORT:-11434}:11434"
     environment:
