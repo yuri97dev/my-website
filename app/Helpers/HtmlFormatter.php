@@ -122,45 +122,63 @@ class HtmlFormatter
     public static function resolveLazyLoadedImages(string $html): string
     {
         return self::transformHtmlFragment($html, function($node) {
-            if( !($node instanceof \DOMElement) || $node->tagName !== "img" ) {
+            if( !($node instanceof \DOMElement) ) {
                 return;
             }
 
-            if( $node->hasAttribute("data-src") ) {
+            if( $node->tagName === "img" && $node->hasAttribute("data-src") ) {
                 $src = trim($node->getAttribute("data-src"));
 
                 if( !empty($src) ) {
                     $node->setAttribute("src", $src);
                     $node->removeAttribute("data-src");
                 }
-            }
 
-            $src = trim($node->getAttribute("src"));
-
-            if( !empty($src) && !str_starts_with($src, "data:image") ) {
                 return;
             }
 
-            $parent = $node->parentNode;
-
-            if( !($parent instanceof \DOMElement) || $parent->tagName !== "a" ) {
+            if( $node->tagName !== "a" || !$node->parentNode ) {
                 return;
             }
 
-            $figure = $parent->parentNode;
+            $href = trim($node->getAttribute("href"));
 
-            if( !($figure instanceof \DOMElement) || $figure->tagName !== "figure" ) {
+            if( $href === "" || !preg_match("/^https?:\/\//i", $href) ) {
                 return;
             }
 
-            $href = trim($parent->getAttribute("href"));
+            $resolved = false;
 
-            if( preg_match("/^https?:\/\//i", $href) ) {
-                $node->setAttribute("src", $href);
-                $figure->insertBefore($node, $parent);
-                $figure->removeChild($parent);
+            foreach($node->getElementsByTagName("img") as $img) {
+                if( !($img instanceof \DOMElement) ) continue;
+
+                $src = trim($img->getAttribute("src"));
+
+                if( $src === "" || str_starts_with($src, "data:image") ) {
+                    $img->setAttribute("src", $href);
+                    $resolved = true;
+                }
+            }
+
+            if( $resolved ) {
+                self::unwrapElement($node);
             }
         });
+    }
+
+    private static function unwrapElement(\DOMElement $element): void
+    {
+        $parent = $element->parentNode;
+
+        if( !$parent ) {
+            return;
+        }
+
+        while($element->firstChild) {
+            $parent->insertBefore($element->firstChild, $element);
+        }
+
+        $parent->removeChild($element);
     }
 
     public static function absolutizeUrls(string $html, string $base_url): string
@@ -279,7 +297,13 @@ class HtmlFormatter
             }
         };
 
+        $top_level_children = [];
+
         foreach($fragment->childNodes as $child) {
+            $top_level_children[] = $child;
+        }
+
+        foreach($top_level_children as $child) {
             $walk($child);
         }
 
