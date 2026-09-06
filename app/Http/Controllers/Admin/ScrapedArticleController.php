@@ -36,6 +36,9 @@ class ScrapedArticleController extends Controller
                 "untranslated",
                 "rejected",
                 "not_rejected",
+                "assistant_processing",
+                "assistant_processed",
+                "not_assistant_processed",
             ])],
         ]);
 
@@ -55,7 +58,10 @@ class ScrapedArticleController extends Controller
                 "created_at",
                 "updated_at",
             ])
-            ->with("source:id,name")
+            ->with([
+                "source:id,name",
+                "post:id,author_id",
+            ])
             ->orderByDesc("id");
 
         if( $request->integer("article_source_id") ) {
@@ -104,6 +110,7 @@ class ScrapedArticleController extends Controller
             "last_page" => $paginator->lastPage(),
             "per_page" => $paginator->perPage(),
             "total" => $paginator->total(),
+            "assistant_author_id" => (int) config("assistant.author_id"),
             "scraped_articles" => $paginator->items(),
         ], 200);
     }
@@ -295,6 +302,31 @@ class ScrapedArticleController extends Controller
             $query->whereNotNull("translation_rejected_at");
         } elseif( $not_rejected && !$rejected ) {
             $query->whereNull("translation_rejected_at");
+        }
+
+        $assistant_processing = in_array("assistant_processing", $status_filters, true);
+        $assistant_processed = in_array("assistant_processed", $status_filters, true);
+        $not_assistant_processed = in_array("not_assistant_processed", $status_filters, true);
+        $assistant_author_id = (int) config("assistant.author_id");
+
+        if( $assistant_processing && !$assistant_processed && !$not_assistant_processed ) {
+            $query->where("processing_by", User::ASSISTANT_ID);
+        } elseif( $assistant_processed && !$assistant_processing && !$not_assistant_processed ) {
+            $query->whereHas("post", fn (Builder $query) => $query->where("author_id", $assistant_author_id));
+        } elseif( $not_assistant_processed && !$assistant_processing && !$assistant_processed ) {
+            $query
+                ->where(function (Builder $query) {
+                    $query
+                        ->whereNull("processing_by")
+                        ->orWhere("processing_by", "!=", User::ASSISTANT_ID);
+                })
+                ->whereDoesntHave("post", fn (Builder $query) => $query->where("author_id", $assistant_author_id));
+        } elseif( $assistant_processing && $assistant_processed && !$not_assistant_processed ) {
+            $query->where(function (Builder $query) use ($assistant_author_id) {
+                $query
+                    ->where("processing_by", User::ASSISTANT_ID)
+                    ->orWhereHas("post", fn (Builder $query) => $query->where("author_id", $assistant_author_id));
+            });
         }
     }
 

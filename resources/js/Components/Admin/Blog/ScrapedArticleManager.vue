@@ -64,6 +64,20 @@
 
                             <div class="d-flex align-center ga-2">
                                 <v-icon
+                                    v-if="scrapedArticle.assistant_processing"
+                                    icon="mdi-robot-outline"
+                                    color="deep-purple"
+                                    title="Em processamento pelo assistente"
+                                ></v-icon>
+
+                                <v-icon
+                                    v-else-if="scrapedArticle.assistant_processed"
+                                    icon="mdi-robot"
+                                    color="deep-purple"
+                                    title="Processado pelo assistente"
+                                ></v-icon>
+
+                                <v-icon
                                     v-if="!!scrapedArticle.translated_title"
                                     icon="mdi-translate"
                                     color="orange"
@@ -308,6 +322,9 @@
         { value: "untranslated", title: "Não traduzidos" },
         { value: "rejected", title: "Rejeitados" },
         { value: "not_rejected", title: "Não rejeitados" },
+        { value: "assistant_processing", title: "Em processamento pelo assistente" },
+        { value: "assistant_processed", title: "Processados pelo assistente" },
+        { value: "not_assistant_processed", title: "Não processados pelo assistente" },
     ];
 
     const searchFields = ref([
@@ -455,6 +472,8 @@
             const mappedScrapedArticles = data.scraped_articles.map(sa => ({
                 ...sa,
                 finalTitle: sa.translated_title || sa.title || "",
+                assistant_processing: String(sa.processing_by) === "0",
+                assistant_processed: sa.post?.author_id === data.assistant_author_id,
             }));
 
             scrapedArticles.value = mappedScrapedArticles;
