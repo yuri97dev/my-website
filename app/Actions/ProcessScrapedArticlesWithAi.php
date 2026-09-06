@@ -200,10 +200,16 @@ class ProcessScrapedArticlesWithAi
 
             $article = $batch[$choice - 1];
 
-            $article->update([
+            $update = [
                 "processing_by" => User::ASSISTANT_ID,
                 "processing_at" => now(),
-            ]);
+            ];
+
+            if( config("assistant.store_selection_prompt") ) {
+                $update["assistant_selection_prompt"] = $this->buildSelectionPrompt($lines);
+            }
+
+            $article->update($update);
 
             $lock_key = TranslateScrapedArticleJob::cacheLockKey($article->id);
             Cache::add($lock_key, true, TranslateScrapedArticleJob::CACHE_LOCK_TTL);
@@ -225,6 +231,16 @@ class ProcessScrapedArticlesWithAi
         $article->update([
             "processing_by" => null,
             "processing_at" => null,
+        ]);
+    }
+
+    private function buildSelectionPrompt(string $candidates): string
+    {
+        return implode("\n\n", [
+            "=== System ===",
+            config("assistant.prompts.select_system"),
+            "=== Candidates ===",
+            $candidates,
         ]);
     }
 

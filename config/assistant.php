@@ -12,6 +12,8 @@ return [
 
     "lock_ttl_minutes" => 180,
 
+    "store_selection_prompt" => env("ASSISTANT_STORE_SELECTION_PROMPT", false),
+
     "prompts" => [
         "select_system" => <<<'PROMPT'
 You pick articles for a nerd blog: anime, live-action, tech, programming, and pop culture.

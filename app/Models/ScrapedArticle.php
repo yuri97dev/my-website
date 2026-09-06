@@ -22,6 +22,7 @@ class ScrapedArticle extends Model
         "translation_attempts",
         "processing_by",
         "processing_at",
+        "assistant_selection_prompt",
         "is_enabled",
     ];
 

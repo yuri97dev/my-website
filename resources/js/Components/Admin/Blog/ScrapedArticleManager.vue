@@ -213,6 +213,13 @@
                     ></v-list-item>
 
                     <v-list-item
+                        v-if="hasSelectionPrompt"
+                        prepend-icon="mdi-robot-outline"
+                        title="Ver Prompt do Assistente"
+                        @click="isSelectionPromptDialogOpen = true"
+                    ></v-list-item>
+
+                    <v-list-item
                         :href="selectedScrapedArticle?.url"
                         target="_blank"
                         prepend-icon="mdi-open-in-new"
@@ -272,6 +279,27 @@
         </template>
     </Dialog>
 
+    <Dialog
+        overlay-id="scraped-article-selection-prompt"
+        title="Prompt do Assistente"
+        max-width="800px"
+        scrollable
+        v-model="isSelectionPromptDialogOpen"
+    >
+        <pre
+            class="text-body-2 font-monospace pa-4 ma-0 rounded bg-surface-light text-pre-wrap overflow-x-auto"
+        >{{ selectedScrapedArticle?.assistant_selection_prompt }}</pre>
+
+        <template #actions>
+            <v-btn
+                variant="tonal"
+                prepend-icon="mdi-content-copy"
+                text="Copiar"
+                @click="copySelectionPrompt"
+            ></v-btn>
+        </template>
+    </Dialog>
+
     <ScrapedArticleBulkDeleteDialog
         ref="bulkDeleteDialogRef"
         @deleted="handleBulkDeleted"
@@ -302,6 +330,7 @@
     const isOpen = ref(false);
     const isScrapedArticleContentDialogOpen = ref(false);
     const isRejectTranslationDialogOpen = ref(false);
+    const isSelectionPromptDialogOpen = ref(false);
 
     const bulkDeleteDialogRef = ref(null);
 
@@ -417,6 +446,10 @@
         !hasTranslation.value &&
         !selectedScrapedArticle.value?.translation_rejected_at &&
         (selectedScrapedArticle.value?.translation_attempts ?? 0) < 3
+    ));
+
+    const hasSelectionPrompt = computed(() => (
+        !!selectedScrapedArticle.value?.assistant_selection_prompt
     ));
 
     const selectedScrapedArticleTitle = computed(() => {
@@ -817,6 +850,20 @@
             alertError("Ooops", error || "Erro ao copiar texto");
         } else {
             toastSuccess("Texto copiado com sucesso");
+        }
+    }
+
+    async function copySelectionPrompt() {
+        const prompt = selectedScrapedArticle.value?.assistant_selection_prompt;
+
+        if( !prompt ) return;
+
+        const { success, error } = await copyText(prompt);
+
+        if( !success ) {
+            alertError("Ooops", error || "Erro ao copiar prompt");
+        } else {
+            toastSuccess("Prompt copiado com sucesso");
         }
     }
 
