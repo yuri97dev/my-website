@@ -84,7 +84,7 @@ class ProcessScrapedArticlesWithAi
 
             $user = implode("\n\n", [
                 "Título: {$article->translated_title}",
-                "Conteúdo:\n{$article->translated_content}",
+                "Texto (contexto):\n" . TextFormatter::removeHTML($article->translated_content),
             ]);
 
             $response = Ollama::chat($system, $user);
@@ -114,7 +114,7 @@ class ProcessScrapedArticlesWithAi
                 ["name" => $category_name],
             );
 
-            $content = trim($data["content"] ?? $article->translated_content ?? "");
+            $content = trim($article->translated_content ?? "");
 
             if( $content === "" ) {
                 Log::error("ProcessScrapedArticlesWithAi: conteúdo vazio ao estruturar artigo {$article->id}.");
