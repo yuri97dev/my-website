@@ -64,6 +64,7 @@ class PostController extends Controller
                 "category_id",
                 "slug",
                 "title",
+                "status",
                 "excerpt",
                 "published_at",
                 "meta_description",

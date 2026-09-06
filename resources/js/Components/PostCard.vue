@@ -3,6 +3,8 @@
         hover
         border
         class="h-100"
+        :variant="isUnpublished ? 'tonal' : undefined"
+        :color="isUnpublished ? 'warning' : undefined"
         :href="post.href"
         @click.prevent="goTo(post.href)"
     >
@@ -54,6 +56,7 @@
 
 <script setup>
     import { ref, computed } from "vue";
+
     import { formatDate, goTo } from "@/Utils/Common";
 
     const props = defineProps({
@@ -68,4 +71,6 @@
     const showThumbnail = computed(() =>
         !!props.post.thumbnail_path && !thumbnailFailed.value
     );
+
+    const isUnpublished = computed(() => props.post.status !== "published");
 </script>
