@@ -53,6 +53,12 @@
             <title>{{ config("app.name") }}</title>
         @endif
 
+        @php
+            if (auth()->user()?->isSystemAdmin()) {
+                config(["ziggy.except" => []]);
+            }
+        @endphp
+
         @routes
         @vite(["resources/css/app.css", "resources/js/app.js"])
 
