@@ -17,7 +17,7 @@
             <div
                 class="post-container"
                 @click="handleContentClick"
-                v-html="post.content"
+                v-html="content"
             ></div>
         </div>
 
@@ -101,6 +101,29 @@
     const editUrl = computed(() => {
         const { id } = props.post;
         return route("admin.blog.posts", { id });
+    });
+
+    const content = computed(() => {
+        const html = props.post.content;
+
+        if( !html ) return "";
+
+        const div = document.createElement("div");
+
+        div.innerHTML = html;
+
+        div.querySelectorAll("table").forEach((table) => {
+            if( table.closest(".overflow-x-auto") ) return;
+
+            const wrapper = document.createElement("div");
+
+            wrapper.className = "overflow-x-auto";
+            table.parentNode.insertBefore(wrapper, table);
+
+            wrapper.appendChild(table);
+        });
+
+        return div.innerHTML;
     });
 
     const breadcrumbs = computed(() => [
