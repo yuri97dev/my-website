@@ -22,13 +22,39 @@
         </div>
 
         <v-fab
-            v-if="isSysAdmin"
+            v-if="isSysAdmin && !post.deleted_at"
             app
-            icon="mdi-pencil"
+            icon
             size="large"
-            color="primary"
-            @click="handleEditClick"
-        ></v-fab>
+            :color="fabOpen ? '' : 'primary'"
+        >
+            <v-icon>{{ fabOpen ? "mdi-close" : "mdi-dots-vertical" }}</v-icon>
+
+            <v-speed-dial
+                location="top center"
+                activator="parent"
+                v-model="fabOpen"
+            >
+                <v-btn
+                    key="edit"
+                    color="secondary"
+                    icon
+                    @click="handleEditClick"
+                >
+                    <v-icon size="24">mdi-pencil</v-icon>
+                </v-btn>
+
+                <v-btn
+                    key="delete"
+                    color="error"
+                    icon
+                    :disabled="deleting"
+                    @click="handleDeleteClick"
+                >
+                    <v-icon size="24">mdi-delete</v-icon>
+                </v-btn>
+            </v-speed-dial>
+        </v-fab>
 
         <ImageViewerDialog
             ref="imageViewerDialogRef"
@@ -38,13 +64,14 @@
 
 <script setup>
     import { ref, computed, onMounted, onBeforeUnmount } from "vue";
-    import { usePage } from "@inertiajs/vue3";
+    import { router, usePage } from "@inertiajs/vue3";
 
     import Container from "@/Components/Container.vue";
     import Breadcrumb from "@/Components/Breadcrumb.vue";
     import ImageViewerDialog from "@/Components/ImageViewerDialog.vue";
 
     import { formatDate } from "@/Utils/Common";
+    import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
 
     import api from "@/api";
 
@@ -58,6 +85,8 @@
     const page = usePage();
 
     const imageViewerDialogRef = ref(null);
+    const fabOpen = ref(false);
+    const deleting = ref(false);
 
     const isSysAdmin = computed(() => page.props?.auth?.isSysAdmin);
 
@@ -110,6 +139,32 @@
 
     function handleEditClick() {
         window.open(editUrl.value, "_blank");
+    }
+
+    async function handleDeleteClick() {
+        const { isConfirmed } = await confirmDelete(
+            "Excluir Post",
+            `O post "${props.post.title}" será removido permanentemente. Essa ação não pode ser desfeita.`,
+        );
+
+        if( !isConfirmed ) return;
+
+        deleting.value = true;
+
+        try {
+            const url = route("api.blog.posts.destroy", props.post.id);
+
+            await api.delete(url);
+
+            toastSuccess("Post removido com sucesso");
+
+            router.visit(route("blog.index", { category: category.value.slug }));
+        } catch (e) {
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao remover post");
+        } finally {
+            deleting.value = false;
+        }
     }
 
     let viewTimer = null;

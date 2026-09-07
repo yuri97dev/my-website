@@ -25,16 +25,25 @@ class PostController extends Controller
         return Inertia::render("Blog/Index", compact("category"));
     }
 
-    public function show(string $category, string $slug)
+    public function show(string $category, string $slug, Request $request)
     {
-        $post = Post::query()
+        $is_system_admin = (bool) $request->user()?->isSystemAdmin();
+
+        $query = Post::query()
             ->where("slug", $slug)
             ->with([
                 "author:id,name",
                 "category:id,slug,name",
                 "tags:id,slug,name",
-            ])
-            ->firstOrFail();
+            ]);
+
+        if( $is_system_admin ) {
+            $query->withTrashed();
+        } else {
+            $query->published();
+        }
+
+        $post = $query->firstOrFail();
 
         if( $post->category->slug !== $category ) {
             abort(404);
@@ -80,6 +89,10 @@ class PostController extends Controller
             ]);
 
         if( $is_system_admin ) {
+            $query->addSelect([
+                "deleted_at",
+            ]);
+
             $query->withTrashed();
 
             if( $request->has("id") ) {

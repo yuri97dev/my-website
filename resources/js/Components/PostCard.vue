@@ -3,8 +3,8 @@
         hover
         border
         class="h-100"
-        :variant="isUnpublished ? 'tonal' : undefined"
-        :color="isUnpublished ? 'warning' : undefined"
+        :variant="color ? 'tonal' : undefined"
+        :color="color"
         :href="post.href"
         @click.prevent="goTo(post.href)"
     >
@@ -72,5 +72,13 @@
         !!props.post.thumbnail_path && !thumbnailFailed.value
     );
 
+    const isDeleted = computed(() => !!props.post.deleted_at);
+
     const isUnpublished = computed(() => props.post.status !== "published");
+
+    const color = computed(() => {
+        if( isDeleted.value ) return "error";
+        if( isUnpublished.value ) return "warning";
+        return undefined;
+    });
 </script>
