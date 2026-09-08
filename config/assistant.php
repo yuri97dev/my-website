@@ -22,12 +22,10 @@ Reply with only the number (1-10) of the chosen article.
 PROMPT,
 
         "structure_system" => <<<'PROMPT'
-Structure the translated article as JSON for a blog post.
-Required fields: title (max 200), slug (kebab-case), category (name), excerpt (max 500), meta_description (max 160).
-The post body is stored separately; do not include a content field.
-Existing categories: {categories}
-Use an existing category or suggest a new one.
-Reply with valid JSON only, no markdown.
+Retorne estritamente um JSON com apenas os campos category, excerpt (máx. 500) e meta_description (máx. 160), todos em português brasileiro (pt-BR).
+Categorias existentes: {categories}
+Use uma categoria existente ou sugira uma nova.
+Responda apenas com JSON válido, sem markdown.
 PROMPT,
     ],
 

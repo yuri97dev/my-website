@@ -95,7 +95,7 @@ class ProcessScrapedArticlesWithAi
                 return false;
             }
 
-            $title = mb_substr(trim($data["title"] ?? $article->translated_title ?? ""), 0, 200);
+            $title = mb_substr(trim($article->translated_title ?? ""), 0, 200);
 
             if( $title === "" ) {
                 Log::error("ProcessScrapedArticlesWithAi: título vazio ao estruturar artigo {$article->id}.");
@@ -121,11 +121,7 @@ class ProcessScrapedArticlesWithAi
                 return false;
             }
 
-            $slug = Str::slug(trim($data["slug"] ?? $title));
-
-            if( $slug === "" ) {
-                $slug = Str::slug($title);
-            }
+            $slug = Str::slug($title);
 
             $post = Post::create([
                 "author_id" => config("assistant.author_id"),
