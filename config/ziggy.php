@@ -1,6 +1,10 @@
 <?php
 
 return [
+    "groups" => [
+        "full" => ["*"],
+    ],
+
     "except" => [
         "admin.*",
         "api.sessions.*",

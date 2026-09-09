@@ -4,8 +4,9 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
-use Tighten\Ziggy\Ziggy;
 use App\Helpers\Meta;
+use App\Helpers\ZiggyGroup;
+use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -65,7 +66,7 @@ class HandleInertiaRequests extends Middleware
                 ? ["companies" => $request->user()->sgcCompaniesForAuth()]
                 : null,
             "ziggy" => fn () => [
-                ...(new Ziggy)->toArray(),
+                ...(new Ziggy(ZiggyGroup::for($request)))->toArray(),
                 "location" => $request->fullUrl(),
             ],
         ]);

@@ -53,13 +53,7 @@
             <title>{{ config("app.name") }}</title>
         @endif
 
-        @php
-            if (auth()->user()?->isSystemAdmin()) {
-                config(["ziggy.except" => []]);
-            }
-        @endphp
-
-        @routes
+        @routes(\App\Helpers\ZiggyGroup::for(request()))
         @vite(["resources/css/app.css", "resources/js/app.js"])
 
         <x-inertia::head />
