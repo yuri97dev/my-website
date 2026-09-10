@@ -420,6 +420,15 @@
             onClick: () => bulkDeleteDialogRef.value?.open(articleSource.value),
         },
         {
+            key: "run-assistant",
+            variant: "tonal",
+            color: "deep-purple-lighten-2",
+            prependIcon: "mdi-robot",
+            text: "Acionar Assistente",
+            loading: assistantRunning.value,
+            onClick: runAssistant,
+        },
+        {
             key: "start-scraping",
             variant: "tonal",
             color: "primary",
@@ -427,15 +436,6 @@
             text: "Iniciar Scraping",
             loading: scraping.value,
             onClick: startScraping,
-        },
-        {
-            key: "run-assistant",
-            variant: "tonal",
-            color: "deep-purple",
-            prependIcon: "mdi-robot",
-            text: "Acionar Assistente",
-            loading: assistantRunning.value,
-            onClick: runAssistant,
         },
     ]);
 
