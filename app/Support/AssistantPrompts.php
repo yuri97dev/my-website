@@ -15,12 +15,23 @@ class AssistantPrompts
 
     public static function get(string $key): ?AiPrompt
     {
-        return Cache::remember(static::cacheKey($key), 3600, function () use ($key) {
-            return AiPrompt::query()
+        $attributes = Cache::remember(static::cacheKey($key), 3600, function () use ($key) {
+            $prompt = AiPrompt::query()
                 ->where("is_system", true)
                 ->where("key", $key)
                 ->first();
+
+            return $prompt?->getAttributes();
         });
+
+        if( $attributes === null ) {
+            return null;
+        }
+
+        $prompt = new AiPrompt;
+        $prompt->setRawAttributes($attributes, true);
+
+        return $prompt;
     }
 
     public static function forget(string $key): void
@@ -36,6 +47,6 @@ class AssistantPrompts
 
     private static function cacheKey(string $key): string
     {
-        return "assistant_ai_prompt:{$key}";
+        return "assistant_ai_prompt:v2:{$key}";
     }
 }
