@@ -5,6 +5,7 @@ use App\Actions\GeneratePostChunks;
 use App\Actions\GenerateSitemap;
 use App\Actions\OptimizePendingImages;
 use App\Actions\ProcessScrapedArticlesWithAi;
+use App\Actions\PurgeStalePosts;
 use App\Actions\RemoveExpiredSpreadsheetFiles;
 use App\Jobs\ScrapeArticleSourcesJob;
 use App\Models\ArticleSource;
@@ -36,6 +37,7 @@ Artisan::command("images:optimize {--limit=50 : Quantidade máxima de imagens po
 })->purpose("Otimiza imagens pendentes convertendo-as para WebP");
 
 Schedule::call(function () {
+    (new PurgeStalePosts)();
     (new GenerateSitemap)();
     (new GenerateLlmsTxt)();
 })
