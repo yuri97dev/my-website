@@ -200,6 +200,10 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
             ScrapedArticleController::class, "scrape",
         ])->name("api.scraped-articles.scrape");
 
+        Route::post("/scraped-articles/run-assistant", [
+            ScrapedArticleController::class, "runAssistant",
+        ])->name("api.scraped-articles.run-assistant");
+
         Route::get("/scraped-articles/bulk-delete/count", [
             ScrapedArticleController::class, "bulkDeleteCount",
         ])->name("api.scraped-articles.bulk-delete.count");

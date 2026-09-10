@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 use App\Actions\TranslateScrapedArticle;
+use App\Jobs\ProcessScrapedArticlesWithAiJob;
 use App\Jobs\ScrapeArticleSourcesJob;
 use App\Jobs\TranslateScrapedArticleJob;
 use App\Models\ScrapedArticle;
@@ -150,6 +151,23 @@ class ScrapedArticleController extends Controller
 
         return response()->json([
             "message" => "Scraping iniciado com sucesso.",
+        ], 202);
+    }
+
+    public function runAssistant()
+    {
+        if( !config("assistant.enabled") ) return response()->json([
+            "message" => "O assistente automático está desativado.",
+        ], 422);
+
+        if( ProcessScrapedArticlesWithAiJob::isLocked() ) return response()->json([
+            "message" => "O assistente já está em execução.",
+        ], 409);
+
+        ProcessScrapedArticlesWithAiJob::dispatch()->afterResponse();
+
+        return response()->json([
+            "message" => "Assistente iniciado com sucesso.",
         ], 202);
     }
 

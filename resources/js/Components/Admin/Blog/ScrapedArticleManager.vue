@@ -385,6 +385,7 @@
     const contentLoading = ref(false);
     const rejectLoading = ref(false);
     const scraping = ref(false);
+    const assistantRunning = ref(false);
     const translating = ref(false);
 
     const TRANSLATION_POLL_INTERVAL = 3000;
@@ -426,6 +427,15 @@
             text: "Iniciar Scraping",
             loading: scraping.value,
             onClick: startScraping,
+        },
+        {
+            key: "run-assistant",
+            variant: "tonal",
+            color: "deep-purple",
+            prependIcon: "mdi-robot",
+            text: "Acionar Assistente",
+            loading: assistantRunning.value,
+            onClick: runAssistant,
         },
     ]);
 
@@ -758,6 +768,24 @@
             alertError("Ooops", message || "Erro ao iniciar scraping");
         } finally {
             scraping.value = false;
+        }
+    }
+
+    async function runAssistant() {
+        assistantRunning.value = true;
+
+        try {
+            const url = route("api.scraped-articles.run-assistant");
+
+            await api.post(url);
+
+            toastSuccess("Assistente iniciado com sucesso");
+        } catch (e) {
+            console.error(e);
+            const { message } = e?.response?.data || {};
+            alertError("Ooops", message || "Erro ao acionar assistente");
+        } finally {
+            assistantRunning.value = false;
         }
     }
 
