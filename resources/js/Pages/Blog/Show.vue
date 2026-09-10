@@ -15,9 +15,10 @@
             <v-divider class="my-4"></v-divider>
 
             <div
+                ref="postContainerRef"
                 class="post-container"
                 @click="handleContentClick"
-                v-html="content"
+                v-html="post.content"
             ></div>
         </div>
 
@@ -63,7 +64,7 @@
 </template>
 
 <script setup>
-    import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+    import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
     import { router, usePage } from "@inertiajs/vue3";
 
     import Container from "@/Components/Container.vue";
@@ -85,6 +86,7 @@
     const page = usePage();
 
     const imageViewerDialogRef = ref(null);
+    const postContainerRef = ref(null);
     const fabOpen = ref(false);
     const deleting = ref(false);
 
@@ -103,28 +105,19 @@
         return route("admin.blog.posts", { id });
     });
 
-    const content = computed(() => {
-        const html = props.post.content;
+    function wrapTables(root) {
+        if( !root ) return;
 
-        if( !html ) return "";
-
-        const div = document.createElement("div");
-
-        div.innerHTML = html;
-
-        div.querySelectorAll("table").forEach((table) => {
+        root.querySelectorAll("table").forEach((table) => {
             if( table.closest(".overflow-x-auto") ) return;
 
             const wrapper = document.createElement("div");
 
             wrapper.className = "overflow-x-auto";
             table.parentNode.insertBefore(wrapper, table);
-
             wrapper.appendChild(table);
         });
-
-        return div.innerHTML;
-    });
+    }
 
     const breadcrumbs = computed(() => [
         {
@@ -190,9 +183,15 @@
         }
     }
 
+    watch(() => props.post.content, () => {
+        nextTick(() => wrapTables(postContainerRef.value));
+    });
+
     let viewTimer = null;
 
     onMounted(() => {
+        wrapTables(postContainerRef.value);
+
         if( isSysAdmin.value ) return;
 
         viewTimer = setTimeout(() => {
