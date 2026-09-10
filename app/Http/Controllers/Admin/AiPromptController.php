@@ -7,6 +7,7 @@ use App\Http\Requests\AiPrompt\StoreAiPromptRequest;
 use App\Http\Requests\AiPrompt\UpdateAiPromptRequest;
 use App\Models\AiPrompt;
 use App\Models\AiProvider;
+use App\Support\AssistantPrompts;
 
 class AiPromptController extends Controller
 {
@@ -48,6 +49,7 @@ class AiPromptController extends Controller
                 "ai_provider_id",
                 "key",
                 "model",
+                "is_system",
             ])
             ->with("aiProvider:id,name")
             ->get()
@@ -71,6 +73,7 @@ class AiPromptController extends Controller
                 "key",
                 "model",
                 "content",
+                "is_system",
                 "created_at",
                 "updated_at",
             ])
@@ -95,6 +98,10 @@ class AiPromptController extends Controller
     {
         $ai_prompt->update($request->validated());
 
+        if( $ai_prompt->is_system ) {
+            AssistantPrompts::forget($ai_prompt->key);
+        }
+
         return response()->json([
             "ai_prompt" => $ai_prompt->fresh(),
         ], 200);
@@ -102,6 +109,12 @@ class AiPromptController extends Controller
 
     public function destroy(AiPrompt $ai_prompt)
     {
+        if( $ai_prompt->is_system ) {
+            return response()->json([
+                "message" => "Prompts internos do sistema não podem ser removidos.",
+            ], 403);
+        }
+
         $ai_prompt->delete();
 
         return response()->json([

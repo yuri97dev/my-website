@@ -7,8 +7,10 @@ use App\Helpers\TextFormatter;
 use App\Jobs\TranslateScrapedArticleJob;
 use App\Models\Post;
 use App\Models\PostCategory;
+use App\Models\PostTag;
 use App\Models\ScrapedArticle;
 use App\Models\User;
+use App\Support\AssistantPrompts;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -71,15 +73,30 @@ class ProcessScrapedArticlesWithAi
     public function structureDraftForArticle(ScrapedArticle $article): bool
     {
         try {
+            $structure_prompt = AssistantPrompts::get(AssistantPrompts::KEY_STRUCTURE_SYSTEM);
+
+            if( !$structure_prompt ) {
+                Log::error("ProcessScrapedArticlesWithAi: prompt structure_system não encontrado.");
+                return false;
+            }
+
             $categories = PostCategory::query()
                 ->orderBy("name")
                 ->pluck("name")
                 ->implode(", ");
 
+            $tags = PostTag::query()
+                ->orderBy("name")
+                ->pluck("name")
+                ->implode(", ");
+
             $system = str_replace(
-                "{categories}",
-                $categories !== "" ? $categories : "nenhuma",
-                config("assistant.prompts.structure_system"),
+                ["{categories}", "{tags}"],
+                [
+                    $categories !== "" ? $categories : "nenhuma",
+                    $tags !== "" ? $tags : "nenhuma",
+                ],
+                $structure_prompt->content,
             );
 
             $user = implode("\n\n", [
@@ -87,7 +104,10 @@ class ProcessScrapedArticlesWithAi
                 "Texto (contexto):\n" . TextFormatter::removeHTML($article->translated_content),
             ]);
 
-            $response = Ollama::chat($system, $user);
+            $response = Ollama::chat($system, $user, [
+                "model" => $structure_prompt->model,
+            ]);
+
             $data = $this->parseJson($response);
 
             if( !$data ) {
@@ -134,6 +154,12 @@ class ProcessScrapedArticlesWithAi
                 "meta_description" => mb_substr(trim($data["meta_description"] ?? ""), 0, 160) ?: null,
                 "thumbnail_path" => $this->thumbnailPath($content),
             ]);
+
+            $tag_ids = $this->resolveTagIds($data["tags"] ?? []);
+
+            if( $tag_ids !== [] ) {
+                $post->tags()->sync($tag_ids);
+            }
 
             $article->update([
                 "post_id" => $post->id,
@@ -186,7 +212,17 @@ class ProcessScrapedArticlesWithAi
         })->implode("\n\n");
 
         try {
-            $response = Ollama::chat(config("assistant.prompts.select_system"), $lines);
+            $select_prompt = AssistantPrompts::get(AssistantPrompts::KEY_SELECT_SYSTEM);
+
+            if( !$select_prompt ) {
+                Log::error("ProcessScrapedArticlesWithAi: prompt select_system não encontrado.");
+                return;
+            }
+
+            $response = Ollama::chat($select_prompt->content, $lines, [
+                "model" => $select_prompt->model,
+            ]);
+
             $choice = $this->parseChoice($response, $selection_size);
 
             if( $choice === null ) {
@@ -232,12 +268,44 @@ class ProcessScrapedArticlesWithAi
 
     private function buildSelectionPrompt(string $candidates): string
     {
+        $select_prompt = AssistantPrompts::get(AssistantPrompts::KEY_SELECT_SYSTEM);
+
         return implode("\n\n", [
             "=== System ===",
-            config("assistant.prompts.select_system"),
+            $select_prompt?->content ?? "",
             "=== Candidates ===",
             $candidates,
         ]);
+    }
+
+    private function resolveTagIds(mixed $tags): array
+    {
+        if( is_string($tags) ) {
+            $tags = array_map("trim", explode(",", $tags));
+        }
+
+        if( !is_array($tags) ) {
+            return [];
+        }
+
+        $ids = [];
+
+        foreach( $tags as $tag_name ) {
+            $tag_name = trim((string) $tag_name);
+
+            if( $tag_name === "" ) {
+                continue;
+            }
+
+            $tag = PostTag::query()->firstOrCreate(
+                ["slug" => Str::slug($tag_name)],
+                ["name" => $tag_name],
+            );
+
+            $ids[] = $tag->id;
+        }
+
+        return array_values(array_unique($ids));
     }
 
     private function excerptPreview(string $content): string

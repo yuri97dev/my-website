@@ -16,6 +16,20 @@ class UpdateAiPromptRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $ai_prompt = $this->route("ai_prompt");
+
+        if( $ai_prompt?->is_system ) {
+            $this->replace($this->only(["content", "model"]));
+
+            if( $this->has("model") ) {
+                $this->merge([
+                    "model" => trim($this->input("model")),
+                ]);
+            }
+
+            return;
+        }
+
         if( $this->filled("key") ) {
             $this->merge([
                 "key" => Str::slug($this->input("key")),
@@ -35,6 +49,13 @@ class UpdateAiPromptRequest extends FormRequest
     public function rules(): array
     {
         $ai_prompt = $this->route("ai_prompt");
+
+        if( $ai_prompt->is_system ) {
+            return [
+                "content" => ["sometimes", "required", "string"],
+                "model" => ["sometimes", "required", "string", "max:100"],
+            ];
+        }
 
         return [
             "key" => [

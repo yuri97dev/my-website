@@ -12,7 +12,15 @@ class AiPrompt extends Model
         "key",
         "model",
         "content",
+        "is_system",
     ];
+
+    protected function casts(): array
+    {
+        return [
+            "is_system" => "boolean",
+        ];
+    }
 
     public function aiProvider(): BelongsTo
     {

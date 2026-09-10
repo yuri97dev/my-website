@@ -24,6 +24,19 @@
                 prepend-icon="mdi-text-box-outline"
                 slim
             >
+                <template #title>
+                    <span>{{ prompt.key }}</span>
+
+                    <v-chip
+                        v-if="prompt.is_system"
+                        size="x-small"
+                        color="primary"
+                        variant="tonal"
+                        class="ml-2"
+                        text="Sistema"
+                    ></v-chip>
+                </template>
+
                 <template #append>
                     <v-menu offset="8" location="bottom end">
                         <template v-slot:activator="{ props }">
@@ -45,6 +58,7 @@
                             ></v-list-item>
 
                             <v-list-item
+                                v-if="!prompt.is_system"
                                 prepend-icon="mdi-delete"
                                 title="Excluir"
                                 @click="confirmRemovePrompt(prompt)"
@@ -78,11 +92,12 @@
         <v-card-text>
             <v-text-field
                 label="Chave"
-                hint="Identificador do prompt (ex: blog-post-summary)"
+                :hint="keyFieldHint"
                 persistent-hint
                 class="mb-4"
                 autofocus
                 required
+                :readonly="form.is_system"
                 :error-messages="errors.key"
                 v-model="form.key"
             ></v-text-field>
@@ -148,7 +163,7 @@
 </template>
 
 <script setup>
-    import { ref, reactive, nextTick } from "vue";
+    import { ref, reactive, computed, nextTick } from "vue";
 
     import api from "@/api";
 
@@ -165,6 +180,15 @@
         key: "",
         model: "",
         content: "",
+        is_system: false,
+    });
+
+    const keyFieldHint = computed(() => {
+        if( form.is_system ) {
+            return "Chave interna do sistema — não editável";
+        }
+
+        return "Identificador do prompt (ex: blog-post-summary)";
     });
 
     const errors = ref({});
@@ -246,11 +270,19 @@
 
         try {
             const url = route("api.ai-prompts.update", form.id);
-            await api.put(url, {
-                key: form.key,
-                model: form.model,
-                content: form.content,
-            });
+
+            const payload = form.is_system
+                ? {
+                    model: form.model,
+                    content: form.content,
+                }
+                : {
+                    key: form.key,
+                    model: form.model,
+                    content: form.content,
+                };
+
+            await api.put(url, payload);
 
             toastSuccess("Prompt atualizado com sucesso");
 
@@ -347,6 +379,7 @@
         form.key = prompt.key;
         form.model = prompt.model;
         form.content = prompt.content;
+        form.is_system = prompt.is_system ?? false;
 
         isDialogFormOpen.value = true;
     }
@@ -357,6 +390,7 @@
         form.key = "";
         form.model = "";
         form.content = "";
+        form.is_system = false;
     }
 
     function handleClose() {
