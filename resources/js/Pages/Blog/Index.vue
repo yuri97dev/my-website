@@ -155,6 +155,7 @@
             const url = route("api.blog.posts.index");
 
             const params = {
+                ...Object.fromEntries(new URLSearchParams(window.location.search)),
                 page: pagination.page,
                 per_page: pagination.perPage,
                 category: props.category,

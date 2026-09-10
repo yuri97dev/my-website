@@ -102,6 +102,10 @@ class PostController extends Controller
             $query->published();
         }
 
+        if( $request->has("status") ) {
+            $query->where("status", $request->string("status"));
+        }
+
         if( $request->has("slug") ) {
             $query->where("slug", $request->string("slug"));
         }
