@@ -81,21 +81,24 @@ class ProcessScrapedArticlesWithAi
             }
 
             $categories = PostCategory::query()
-                ->orderBy("name")
+                ->withCount(["posts" => fn ($q) => $q->published()])
+                ->having("posts_count", ">", 0)
+                ->orderByDesc("posts_count")
+                ->limit(20)
                 ->pluck("name")
-                ->implode(", ");
+                ->implode(", ") ?: "nenhuma";
 
             $tags = PostTag::query()
-                ->orderBy("name")
+                ->withCount(["posts" => fn ($q) => $q->published()])
+                ->having("posts_count", ">", 0)
+                ->orderByDesc("posts_count")
+                ->limit(20)
                 ->pluck("name")
-                ->implode(", ");
+                ->implode(", ") ?: "nenhuma";
 
             $system = str_replace(
                 ["{categories}", "{tags}"],
-                [
-                    $categories !== "" ? $categories : "nenhuma",
-                    $tags !== "" ? $tags : "nenhuma",
-                ],
+                [$categories, $tags],
                 $structure_prompt->content,
             );
 
