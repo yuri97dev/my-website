@@ -189,7 +189,7 @@ class PostController extends Controller
 
             $query->orderByDesc("similarity_score");
         } else {
-            $query->orderByDesc("id");
+            $query->orderByDesc("published_at");
         }
 
         $paginator = $query->paginate($per_page);
