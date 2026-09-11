@@ -7,9 +7,37 @@
 
             <h1 class="text-primary">{{ post.title }}</h1>
 
-            <div class="d-flex align-center ga-2 text-grey">
-                <v-icon icon="mdi-clock"></v-icon>
-                Última atualização: {{ formatDate(post.updated_at, "dd/MM/yyyy HH:mm") }}
+            <div class="d-flex flex-wrap align-center ga-4 text-grey">
+                <div
+                    v-if="post.published_at"
+                    class="d-flex align-center ga-2"
+                >
+                    <v-icon icon="mdi-calendar"></v-icon>
+                    Publicado em: {{ formatDate(post.published_at, "dd/MM/yyyy HH:mm") }}
+                </div>
+
+                <div class="d-flex align-center ga-2">
+                    <v-icon icon="mdi-clock"></v-icon>
+                    Última atualização: {{ formatDate(post.updated_at, "dd/MM/yyyy HH:mm") }}
+                </div>
+            </div>
+
+            <div
+                v-if="post.tags?.length"
+                class="d-flex flex-wrap align-center ga-2 mt-3"
+            >
+                <v-icon
+                    icon="mdi-tag-multiple"
+                    class="text-grey"
+                ></v-icon>
+
+                <v-chip
+                    v-for="tag in post.tags"
+                    :key="tag.id"
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                >{{ tag.name }}</v-chip>
             </div>
 
             <v-divider class="my-4"></v-divider>
