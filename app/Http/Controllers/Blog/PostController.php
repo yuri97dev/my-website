@@ -288,7 +288,10 @@ class PostController extends Controller
 
         $validated["status"] ??= Post::STATUS_DRAFT;
 
-        if( $validated["status"] === Post::STATUS_PUBLISHED ) {
+        if(
+            $validated["status"] === Post::STATUS_PUBLISHED
+            && $post->published_at === null
+        ) {
             $validated["published_at"] = now();
         }
 
