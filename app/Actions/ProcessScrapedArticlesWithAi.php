@@ -12,6 +12,7 @@ use App\Models\ScrapedArticle;
 use App\Models\User;
 use App\Support\AssistantPrompts;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -80,21 +81,8 @@ class ProcessScrapedArticlesWithAi
                 return false;
             }
 
-            $categories = PostCategory::query()
-                ->withCount(["posts" => fn ($q) => $q->published()])
-                ->having("posts_count", ">", 0)
-                ->orderByDesc("posts_count")
-                ->limit(20)
-                ->pluck("name")
-                ->implode(", ") ?: "nenhuma";
-
-            $tags = PostTag::query()
-                ->withCount(["posts" => fn ($q) => $q->published()])
-                ->having("posts_count", ">", 0)
-                ->orderByDesc("posts_count")
-                ->limit(20)
-                ->pluck("name")
-                ->implode(", ") ?: "nenhuma";
+            $categories = $this->topPublishedCategoryNames();
+            $tags = $this->topPublishedTagNames();
 
             $system = str_replace(
                 ["{categories}", "{tags}"],
@@ -309,6 +297,44 @@ class ProcessScrapedArticlesWithAi
         }
 
         return array_values(array_unique($ids));
+    }
+
+    private function topPublishedCategoryNames(): string
+    {
+        $counts = Post::query()
+            ->published()
+            ->select([
+                "category_id",
+                DB::raw("count(*) as posts_count"),
+            ])
+            ->whereNotNull("category_id")
+            ->groupBy("category_id");
+
+        return PostCategory::query()
+            ->joinSub($counts, "post_counts", "post_counts.category_id", "post_categories.id")
+            ->orderByDesc("post_counts.posts_count")
+            ->limit(20)
+            ->pluck("post_categories.name")
+            ->implode(", ") ?: "nenhuma";
+    }
+
+    private function topPublishedTagNames(): string
+    {
+        $counts = Post::query()
+            ->published()
+            ->join("post_tag", "posts.id", "=", "post_tag.post_id")
+            ->select([
+                "post_tag.post_tag_id",
+                DB::raw("count(*) as posts_count"),
+            ])
+            ->groupBy("post_tag.post_tag_id");
+
+        return PostTag::query()
+            ->joinSub($counts, "post_counts", "post_counts.post_tag_id", "post_tags.id")
+            ->orderByDesc("post_counts.posts_count")
+            ->limit(20)
+            ->pluck("post_tags.name")
+            ->implode(", ") ?: "nenhuma";
     }
 
     private function excerptPreview(string $content): string
