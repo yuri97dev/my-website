@@ -170,6 +170,14 @@
     ].filter(Boolean));
 
     function handleContentClick(e) {
+        const spoiler = e.target.closest(".post-spoiler");
+
+        if( spoiler ) {
+            const isOpen = spoiler.getAttribute("data-open") === "true";
+            spoiler.setAttribute("data-open", isOpen ? "false" : "true");
+            return;
+        }
+
         if( e.target.tagName === "A" ) {
             e.target.setAttribute("target", "_blank");
             return;

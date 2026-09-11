@@ -76,6 +76,35 @@ a {
     border: 1px solid rgb(var(--v-theme-surface-light));
 }
 
+.post-container .post-code-block {
+    padding: 1rem;
+    overflow-x: auto;
+    border-radius: 6px;
+    background: #1e1e1e;
+    margin: 0.75rem 0 1rem;
+}
+
+.post-container .post-code-block code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #f5f5f5;
+    white-space: pre;
+}
+
+.post-container .post-spoiler:not([data-open="true"]) {
+    background: #bdbdbd;
+    color: #bdbdbd;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.post-container .post-spoiler[data-open="true"] {
+    background: transparent;
+    color: inherit;
+    cursor: inherit;
+}
+
 .v-breadcrumbs-item.v-breadcrumbs-item--disabled,
 .v-breadcrumbs-item.v-breadcrumbs-item--disabled > a {
     white-space: nowrap;
