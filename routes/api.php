@@ -18,6 +18,7 @@ use App\Http\Controllers\Blog\PostController;
 use App\Http\Controllers\Blog\PostImageController;
 use App\Http\Controllers\Blog\PostTagController;
 use App\Http\Controllers\Blog\PostViewController;
+use App\Http\Controllers\LicenseController;
 use App\Http\Controllers\SpreadsheetFormatterController;
 use App\Http\Controllers\PostalCodeAddressController;
 use App\Http\Controllers\Sgc\BrandController as SgcBrandController;
@@ -267,6 +268,38 @@ Route::prefix("tools")->group(function() {
     Route::delete("/spreadsheet-formatter/files/{uuid}", [
         SpreadsheetFormatterController::class, "destroy"
     ])->name("api.tools.spreadsheet-formatter.files.destroy");
+
+    Route::post("/licenses/token/refresh", [
+        LicenseController::class, "refresh",
+    ])
+        ->name("api.tools.licenses.token.refresh")
+        ->middleware(["jwt.decode", "throttle:30,1"]);
+
+    Route::prefix("licenses")->middleware("auth")->group(function () {
+        Route::get("/", [
+            LicenseController::class, "licenses",
+        ])->name("api.tools.licenses.index");
+
+        Route::post("/", [
+            LicenseController::class, "store",
+        ])->name("api.tools.licenses.store");
+
+        Route::put("/{license}", [
+            LicenseController::class, "update",
+        ])->name("api.tools.licenses.update");
+
+        Route::put("/{license}/status", [
+            LicenseController::class, "updateStatus",
+        ])->name("api.tools.licenses.status");
+
+        Route::delete("/{license}", [
+            LicenseController::class, "destroy",
+        ])->name("api.tools.licenses.destroy");
+
+        Route::post("/{license}/token", [
+            LicenseController::class, "token",
+        ])->name("api.tools.licenses.token");
+    });
 
     Route::prefix("sgc")->middleware("auth")->group(function () {
         Route::get("/companies", [

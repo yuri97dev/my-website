@@ -14,6 +14,7 @@
         "php": "^8.3",
         "ark4ne/xl-reader": "*",
         "droath/laravel-text-chunker": "*",
+        "firebase/php-jwt": "*",
         "inertiajs/inertia-laravel": "*",
         "intervention/image": "*",
         "laravel/framework": "^13.8",

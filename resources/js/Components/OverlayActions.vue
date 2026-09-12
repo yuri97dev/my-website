@@ -39,10 +39,10 @@
 
             <v-btn
                 v-else
-                :disabled="action.disabled || disabled"
+                v-bind="vBtnProps(action)"
+                :disabled="action.disabled || disabled || action.loading"
                 @click="action.onClick?.()"
-                v-bind="action"
-            ></v-btn>
+            >{{ action.text }}</v-btn>
         </template>
     </template>
 </template>
@@ -68,4 +68,16 @@
     const useMenu = computed(() =>
         smAndDown.value && buttonActions.value.length > 2
     );
+
+    function vBtnProps(action) {
+        const {
+            key,
+            text,
+            onClick,
+            spacer,
+            ...props
+        } = action;
+
+        return props;
+    }
 </script>

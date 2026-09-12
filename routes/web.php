@@ -6,6 +6,7 @@ use App\Http\Controllers\Blog\PostImageController;
 use App\Http\Controllers\Blog\ScrapedArticleImageController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\Sgc\CustomerAttachmentController as SgcCustomerAttachmentController;
+use App\Http\Controllers\LicenseController;
 use App\Http\Controllers\SpreadsheetFormatterController;
 use App\Models\Role;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +44,10 @@ Route::prefix("tools")->group(function () {
     Route::get("/spreadsheet-formatter/files/{uuid}/download", [
         SpreadsheetFormatterController::class, "download",
     ])->name("tools.spreadsheet-formatter.download");
+
+    Route::middleware("auth")->get("/licenses", [
+        LicenseController::class, "index",
+    ])->name("tools.licenses");
 
     Route::middleware("auth")->prefix("sgc")->group(function () {
         Route::inertia("/", "Tools/Sgc/Index")->name("tools.sgc");

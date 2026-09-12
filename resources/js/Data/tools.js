@@ -29,4 +29,18 @@ export const tools = [
             "Produtos",
         ],
     },
+    {
+        key: "licenses",
+        title: "Gerenciador de Licenças",
+        subtitle: "Controle o acesso dos seus clientes às suas aplicações",
+        icon: "mdi-key-chain-variant",
+        get href() {
+            return route("tools.licenses");
+        },
+        features: [
+            "Chave RSA por licença",
+            "Trava por dispositivo",
+            "Revogação imediata",
+        ],
+    },
 ];
