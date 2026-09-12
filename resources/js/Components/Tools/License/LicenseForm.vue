@@ -54,14 +54,14 @@
                         {{ usedLicenses }}/{{ maxLicenses }} Licenças no Plano
                     </template>
 
-                    <template #subtitle>
-                        Você pode ter até {{ maxLicenses }} licenças no plano ao mesmo tempo.
-                    </template>
-
                     <v-divider></v-divider>
 
                     <v-card-text>
-                        <ul class="mt-0">
+                        <div>
+                            Você pode ter até {{ maxLicenses }} licenças no plano ao mesmo tempo.
+                        </div>
+
+                        <ul>
                             <li><strong>Ocupam vaga:</strong> Pendente, Ativa e Suspensa.</li>
                             <li><strong>Não ocupa vaga:</strong> Revogada — fica no histórico, mas libera o slot para criar outra.</li>
                         </ul>
