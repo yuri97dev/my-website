@@ -79,8 +79,6 @@
         </v-row>
     </BottomSheet>
 
-    <LicenseHelpDialog v-model="isHelpOpen"></LicenseHelpDialog>
-
     <LicenseTokenDialog ref="tokenDialogRef"></LicenseTokenDialog>
 </template>
 
@@ -91,7 +89,6 @@
 
     import BottomSheet from "@/Components/BottomSheet.vue";
     import DateField from "@/Components/DateField.vue";
-    import LicenseHelpDialog from "@/Components/Tools/License/LicenseHelpDialog.vue";
     import LicenseTokenDialog from "@/Components/Tools/License/LicenseTokenDialog.vue";
 
     import { alertError, confirm, confirmDelete, toastSuccess } from "@/Utils/Alert";
@@ -119,7 +116,6 @@
     ]);
 
     const isDialogOpen = ref(false);
-    const isHelpOpen = ref(false);
     const tokenDialogRef = ref(null);
     const loading = ref(false);
     const deleting = ref(false);
@@ -171,9 +167,8 @@
             color: "info",
             prependIcon: "mdi-help-circle-outline",
             text: "Como Integrar",
-            onClick: () => {
-                isHelpOpen.value = true;
-            },
+            href: "https://yuri97.com/blog/ferramentas-de-software/gerenciador-de-licencas",
+            target: "_blank",
         });
 
         actions.push({
