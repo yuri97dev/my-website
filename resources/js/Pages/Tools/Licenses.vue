@@ -37,6 +37,14 @@
                 <span v-else class="text-medium-emphasis">-</span>
             </template>
 
+            <template #item.last_validated_at="{ item }">
+                <span v-if="!!item.last_validated_at">
+                    {{ formatDate(item.last_validated_at, "dd/MM/yyyy HH:mm") }}
+                </span>
+
+                <span v-else class="text-medium-emphasis">-</span>
+            </template>
+
             <template #item.created_at="{ item }">
                 <span v-if="!!item.created_at">
                     {{ formatDate(item.created_at, "dd/MM/yyyy HH:mm") }}
@@ -92,15 +100,19 @@
         },
         {
             key: "expires_at",
-            title: "Expira em",
+            title: "Expira Em",
         },
         {
             key: "fingerprint",
             title: "Dispositivo",
         },
         {
+            key: "last_validated_at",
+            title: "Última Validação",
+        },
+        {
             key: "created_at",
-            title: "Criado em",
+            title: "Criado Em",
         },
     ]);
 

@@ -198,6 +198,7 @@ class LicenseController extends Controller
 
             $license->status = License::STATUS_ACTIVE;
             $license->fingerprint = $request->input("fingerprint");
+
             $license->save();
         }
 
@@ -221,6 +222,10 @@ class LicenseController extends Controller
         ];
 
         $jwt = JWT::encode($payload, $license->private_key_encrypted, "RS256");
+
+        $license->update([
+            "last_validated_at"=> $issued_at,
+        ]);
 
         return response()->json([
             "token"=> $jwt,

@@ -23,6 +23,7 @@ class License extends Model
         "status",
         "expires_at",
         "fingerprint",
+        "last_validated_at",
         "public_key",
         "private_key_encrypted",
     ];
@@ -46,6 +47,7 @@ class License extends Model
     {
         return [
             "expires_at"=> "date",
+            "last_validated_at"=> "datetime",
             "private_key_encrypted"=> EncryptedString::class,
         ];
     }
