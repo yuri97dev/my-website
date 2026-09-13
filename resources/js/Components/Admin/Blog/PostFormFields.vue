@@ -177,115 +177,159 @@
                                     value="links"
                                     class="h-100"
                                 >
-                                    <v-list
-                                        lines="two"
-                                        class="bg-surface-light rounded-lg"
-                                        style="max-height: 100%; overflow-y: auto"
-                                    >
-                                        <v-list-item
-                                            v-for="(link, index) in links"
-                                            :key="`link-${index}`"
-                                            :title="link.text"
-                                            :subtitle="link.href || link.dataRmHref"
-                                            prepend-icon="mdi-link"
+                                    <div class="d-flex flex-column h-100 ga-4">
+                                        <div class="d-flex justify-end ga-2">
+                                            <v-btn
+                                                variant="tonal"
+                                                color="error"
+                                                prepend-icon="mdi-delete-sweep"
+                                                text="Excluir Todos"
+                                                :disabled="!hasActiveLinks"
+                                                @click.prevent="handleDeleteAllLinks"
+                                            ></v-btn>
+
+                                            <v-btn
+                                                variant="tonal"
+                                                color="success"
+                                                prepend-icon="mdi-restore"
+                                                text="Restaurar Todos"
+                                                :disabled="!hasDeletedLinks"
+                                                @click.prevent="handleRestoreAllLinks"
+                                            ></v-btn>
+                                        </div>
+
+                                        <v-list
+                                            lines="two"
+                                            class="bg-surface-light rounded-lg flex-grow-1"
+                                            style="max-height: 100%; overflow-y: auto"
                                         >
-                                            <template #append>
-                                                <v-btn
-                                                    v-if="!!link.href"
-                                                    size="small"
-                                                    icon="mdi-delete"
-                                                    variant="tonal"
-                                                    color="error"
-                                                    class="rounded"
-                                                    @click.prevent="handleDeleteLink(link, index)"
-                                                ></v-btn>
+                                            <v-list-item
+                                                v-for="(link, index) in links"
+                                                :key="`link-${index}`"
+                                                :title="link.text"
+                                                :subtitle="link.href || link.dataRmHref"
+                                                prepend-icon="mdi-link"
+                                            >
+                                                <template #append>
+                                                    <v-btn
+                                                        v-if="!!link.href"
+                                                        size="small"
+                                                        icon="mdi-delete"
+                                                        variant="tonal"
+                                                        color="error"
+                                                        class="rounded"
+                                                        @click.prevent="handleDeleteLink(link, index)"
+                                                    ></v-btn>
 
-                                                <v-btn
-                                                    v-else-if="!!link.dataRmHref"
-                                                    size="small"
-                                                    icon="mdi-restore"
-                                                    variant="tonal"
-                                                    color="success"
-                                                    class="rounded"
-                                                    @click.prevent="handleRestoreLink(link, index)"
-                                                ></v-btn>
+                                                    <v-btn
+                                                        v-else-if="!!link.dataRmHref"
+                                                        size="small"
+                                                        icon="mdi-restore"
+                                                        variant="tonal"
+                                                        color="success"
+                                                        class="rounded"
+                                                        @click.prevent="handleRestoreLink(link, index)"
+                                                    ></v-btn>
 
-                                                <v-btn
-                                                    :href="link.href || link.dataRmHref"
-                                                    target="_blank"
-                                                    size="small"
-                                                    icon="mdi-open-in-new"
-                                                    variant="tonal"
-                                                    color="primary"
-                                                    class="rounded ms-2"
-                                                ></v-btn>
-                                            </template>
-                                        </v-list-item>
-                                    </v-list>
+                                                    <v-btn
+                                                        :href="link.href || link.dataRmHref"
+                                                        target="_blank"
+                                                        size="small"
+                                                        icon="mdi-open-in-new"
+                                                        variant="tonal"
+                                                        color="primary"
+                                                        class="rounded ms-2"
+                                                    ></v-btn>
+                                                </template>
+                                            </v-list-item>
+                                        </v-list>
+                                    </div>
                                 </v-tabs-window-item>
 
                                 <v-tabs-window-item
                                     value="images"
                                     class="h-100"
                                 >
-                                    <v-list
-                                        lines="two"
-                                        class="bg-surface-light rounded-lg"
-                                        style="max-height: 100%; overflow-y: auto"
-                                    >
-                                        <v-list-item
-                                            v-for="(image, index) in images"
-                                            :key="`image-${index}`"
-                                            :title="image.alt || 'Sem descrição'"
-                                            :subtitle="imageSubtitle(image)"
-                                            :class="{ 'opacity-50': !image.src }"
+                                    <div class="d-flex flex-column h-100 ga-4">
+                                        <div class="d-flex justify-end ga-2">
+                                            <v-btn
+                                                variant="tonal"
+                                                color="error"
+                                                prepend-icon="mdi-delete-sweep"
+                                                text="Excluir Todos"
+                                                :disabled="!hasActiveImages"
+                                                @click.prevent="handleDeleteAllImages"
+                                            ></v-btn>
+
+                                            <v-btn
+                                                variant="tonal"
+                                                color="success"
+                                                prepend-icon="mdi-restore"
+                                                text="Restaurar Todos"
+                                                :disabled="!hasDeletedImages"
+                                                @click.prevent="handleRestoreAllImages"
+                                            ></v-btn>
+                                        </div>
+
+                                        <v-list
+                                            lines="two"
+                                            class="bg-surface-light rounded-lg flex-grow-1"
+                                            style="max-height: 100%; overflow-y: auto"
                                         >
-                                            <template #prepend>
-                                                <v-avatar
-                                                    rounded="lg"
-                                                    size="48"
-                                                    class="cursor-pointer"
-                                                    @click.prevent="openImageViewer(image)"
-                                                >
-                                                    <v-img
-                                                        :src="image.src || image.dataRmSrc"
-                                                        cover
-                                                    ></v-img>
-                                                </v-avatar>
-                                            </template>
+                                            <v-list-item
+                                                v-for="(image, index) in images"
+                                                :key="`image-${index}`"
+                                                :title="image.alt || 'Sem descrição'"
+                                                :subtitle="imageSubtitle(image)"
+                                                :class="{ 'opacity-50': !image.src }"
+                                            >
+                                                <template #prepend>
+                                                    <v-avatar
+                                                        rounded="lg"
+                                                        size="48"
+                                                        class="cursor-pointer"
+                                                        @click.prevent="openImageViewer(image)"
+                                                    >
+                                                        <v-img
+                                                            :src="image.src || image.dataRmSrc"
+                                                            cover
+                                                        ></v-img>
+                                                    </v-avatar>
+                                                </template>
 
-                                            <template #append>
-                                                <v-btn
-                                                    size="small"
-                                                    icon="mdi-pencil"
-                                                    variant="tonal"
-                                                    color="primary"
-                                                    class="rounded"
-                                                    @click.prevent="openImageEditDialog(image)"
-                                                ></v-btn>
+                                                <template #append>
+                                                    <v-btn
+                                                        size="small"
+                                                        icon="mdi-pencil"
+                                                        variant="tonal"
+                                                        color="primary"
+                                                        class="rounded"
+                                                        @click.prevent="openImageEditDialog(image)"
+                                                    ></v-btn>
 
-                                                <v-btn
-                                                    v-if="!!image.src"
-                                                    size="small"
-                                                    icon="mdi-delete"
-                                                    variant="tonal"
-                                                    color="error"
-                                                    class="rounded ms-2"
-                                                    @click.prevent="handleDeleteImage(image)"
-                                                ></v-btn>
+                                                    <v-btn
+                                                        v-if="!!image.src"
+                                                        size="small"
+                                                        icon="mdi-delete"
+                                                        variant="tonal"
+                                                        color="error"
+                                                        class="rounded ms-2"
+                                                        @click.prevent="handleDeleteImage(image)"
+                                                    ></v-btn>
 
-                                                <v-btn
-                                                    v-else-if="!!image.dataRmSrc"
-                                                    size="small"
-                                                    icon="mdi-restore"
-                                                    variant="tonal"
-                                                    color="success"
-                                                    class="rounded ms-2"
-                                                    @click.prevent="handleRestoreImage(image)"
-                                                ></v-btn>
-                                            </template>
-                                        </v-list-item>
-                                    </v-list>
+                                                    <v-btn
+                                                        v-else-if="!!image.dataRmSrc"
+                                                        size="small"
+                                                        icon="mdi-restore"
+                                                        variant="tonal"
+                                                        color="success"
+                                                        class="rounded ms-2"
+                                                        @click.prevent="handleRestoreImage(image)"
+                                                    ></v-btn>
+                                                </template>
+                                            </v-list-item>
+                                        </v-list>
+                                    </div>
                                 </v-tabs-window-item>
                             </v-tabs-window>
                         </div>
@@ -485,6 +529,12 @@
                 return true;
             });
     });
+
+    const hasActiveLinks = computed(() => links.value.some(link => !!link.href));
+    const hasDeletedLinks = computed(() => links.value.some(link => !!link.dataRmHref && !link.href));
+
+    const hasActiveImages = computed(() => images.value.some(image => !!image.src));
+    const hasDeletedImages = computed(() => images.value.some(image => !!image.dataRmSrc && !image.src));
 
     function imageSubtitle(image) {
         const url = image.src || image.dataRmSrc;
@@ -733,6 +783,12 @@
         form.value.content = div.innerHTML;
     }
 
+    function handleDeleteAllLinks() {
+        links.value
+            .filter(link => !!link.href)
+            .forEach(link => handleDeleteLink(link));
+    }
+
     function handleRestoreLink(link) {
         const div = document.createElement("div");
 
@@ -749,6 +805,12 @@
         });
 
         form.value.content = div.innerHTML;
+    }
+
+    function handleRestoreAllLinks() {
+        links.value
+            .filter(link => !!link.dataRmHref && !link.href)
+            .forEach(link => handleRestoreLink(link));
     }
 
     function handleDeleteImage(image) {
@@ -769,6 +831,12 @@
         form.value.content = div.innerHTML;
     }
 
+    function handleDeleteAllImages() {
+        images.value
+            .filter(image => !!image.src)
+            .forEach(image => handleDeleteImage(image));
+    }
+
     function handleRestoreImage(image) {
         const div = document.createElement("div");
 
@@ -785,6 +853,12 @@
         });
 
         form.value.content = div.innerHTML;
+    }
+
+    function handleRestoreAllImages() {
+        images.value
+            .filter(image => !!image.dataRmSrc && !image.src)
+            .forEach(image => handleRestoreImage(image));
     }
 
     function openImageViewer(image) {
