@@ -89,11 +89,13 @@ class PostController extends Controller
             ]);
 
         if( $is_system_admin ) {
-            $query->addSelect([
-                "deleted_at",
-            ]);
+            if( $request->boolean("trashed") ) {
+                $query->addSelect([
+                    "deleted_at",
+                ]);
 
-            $query->withTrashed();
+                $query->withTrashed();
+            }
 
             if( $request->has("id") ) {
                 $query->where("id", $request->integer("id"));
