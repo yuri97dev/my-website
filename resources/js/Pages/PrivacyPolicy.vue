@@ -1,12 +1,10 @@
 <template>
     <Container title="Política de Privacidade" centered>
         <v-card class="w-100" style="max-width: 800px">
-            <v-card-title class="text-center text-primary">
-                Política de Privacidade
-            </v-card-title>
-
             <v-card-text>
-                <div class="text-center">
+                <h1 class="text-primary">Política de Privacidade</h1>
+
+                <div>
                     <p>Esta Política de Privacidade descreve como coletamos, usamos, armazenamos e protegemos seus dados pessoais, em conformidade com a LGPD (Lei nº 13.709/2018).</p>
                 </div>
 

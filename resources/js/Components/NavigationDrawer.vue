@@ -38,16 +38,6 @@
                 color="primary"
                 @click.prevent="goTo(link.href)"
             ></v-list-item>
-
-            <v-list-item
-                v-if="isAuthenticated"
-                prepend-icon="mdi-storefront-outline"
-                title="SGC (Beta)"
-                :href="route('tools.sgc')"
-                :active="isSgcRoute()"
-                color="primary"
-                @click.prevent="goTo(route('tools.sgc'))"
-            ></v-list-item>
         </v-list>
     </v-navigation-drawer>
 </template>
@@ -59,14 +49,12 @@
     import AppBrand from "@/Components/AppBrand.vue";
 
     import { goTo } from "@/Utils/Common";
-    import { isSgcRoute } from "@/Data/sgc";
     import { tools } from "@/Data/tools";
 
     const drawer = defineModel();
     const page = usePage();
 
     const isAdmin = computed(() => page.props?.auth?.isSysAdmin);
-    const isAuthenticated = computed(() => !!page.props?.auth?.user);
 
     const links = computed(() => [
         {
@@ -76,15 +64,20 @@
             href: route("blog.index"),
             active: route().current("blog.index"),
         },
-        ...tools
-            .filter(tool => tool.key !== "sgc")
-            .map(tool => ({
-                key: tool.key,
-                icon: tool.icon,
-                text: tool.title,
-                href: tool.href,
-                active: route().current(`tools.${tool.key}*`),
-            })),
+        ...tools.map(tool => ({
+            key: tool.key,
+            icon: tool.icon,
+            text: tool.title,
+            href: tool.href,
+            active: route().current(`tools.${tool.key}*`),
+        })),
+        {
+            key: "about",
+            icon: "mdi-information-outline",
+            text: "Sobre",
+            href: route("about"),
+            active: route().current("about"),
+        },
     ]);
 
     const adminLinks = computed(() => [

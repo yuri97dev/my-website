@@ -1,12 +1,10 @@
 <template>
     <Container title="Termos de Uso" centered>
         <v-card style="width: 100%; max-width: 800px">
-            <v-card-title class="text-center text-primary">
-                Termos de Uso
-            </v-card-title>
-
             <v-card-text>
-                <div class="text-center">
+                <h1 class="text-primary">Termos de Uso</h1>
+
+                <div>
                     <p>Bem-vindo ao {{ appName }}. Ao utilizar os serviços e ferramentas disponíveis na plataforma, você concorda com estes Termos de Uso, em conformidade com a LGPD (Lei nº 13.709/2018).</p>
                 </div>
 

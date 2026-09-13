@@ -27,7 +27,11 @@ class AuthController extends Controller
             }
 
             $request->session()->regenerate();
-            return response()->json([ "message"=> "Login successful" ], 200);
+
+            return response()->json([
+                "message" => "Login successful",
+                "redirect" => redirect()->intended(route("home"))->getTargetUrl(),
+            ], 200);
         }
 
         return response()->json([ "message"=> "Credenciais inválidas" ], 401);
@@ -51,7 +55,10 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return response()->json([ "message"=> "Usuário registrado com sucesso" ], 201);
+        return response()->json([
+            "message" => "Usuário registrado com sucesso",
+            "redirect" => redirect()->intended(route("home"))->getTargetUrl(),
+        ], 201);
     }
 
     public function logout(Request $request)

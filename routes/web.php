@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 Route::get("/robots.txt", RobotsController::class)->name("robots");
 
 Route::inertia("/", "Home")->name("home");
+Route::inertia("/about", "About")->name("about");
 Route::inertia("/tools", "Tools/Index")->name("tools");
 Route::inertia("/login", "Login")->name("login");
 Route::inertia("/register", "Register")->name("register");

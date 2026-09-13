@@ -17,7 +17,7 @@ export const tools = [
     },
     {
         key: "sgc",
-        title: "SGC",
+        title: "SGC (Beta)",
         subtitle: "Sistema de gestão comercial",
         icon: "mdi-storefront-outline",
         get href() {

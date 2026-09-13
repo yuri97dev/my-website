@@ -102,8 +102,8 @@
         loading.value = true;
 
         try {
-            await api.post("/api/auth/login", form);
-            goTo(route("home"));
+            const { data } = await api.post("/api/auth/login", form);
+            goTo(data.redirect || route("home"));
         } catch (e) {
             const { message, errors: responseErrors } = e.response.data;
             errors.value = responseErrors || {};
