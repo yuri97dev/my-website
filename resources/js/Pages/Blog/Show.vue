@@ -48,6 +48,10 @@
                 @click="handleContentClick"
                 v-html="post.content"
             ></div>
+
+            <v-divider></v-divider>
+
+            <SocialLinks></SocialLinks>
         </div>
 
         <v-fab
@@ -98,6 +102,7 @@
     import Container from "@/Components/Container.vue";
     import Breadcrumb from "@/Components/Breadcrumb.vue";
     import ImageViewerDialog from "@/Components/ImageViewerDialog.vue";
+    import SocialLinks from "@/Components/SocialLinks.vue";
 
     import { formatDate } from "@/Utils/Common";
     import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
