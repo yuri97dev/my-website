@@ -518,7 +518,7 @@
             const mappedScrapedArticles = data.scraped_articles.map(sa => ({
                 ...sa,
                 finalTitle: sa.translated_title || sa.title || "",
-                assistant_processing: String(sa.processing_by) === "0",
+                assistant_processing: sa.processing_by !== null && Number(sa.processing_by) === 0,
                 assistant_processed: sa.post?.author_id === data.assistant_author_id,
             }));
 

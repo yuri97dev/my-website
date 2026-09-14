@@ -62,7 +62,8 @@ class ScrapedArticle extends Model
 
     public function isProcessedByAssistant(): bool
     {
-        return (int) $this->processing_by === User::ASSISTANT_ID;
+        return $this->processing_by !== null
+            && (int) $this->processing_by === User::ASSISTANT_ID;
     }
 
     public function processor(): BelongsTo
