@@ -5,7 +5,7 @@
         color="primary"
         class="w-100"
         show-arrows
-        :grow="mdAndDown && list.length > 1"
+        :grow="grow"
         v-model="active"
     >
         <v-tab
@@ -21,6 +21,7 @@
 </template>
 
 <script setup>
+    import { ref, computed, onMounted } from "vue";
     import { useDisplay } from "vuetify";
 
     import { useTabs } from "@/Composables/useTabs";
@@ -28,6 +29,12 @@
 
     const { list, active } = useTabs();
     const { mdAndDown } = useDisplay();
+
+    const isMounted = ref(false);
+
+    const grow = computed(() => {
+        return isMounted.value && mdAndDown.value && list.value.length > 1;
+    });
 
     function selectTab(tab) {
         if( tab.href ) {
@@ -37,4 +44,8 @@
 
         active.value = tab.id;
     }
+
+    onMounted(() => {
+        isMounted.value = true;
+    });
 </script>

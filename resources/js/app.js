@@ -13,7 +13,7 @@ createInertiaApp({
         globalThis.Ziggy = ziggy;
         globalThis.route = route;
 
-        app.use(createVuetify(page.props.theme));
+        app.use(createVuetify(page.props.theme ?? "light"));
         app.use(ZiggyVue, ziggy);
     },
 }).then(() => {

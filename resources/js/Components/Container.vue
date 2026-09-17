@@ -7,7 +7,7 @@
         <v-app-bar
             elevation="0"
             class="border-b"
-            :extended="extended"
+            :extended="showAppBarExtension"
         >
             <v-app-bar-nav-icon
                 variant="text"
@@ -34,7 +34,10 @@
 
             <AuthMenu />
 
-            <template #extension>
+            <template
+                v-if="showAppBarExtension"
+                #extension
+            >
                 <slot name="app-bar-extension">
                     <AppBarTabs />
                 </slot>
@@ -64,7 +67,7 @@
 </template>
 
 <script setup>
-    import { ref, computed, watch, onMounted, nextTick, useSlots } from "vue";
+    import { ref, computed, onMounted, useSlots } from "vue";
 
     import { usePage, Head } from "@inertiajs/vue3";
     import { useTheme, useDisplay } from "vuetify";
@@ -75,6 +78,7 @@
 
     import { useTabs } from "@/Composables/useTabs";
     import { goTo } from "@/Utils/Common";
+    import { setThemeCookie } from "@/Utils/Theme";
 
     const { list } = useTabs();
     const slots = useSlots();
@@ -82,8 +86,6 @@
     const showAppBarExtension = computed(() => {
         return "app-bar-extension" in slots || list.value.length > 0;
     });
-
-    const extended = ref(showAppBarExtension.value);
 
     const props = defineProps({
         centered: Boolean,
@@ -108,37 +110,20 @@
         {
             icon: "mdi-theme-light-dark",
             text: "Alternar Tema",
-            onClick: () => theme.toggle(),
+            onClick: () => {
+                theme.toggle();
+                setThemeCookie(theme.global.current.value.dark ? "dark" : "light");
+            },
         },
     ]);
 
-    watch(theme.name, (newTheme) => {
-        if( typeof document === "undefined" ) return;
-        document.cookie = `theme=${newTheme};path=/;max-age=31536000;SameSite=Lax`;
-    });
-
-    watch(showAppBarExtension, (value) => {
-        if( !value ) {
-            extended.value = false;
-            return;
-        }
-
-        if( !extended.value ) {
-            nextTick(() => {
-                extended.value = true;
-            });
-        }
-    });
-
     onMounted(() => {
+        if( page.props.themePreference === "system" ) {
+            theme.change("system");
+        }
+
         if( lgAndUp.value ) {
             drawer.value = true;
-        }
-
-        if( !extended.value && showAppBarExtension.value ) {
-            nextTick(() => {
-                extended.value = true;
-            });
         }
     });
 </script>

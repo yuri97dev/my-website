@@ -38,13 +38,16 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $theme = $request->cookie("theme");
+        $theme_preference = $request->cookie("theme");
+
+        $theme_preference = in_array($theme_preference, ["light", "dark", "system"], true)
+            ? $theme_preference
+            : "light";
 
         return array_merge(parent::share($request), [
             "appName" => config("app.name"),
-            "theme" => in_array($theme, ["light", "dark", "system"], true)
-                ? $theme
-                : "system",
+            "themePreference" => $theme_preference,
+            "theme" => $this->resolveThemeForRendering($request, $theme_preference),
             "flash" => fn () => [
                 "success" => $request->hasSession()
                     ? $request->session()->get("success")
@@ -70,5 +73,23 @@ class HandleInertiaRequests extends Middleware
                 "location" => $request->fullUrl(),
             ],
         ]);
+    }
+
+    /**
+     * Vuetify SSR cannot resolve "system". Always return a concrete theme.
+     */
+    private function resolveThemeForRendering(Request $request, string $preference): string
+    {
+        if( $preference === "dark" ) {
+            return "dark";
+        }
+
+        if( $preference === "system" ) {
+            return strtolower((string) $request->header("Sec-CH-Prefers-Color-Scheme", "")) === "dark"
+                ? "dark"
+                : "light";
+        }
+
+        return "light";
     }
 }
