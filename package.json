@@ -4,6 +4,7 @@
     "type": "module",
     "scripts": {
         "build": "vite build && vite build --ssr",
+        "postbuild": "echo '\\n>>> Reinicie o SSR apos o build: docker compose restart ssr\\n'",
         "dev": "vite"
     },
     "devDependencies": {

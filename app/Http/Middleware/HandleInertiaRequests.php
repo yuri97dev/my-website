@@ -48,6 +48,7 @@ class HandleInertiaRequests extends Middleware
             "appName" => config("app.name"),
             "themePreference" => $theme_preference,
             "theme" => $this->resolveThemeForRendering($request, $theme_preference),
+            "ssrViewport" => $this->resolveSsrViewport($request),
             "flash" => fn () => [
                 "success" => $request->hasSession()
                     ? $request->session()->get("success")
@@ -91,5 +92,37 @@ class HandleInertiaRequests extends Middleware
         }
 
         return "light";
+    }
+
+    /**
+     * Vuetify uses this viewport on SSR and on the client's first render
+     * so both produce the same layout before display.update() runs.
+     *
+     * @return array{clientWidth: int, clientHeight: int}
+     */
+    private function resolveSsrViewport(Request $request): array
+    {
+        $width = (int) $request->header("Sec-CH-Viewport-Width", 0);
+        $height = (int) $request->header("Sec-CH-Viewport-Height", 0);
+
+        if( $width > 0 ) return [
+            "clientWidth" => $width,
+            "clientHeight" => $height > 0 ? $height : 800,
+        ];
+
+        $user_agent = strtolower($request->userAgent() ?? "");
+
+        if(
+            preg_match("/mobile|android|iphone|ipod/i", $user_agent)
+            && ! preg_match("/ipad|tablet/i", $user_agent)
+        ) return [
+            "clientWidth" => 390,
+            "clientHeight" => 844,
+        ];
+
+        return [
+            "clientWidth" => 1280,
+            "clientHeight" => 800,
+        ];
     }
 }

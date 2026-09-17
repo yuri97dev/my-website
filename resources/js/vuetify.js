@@ -6,9 +6,17 @@ import { resolveVuetifyTheme } from "@/Utils/Theme";
 import "vuetify/styles";
 import "@mdi/font/css/materialdesignicons.css";
 
-export default function createVuetifyInstance(defaultTheme = "light") {
+const defaultSsrViewport = {
+    clientWidth: 1280,
+    clientHeight: 800,
+};
+
+export default function createVuetifyInstance(
+    defaultTheme = "light",
+    ssrViewport = defaultSsrViewport,
+) {
     return createVuetify({
-        ssr: true,
+        ssr: ssrViewport,
         theme: {
             defaultTheme: resolveVuetifyTheme(defaultTheme),
             themes: {
