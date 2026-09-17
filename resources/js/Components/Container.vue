@@ -118,10 +118,6 @@
     ]);
 
     onMounted(() => {
-        if( page.props.themePreference === "system" ) {
-            theme.change("system");
-        }
-
         if( lgAndUp.value ) {
             drawer.value = true;
         }

@@ -1,15 +1,17 @@
-import { ref, computed } from "vue";
+import { ref, computed, inject } from "vue";
 
-let nextSeq = 1;
+export const TabsKey = Symbol("tabs");
 
-const tabs = ref({});
-const active = ref(null);
+export function createTabsStore() {
+    let nextSeq = 1;
 
-const list = computed(() => {
-    return Object.values(tabs.value).sort((a, b) => a.seq - b.seq);
-});
+    const tabs = ref({});
+    const active = ref(null);
 
-export function useTabs() {
+    const list = computed(() => {
+        return Object.values(tabs.value).sort((a, b) => a.seq - b.seq);
+    });
+
     function open({ id, title, icon, href, seq, payload, openTab = true } = {}) {
         if( list.value.length === 0 ) {
             nextSeq = 1;
@@ -94,4 +96,14 @@ export function useTabs() {
         clear,
         sync,
     };
+}
+
+export function useTabs() {
+    const store = inject(TabsKey);
+
+    if( !store ) {
+        throw new Error("useTabs() must be used within an app that provides TabsKey");
+    }
+
+    return store;
 }

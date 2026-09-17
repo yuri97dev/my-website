@@ -1,24 +1,14 @@
 import { createVuetify } from "vuetify";
 import { blueGrey } from "vuetify/util/colors";
 
-import { resolveVuetifyTheme } from "@/Utils/Theme";
-
 import "vuetify/styles";
 import "@mdi/font/css/materialdesignicons.css";
 
-const defaultSsrViewport = {
-    clientWidth: 1280,
-    clientHeight: 800,
-};
-
-export default function createVuetifyInstance(
-    defaultTheme = "light",
-    ssrViewport = defaultSsrViewport,
-) {
+export default function createVuetifyInstance(defaultTheme = "light") {
     return createVuetify({
-        ssr: ssrViewport,
+        ssr: true,
         theme: {
-            defaultTheme: resolveVuetifyTheme(defaultTheme),
+            defaultTheme: defaultTheme === "dark" ? "dark" : "light",
             themes: {
                 light: {
                     colors: {
@@ -68,6 +58,10 @@ export default function createVuetifyInstance(
             },
             VCard: {
                 rounded: "lg",
+            },
+            VProgressLinear: {
+                bgOpacity: 1,
+                bufferOpacity: 1,
             },
             VTabsWindow: {
                 crossfade: true,

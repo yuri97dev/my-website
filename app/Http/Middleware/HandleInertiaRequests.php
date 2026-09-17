@@ -38,17 +38,11 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $theme_preference = $request->cookie("theme");
-
-        $theme_preference = in_array($theme_preference, ["light", "dark", "system"], true)
-            ? $theme_preference
-            : "light";
+        $theme = $request->cookie("theme") === "dark" ? "dark" : "light";
 
         return array_merge(parent::share($request), [
             "appName" => config("app.name"),
-            "themePreference" => $theme_preference,
-            "theme" => $this->resolveThemeForRendering($request, $theme_preference),
-            "ssrViewport" => $this->resolveSsrViewport($request),
+            "theme" => $theme,
             "flash" => fn () => [
                 "success" => $request->hasSession()
                     ? $request->session()->get("success")
@@ -74,55 +68,5 @@ class HandleInertiaRequests extends Middleware
                 "location" => $request->fullUrl(),
             ],
         ]);
-    }
-
-    /**
-     * Vuetify SSR cannot resolve "system". Always return a concrete theme.
-     */
-    private function resolveThemeForRendering(Request $request, string $preference): string
-    {
-        if( $preference === "dark" ) {
-            return "dark";
-        }
-
-        if( $preference === "system" ) {
-            return strtolower((string) $request->header("Sec-CH-Prefers-Color-Scheme", "")) === "dark"
-                ? "dark"
-                : "light";
-        }
-
-        return "light";
-    }
-
-    /**
-     * Vuetify uses this viewport on SSR and on the client's first render
-     * so both produce the same layout before display.update() runs.
-     *
-     * @return array{clientWidth: int, clientHeight: int}
-     */
-    private function resolveSsrViewport(Request $request): array
-    {
-        $width = (int) $request->header("Sec-CH-Viewport-Width", 0);
-        $height = (int) $request->header("Sec-CH-Viewport-Height", 0);
-
-        if( $width > 0 ) return [
-            "clientWidth" => $width,
-            "clientHeight" => $height > 0 ? $height : 800,
-        ];
-
-        $user_agent = strtolower($request->userAgent() ?? "");
-
-        if(
-            preg_match("/mobile|android|iphone|ipod/i", $user_agent)
-            && ! preg_match("/ipad|tablet/i", $user_agent)
-        ) return [
-            "clientWidth" => 390,
-            "clientHeight" => 844,
-        ];
-
-        return [
-            "clientWidth" => 1280,
-            "clientHeight" => 800,
-        ];
     }
 }

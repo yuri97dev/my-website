@@ -1,8 +1,11 @@
 import { router } from "@inertiajs/vue3";
+import { TZDate } from "@date-fns/tz";
 import { format as formatDateFns, isValid } from "date-fns";
 
 const KB = 1024;
 const MB = KB * 1024;
+
+const TIMEZONE = "America/Manaus";
 
 function formatValue(value) {
     if( value >= 10 || Number.isInteger(value) ) {
@@ -13,7 +16,7 @@ function formatValue(value) {
 }
 
 function normalizeDateString(value) {
-    if( value.includes("T") || value.includes("Z") ) {
+    if( /(?:Z|[+-]\d{2}:?\d{2})$/.test(value) ) {
         return value;
     }
 
@@ -60,7 +63,7 @@ export function formatDate(value, pattern, fallback = "") {
         return fallback;
     }
 
-    return formatDateFns(date, pattern);
+    return formatDateFns(new TZDate(date, TIMEZONE), pattern);
 }
 
 export function formatBytes(bytes) {

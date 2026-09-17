@@ -1,6 +1,8 @@
 import { createInertiaApp } from "@inertiajs/vue3";
 import { route, ZiggyVue } from "ziggy-js";
 
+import { createTabsStore, TabsKey } from "@/Composables/useTabs";
+
 import createVuetify from "./vuetify";
 
 createInertiaApp({
@@ -13,11 +15,9 @@ createInertiaApp({
         globalThis.Ziggy = ziggy;
         globalThis.route = route;
 
-        app.use(createVuetify(
-            page.props.theme ?? "light",
-            page.props.ssrViewport,
-        ));
+        app.provide(TabsKey, createTabsStore());
 
+        app.use(createVuetify(page.props.theme ?? "light"));
         app.use(ZiggyVue, ziggy);
     },
 }).then(() => {

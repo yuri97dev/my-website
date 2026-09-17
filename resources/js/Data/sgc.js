@@ -4,8 +4,6 @@ import { route } from "ziggy-js";
 
 import { useTabs } from "@/Composables/useTabs";
 
-let leaveWatchRegistered = false;
-
 export const sgcSections = [
     {
         key: "companies",
@@ -112,17 +110,13 @@ export function registerSgcTabs() {
 
     sync(items, activeId);
 
-    if( !leaveWatchRegistered ) {
-        leaveWatchRegistered = true;
+    const page = usePage();
 
-        const page = usePage();
-
-        watch(() => page.url, () => {
-            if( !isSgcRoute() ) {
-                clear();
-            }
-        });
-    }
+    watch(() => page.url, () => {
+        if( !isSgcRoute() ) {
+            clear();
+        }
+    });
 
     onUnmounted(() => {
         if( !isSgcRoute() ) {
