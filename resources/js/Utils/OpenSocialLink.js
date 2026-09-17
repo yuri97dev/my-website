@@ -24,6 +24,11 @@ const PLATFORMS = {
         app: "linkedin://in/yuri97dev",
         androidIntent: "intent://www.linkedin.com/in/yuri97dev/#Intent;package=com.linkedin.android;scheme=https;S.browser_fallback_url=https%3A%2F%2Fwww.linkedin.com%2Fin%2Fyuri97dev%2F;end",
     },
+    discord: {
+        web: "https://discord.gg/eZDhMnzr4b",
+        app: "discord://discord.com/invite/eZDhMnzr4b",
+        androidIntent: "intent://discord.com/invite/eZDhMnzr4b#Intent;package=com.discord;scheme=https;S.browser_fallback_url=https%3A%2F%2Fdiscord.gg%2FeZDhMnzr4b;end",
+    },
 };
 
 export const SOCIAL_ITEMS = [
@@ -32,6 +37,7 @@ export const SOCIAL_ITEMS = [
     { platform: "x", label: "X", icon: "mdi-twitter" },
     { platform: "youtube", label: "YouTube", icon: "mdi-youtube" },
     { platform: "linkedin", label: "LinkedIn", icon: "mdi-linkedin" },
+    { platform: "discord", label: "Discord" },
 ];
 
 function isMobile() {

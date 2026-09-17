@@ -20,7 +20,14 @@
                 target="_blank"
                 rel="noopener noreferrer"
                 @click="handleSocialClick($event, item.platform)"
-            ></v-btn>
+            >
+                <template v-if="brandIcons[item.platform]" #prepend>
+                    <component
+                        :is="brandIcons[item.platform]"
+                        size="18"
+                    />
+                </template>
+            </v-btn>
         </div>
 
         <div class="d-flex align-center ga-2 text-grey">
@@ -35,7 +42,13 @@
 </template>
 
 <script setup>
+    import { DiscordIcon } from "vue3-simple-icons";
+
     import { SOCIAL_ITEMS, getSocialWebUrl, handleSocialClick } from "@/Utils/OpenSocialLink";
 
     const socialItems = SOCIAL_ITEMS;
+
+    const brandIcons = {
+        discord: DiscordIcon,
+    };
 </script>

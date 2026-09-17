@@ -30,6 +30,7 @@
         "vue": "^3.5.35",
         "vue-advanced-cropper": "^2.8.9",
         "vue-qrcode-reader": "^5.7.3",
+        "vue3-simple-icons": "^16.10.0",
         "vuetify": "^4.0.8"
     }
 }
