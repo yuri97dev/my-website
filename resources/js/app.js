@@ -5,7 +5,10 @@ import { createTabsStore, TabsKey } from "@/Composables/useTabs";
 
 import createVuetify from "./vuetify";
 
+import DefaultLayout from "@/Layouts/Default.vue";
+
 createInertiaApp({
+    layout: () => DefaultLayout,
     withApp(app, { page }) {
         const ziggy = {
             ...page.props.ziggy,
