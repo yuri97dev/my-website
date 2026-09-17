@@ -14,7 +14,7 @@ class UserController extends Controller
 
         $paginator = User::query()
             ->with("roles:id,slug,name")
-            ->orderByDesc("created_at")
+            ->orderByDesc("id")
             ->paginate($per_page);
 
         return response()->json([
