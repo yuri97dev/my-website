@@ -19,13 +19,13 @@ a {
 }
 
 .v-application__wrap {
-    backface-visibility: visible;
+    backface-visibility: visible !important;
 }
 
 .v-app-bar,
 .v-navigation-drawer,
 .v-fab {
-    user-select: none;
+    user-select: none !important;
 }
 
 .swal2-container {
