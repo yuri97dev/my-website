@@ -175,6 +175,10 @@
     ].filter(Boolean));
 
     function handleContentClick(e) {
+        if( window.getSelection()?.toString() ) {
+            return;
+        }
+
         const spoiler = e.target.closest(".post-spoiler");
 
         if( spoiler ) {

@@ -22,6 +22,12 @@ a {
     backface-visibility: visible;
 }
 
+.v-app-bar,
+.v-navigation-drawer,
+.v-fab {
+    user-select: none;
+}
+
 .swal2-container {
     z-index: 9999 !important;
 }

@@ -1,5 +1,8 @@
 <template>
-    <v-navigation-drawer v-model="drawer">
+    <v-navigation-drawer
+        touchless
+        v-model="drawer"
+    >
         <template #prepend>
             <AppBrand />
         </template>
