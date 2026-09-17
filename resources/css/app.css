@@ -18,6 +18,10 @@ a {
     text-decoration: none;
 }
 
+.v-application__wrap {
+    backface-visibility: visible;
+}
+
 .swal2-container {
     z-index: 9999 !important;
 }

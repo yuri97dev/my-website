@@ -45,7 +45,7 @@
         </v-app-bar>
 
         <v-main>
-            <v-container class="h-100">
+            <v-container :class="{ 'h-100': centered || gapped }">
                 <div
                     v-if="centered"
                     class="d-flex flex-column align-center justify-center w-100 h-100"
