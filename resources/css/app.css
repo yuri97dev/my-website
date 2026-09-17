@@ -18,14 +18,15 @@ a {
     text-decoration: none;
 }
 
+.v-application,
 .v-application__wrap {
+    -webkit-backface-visibility: visible !important;
     backface-visibility: visible !important;
 }
 
 .v-app-bar,
-.v-navigation-drawer,
-.v-fab {
-    user-select: none !important;
+.v-navigation-drawer--active {
+    transform: none !important;
 }
 
 .swal2-container {
