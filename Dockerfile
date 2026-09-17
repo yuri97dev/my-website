@@ -47,6 +47,8 @@ RUN usermod -u "${USER_ID}" www-data \
 
 WORKDIR /var/www/html
 
+USER www-data
+
 EXPOSE 9000
 
 CMD ["php-fpm"]

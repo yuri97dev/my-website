@@ -5,4 +5,5 @@
 #   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --build --wait
 services:
   ollama-server:
+    image: ollama/ollama:0.12.0
     gpus: all
