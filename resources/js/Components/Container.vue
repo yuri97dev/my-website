@@ -1,15 +1,13 @@
 <template>
-    <NavigationDrawer v-model="drawer" />
-
     <v-app-bar
         elevation="0"
         class="border-b"
         :extended="showAppBarExtension"
     >
-        <v-app-bar-nav-icon
+        <!-- <v-app-bar-nav-icon
             variant="text"
             @click.stop="drawer = !drawer"
-        ></v-app-bar-nav-icon>
+        ></v-app-bar-nav-icon> -->
 
         <v-app-bar-title
             tag="a"
@@ -66,11 +64,10 @@
     import { ref, computed, onMounted, useSlots } from "vue";
 
     import { usePage } from "@inertiajs/vue3";
-    import { useTheme, useDisplay } from "vuetify";
+    import { useTheme } from "vuetify";
 
     import AppBarTabs from "@/Components/AppBarTabs.vue";
     import AuthMenu from "@/Components/AuthMenu.vue";
-    import NavigationDrawer from "@/Components/NavigationDrawer.vue";
 
     import { useTabs } from "@/Composables/useTabs";
     import { goTo } from "@/Utils/Common";
@@ -91,9 +88,6 @@
 
     const page = usePage();
     const theme = useTheme();
-    const { lgAndUp } = useDisplay();
-
-    const drawer = ref(false);
 
     const appName = computed(() => page.props.appName);
 
@@ -107,10 +101,4 @@
             },
         },
     ]);
-
-    onMounted(() => {
-        if( lgAndUp.value ) {
-            drawer.value = true;
-        }
-    });
 </script>
