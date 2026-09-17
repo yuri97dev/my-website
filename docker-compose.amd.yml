@@ -4,7 +4,7 @@
 #   docker compose -f docker-compose.yml -f docker-compose.amd.yml up -d --build --wait
 services:
   ollama-server:
-    image: ollama/ollama:0.12.0-rocm
+    image: ollama/ollama:0.33.3-rocm
     devices:
       - /dev/kfd
       - /dev/dri
