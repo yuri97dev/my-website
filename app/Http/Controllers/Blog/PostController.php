@@ -45,9 +45,9 @@ class PostController extends Controller
 
         $post = $query->firstOrFail();
 
-        if( $post->category->slug !== $category ) {
+        /* if( $post->category->slug !== $category ) {
             abort(404);
-        }
+        } */
 
         Meta::set([
             "title" => $post->title,
