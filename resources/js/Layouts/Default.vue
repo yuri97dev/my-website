@@ -1,10 +1,10 @@
 <template>
     <v-app>
-        <NavigationDrawer v-model="drawer" />
+        <NavigationDrawer class="user-select-none" v-model="drawer" />
 
         <v-app-bar
             elevation="0"
-            class="border-b"
+            class="border-b user-select-none"
             :extended="showAppBarExtension"
         >
             <v-app-bar-nav-icon

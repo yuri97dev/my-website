@@ -5,6 +5,10 @@
     --thumbnail-height: 256px;
 }
 
+.user-select-none {
+    user-select: none;
+}
+
 .v-row--density-default {
     --v-col-gap-x: 16px !important;
     --v-col-gap-y: 16px !important;
