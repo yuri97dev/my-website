@@ -78,6 +78,15 @@
                 </v-btn>
 
                 <v-btn
+                    key="copy-html"
+                    color="info"
+                    icon
+                    @click="handleCopyHtmlClick"
+                >
+                    <v-icon size="24">mdi-content-copy</v-icon>
+                </v-btn>
+
+                <v-btn
                     key="delete"
                     color="error"
                     icon
@@ -104,7 +113,7 @@
     import ImageViewerDialog from "@/Components/ImageViewerDialog.vue";
     import SocialLinks from "@/Components/SocialLinks.vue";
 
-    import { formatDate } from "@/Utils/Common";
+    import { formatDate, copyText } from "@/Utils/Common";
     import { alertError, confirmDelete, toastSuccess } from "@/Utils/Alert";
 
     import api from "@/api";
@@ -200,6 +209,21 @@
 
     function handleEditClick() {
         window.open(editUrl.value, "_blank");
+    }
+
+    async function handleCopyHtmlClick() {
+        const { title: postTitle, content: postContent } = props.post || {};
+
+        const content = [ `<h1>${postTitle}</h1>`, postContent ]
+            .filter(Boolean).join("\n\n");
+
+        const { success, error } = await copyText(content);
+
+        if( !success ) {
+            alertError("Ooops", error || "Erro ao copiar HTML");
+        } else {
+            toastSuccess("HTML copiado com sucesso");
+        }
     }
 
     async function handleDeleteClick() {
