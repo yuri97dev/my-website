@@ -59,88 +59,96 @@
 
     const isAdmin = computed(() => page.props?.auth?.isSysAdmin);
 
-    const links = computed(() => [
-        {
-            key: "blog",
-            icon: "mdi-newspaper",
-            text: "Blog",
-            href: route("blog.index"),
-            active: route().current("blog.index"),
-        },
-        ...tools.map(tool => ({
-            key: tool.key,
-            icon: tool.icon,
-            text: tool.title,
-            href: tool.href,
-            active: route().current(`tools.${tool.key}*`),
-        })),
-        {
-            key: "about",
-            icon: "mdi-information-outline",
-            text: "Sobre",
-            href: route("about"),
-            active: route().current("about"),
-        },
-    ]);
+    const links = computed(() => {
+        page.url
 
-    const adminLinks = computed(() => [
-        {
-            key: "blog-posts",
-            icon: "mdi-file-document",
-            text: "Posts",
-            href: route("admin.blog.posts"),
-            active: route().current("admin.blog.posts"),
-        },
-        {
-            key: "blog-article-sources",
-            icon: "mdi-web",
-            text: "Fontes de Artigos",
-            href: route("admin.blog.article-sources"),
-            active: route().current("admin.blog.article-sources"),
-        },
-        {
-            key: "ai-providers",
-            icon: "mdi-robot",
-            text: "Provedores de IA",
-            href: route("admin.ai-providers"),
-            active: route().current("admin.ai-providers"),
-        },
-        {
-            key: "scrape-http-profiles",
-            icon: "mdi-web-box",
-            text: "Perfis HTTP",
-            href: route("admin.scrape-http-profiles"),
-            active: route().current("admin.scrape-http-profiles"),
-        },
-        {
-            key: "sessions",
-            icon: "mdi-monitor-account",
-            text: "Sessões",
-            href: route("admin.sessions"),
-            active: route().current("admin.sessions"),
-        },
-        {
-            key: "users",
-            icon: "mdi-account-group",
-            text: "Usuários",
-            href: route("admin.users"),
-            active: route().current("admin.users"),
-        },
-        {
-            key: "jobs",
-            icon: "mdi-progress-clock",
-            text: "Jobs",
-            href: route("admin.jobs"),
-            active: route().current("admin.jobs"),
-        },
-        {
-            key: "logs",
-            icon: "mdi-file-document",
-            text: "Logs",
-            href: route("admin.logs"),
-            active: route().current("admin.logs"),
-        },
-    ]);
+        return [
+            {
+                key: "blog",
+                icon: "mdi-newspaper",
+                text: "Blog",
+                href: route("blog.index"),
+                active: route().current("blog.index"),
+            },
+            ...tools.map(tool => ({
+                key: tool.key,
+                icon: tool.icon,
+                text: tool.title,
+                href: tool.href,
+                active: route().current(`tools.${tool.key}*`),
+            })),
+            {
+                key: "about",
+                icon: "mdi-information-outline",
+                text: "Sobre",
+                href: route("about"),
+                active: route().current("about"),
+            },
+        ];
+    });
+
+    const adminLinks = computed(() => {
+        page.url
+
+        return [
+            {
+                key: "blog-posts",
+                icon: "mdi-file-document",
+                text: "Posts",
+                href: route("admin.blog.posts"),
+                active: route().current("admin.blog.posts"),
+            },
+            {
+                key: "blog-article-sources",
+                icon: "mdi-web",
+                text: "Fontes de Artigos",
+                href: route("admin.blog.article-sources"),
+                active: route().current("admin.blog.article-sources"),
+            },
+            {
+                key: "ai-providers",
+                icon: "mdi-robot",
+                text: "Provedores de IA",
+                href: route("admin.ai-providers"),
+                active: route().current("admin.ai-providers"),
+            },
+            {
+                key: "scrape-http-profiles",
+                icon: "mdi-web-box",
+                text: "Perfis HTTP",
+                href: route("admin.scrape-http-profiles"),
+                active: route().current("admin.scrape-http-profiles"),
+            },
+            {
+                key: "sessions",
+                icon: "mdi-monitor-account",
+                text: "Sessões",
+                href: route("admin.sessions"),
+                active: route().current("admin.sessions"),
+            },
+            {
+                key: "users",
+                icon: "mdi-account-group",
+                text: "Usuários",
+                href: route("admin.users"),
+                active: route().current("admin.users"),
+            },
+            {
+                key: "jobs",
+                icon: "mdi-progress-clock",
+                text: "Jobs",
+                href: route("admin.jobs"),
+                active: route().current("admin.jobs"),
+            },
+            {
+                key: "logs",
+                icon: "mdi-file-document",
+                text: "Logs",
+                href: route("admin.logs"),
+                active: route().current("admin.logs"),
+            },
+        ];
+    });
 
     const opened = computed(() => {
         const groups = [];
