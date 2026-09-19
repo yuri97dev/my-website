@@ -118,6 +118,7 @@
                                                     item-title="name"
                                                     item-value="id"
                                                     chips
+                                                    closable-chips
                                                     multiple
                                                     :loading="loading.tags"
                                                     :items="tags"
