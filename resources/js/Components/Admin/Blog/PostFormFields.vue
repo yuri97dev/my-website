@@ -365,16 +365,13 @@
 
             <v-divider></v-divider>
 
-            <v-card-actions class="d-flex justify-end">
-                <slot name="action-buttons"></slot>
+            <v-card-actions class="flex-wrap">
+                <slot name="actions"></slot>
 
-                <v-btn
-                    variant="tonal"
-                    color="primary"
-                    prepend-icon="mdi-content-save"
-                    text="Salvar"
-                    @click="handleSave"
-                ></v-btn>
+                <OverlayActions
+                    :actions="footerActions"
+                    :disabled="loading.post"
+                ></OverlayActions>
             </v-card-actions>
         </v-card>
     </Dialog>
@@ -402,6 +399,11 @@
         ref="imageEditDialogRef"
         @save="handleSaveImageEdit"
     />
+
+    <ScrapedArticleContentDialog
+        ref="scrapedArticleContentRef"
+        forced-read-only
+    />
 </template>
 
 <script setup>
@@ -416,7 +418,9 @@
     import api from "@/api";
 
     import Dialog from "@/Components/Dialog.vue";
+    import OverlayActions from "@/Components/OverlayActions.vue";
     import CategoryManager from "@/Components/Admin/Blog/CategoryManager.vue";
+    import ScrapedArticleContentDialog from "@/Components/Admin/Blog/ScrapedArticleContentDialog.vue";
     import TagManager from "@/Components/Admin/Blog/TagManager.vue";
     import ImageCropperDialog from "@/Components/ImageCropperDialog.vue";
     import ImageViewerDialog from "@/Components/ImageViewerDialog.vue";
@@ -424,6 +428,13 @@
 
     import { alertError, toastSuccess } from "@/Utils/Alert";
     import { compressImageFile } from "@/Utils/ImageCompression";
+
+    const props = defineProps({
+        actions: {
+            type: Array,
+            default: () => [],
+        },
+    });
 
     const emit = defineEmits([
         "close",
@@ -440,6 +451,7 @@
     const cropperDialogRef = ref(null);
     const imageViewerDialogRef = ref(null);
     const imageEditDialogRef = ref(null);
+    const scrapedArticleContentRef = ref(null);
 
     const form = ref({});
     const post = ref({});
@@ -455,6 +467,35 @@
     });
 
     const isEditing = computed(() => !!post.value.id);
+
+    const footerActions = computed(() => {
+        const actions = [
+            { key: "spacer", spacer: true },
+            ...props.actions,
+        ];
+
+        if( scrapedArticleId.value ) {
+            actions.push({
+                key: "scraped-article",
+                variant: "tonal",
+                prependIcon: "mdi-newspaper-variant-outline",
+                text: "Artigo Original",
+                onClick: openScrapedArticleContent,
+            });
+        }
+
+        actions.push({
+            key: "save",
+            variant: "tonal",
+            color: "primary",
+            prependIcon: "mdi-content-save",
+            loading: loading.value.post,
+            text: "Salvar",
+            onClick: handleSave,
+        });
+
+        return actions;
+    });
 
     const htmlContent = computed(() => {
         const { title, content } = form.value;
@@ -561,6 +602,8 @@
 
             form.value = postData;
             post.value = postData;
+
+            scrapedArticleId.value = postData.scraped_article?.id || null;
         } catch (e) {
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao buscar post");
@@ -954,6 +997,11 @@
 
     function openTagManager() {
         tagManagerRef.value?.openList();
+    }
+
+    function openScrapedArticleContent() {
+        if( !scrapedArticleId.value ) return;
+        scrapedArticleContentRef.value?.open(scrapedArticleId.value);
     }
 
     function open(data = {}) {

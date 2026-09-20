@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Post extends Model
@@ -65,6 +66,11 @@ class Post extends Model
     public function views(): HasMany
     {
         return $this->hasMany(PostView::class);
+    }
+
+    public function scrapedArticle(): HasOne
+    {
+        return $this->hasOne(ScrapedArticle::class);
     }
 
     public function scopePublished(Builder $query): Builder

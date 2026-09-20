@@ -222,11 +222,17 @@ class PostController extends Controller
             abort(404);
         }
 
-        $post->load([
+        $relations = [
             "author:id,name",
             "category:id,slug,name",
             "tags:id,slug,name",
-        ]);
+        ];
+
+        if( $is_system_admin ) {
+            $relations[] = "scrapedArticle:id,post_id";
+        }
+
+        $post->load($relations);
 
         return response()->json([
             "post" => $post,

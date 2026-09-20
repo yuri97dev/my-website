@@ -1,30 +1,9 @@
 <template>
     <PostFormFields
         ref="formFieldsRef"
+        :actions="formActions"
         @close="handleFormClosed"
-    >
-        <template #action-buttons>
-            <v-btn
-                v-if="!post?.id"
-                prepend-icon="mdi-import"
-                text="Importar"
-                @click="openScrapedArticleManager"
-            ></v-btn>
-
-            <v-btn
-                v-if="post?.id"
-                prepend-icon="mdi-chart-bar"
-                text="Visualizações"
-                @click="openViewManager"
-            ></v-btn>
-
-            <v-btn
-                prepend-icon="mdi-image-multiple"
-                text="Imagens"
-                @click="openImageManager"
-            ></v-btn>
-        </template>
-    </PostFormFields>
+    />
 
     <PostImageManager ref="imageManagerRef"/>
 
@@ -44,7 +23,7 @@
 </template>
 
 <script setup>
-    import { ref } from "vue";
+    import { ref, computed } from "vue";
 
     import PostFormFields from "@/Components/Admin/Blog/PostFormFields.vue";
     import PostImageManager from "@/Components/Admin/Blog/PostImageManager.vue";
@@ -61,6 +40,40 @@
     const scrapedArticleManagerRef = ref(null);
 
     const post = ref(null);
+
+    const formActions = computed(() => {
+        const actions = [];
+
+        if( !post.value?.id ) {
+            actions.push({
+                key: "import",
+                variant: "tonal",
+                prependIcon: "mdi-import",
+                text: "Importar",
+                onClick: openScrapedArticleManager,
+            });
+        }
+
+        if( post.value?.id ) {
+            actions.push({
+                key: "views",
+                variant: "tonal",
+                prependIcon: "mdi-chart-bar",
+                text: "Visualizações",
+                onClick: openViewManager,
+            });
+        }
+
+        actions.push({
+            key: "images",
+            variant: "tonal",
+            prependIcon: "mdi-image-multiple",
+            text: "Imagens",
+            onClick: openImageManager,
+        });
+
+        return actions;
+    });
 
     function open(data = {}) {
         post.value = data;
@@ -92,14 +105,13 @@
     }
 
     function handleImportScrapedArticle() {
-        const {
-            selectedScrapedArticle,
-            close: closeScrapedArticleManager,
-        } = scrapedArticleManagerRef.value;
+        const manager = scrapedArticleManagerRef.value;
 
-        if( !selectedScrapedArticle ) return;
+        if( !manager?.selectedScrapedArticle ) return;
 
-        closeScrapedArticleManager();
+        const selectedScrapedArticle = manager.selectedScrapedArticle;
+
+        manager.close();
 
         const title = (
             selectedScrapedArticle.translated_title ||
