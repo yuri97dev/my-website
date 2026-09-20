@@ -35,7 +35,7 @@ class TranslateScrapedArticle
         $content = implode("\n\n", [
             "<h1>{$article->title}</h1>",
             $article->content,
-            "A matéria acima foi extraída de: {$article->source->url}",
+            "A matéria acima foi extraída de: {$article->url}",
         ]);
 
         try {
