@@ -366,12 +366,24 @@
             <v-divider></v-divider>
 
             <v-card-actions class="flex-wrap">
+                <v-spacer></v-spacer>
+
                 <slot name="actions"></slot>
 
                 <OverlayActions
                     :actions="footerActions"
                     :disabled="loading.post"
                 ></OverlayActions>
+
+                <v-btn
+                    variant="tonal"
+                    color="primary"
+                    prepend-icon="mdi-content-save"
+                    text="Salvar"
+                    :loading="loading.post"
+                    :disabled="loading.post"
+                    @click="handleSave"
+                ></v-btn>
             </v-card-actions>
         </v-card>
     </Dialog>
@@ -470,7 +482,7 @@
 
     const footerActions = computed(() => {
         const actions = [
-            { key: "spacer", spacer: true },
+            // { key: "spacer", spacer: true },
             ...props.actions,
         ];
 
@@ -483,16 +495,6 @@
                 onClick: openScrapedArticleContent,
             });
         }
-
-        actions.push({
-            key: "save",
-            variant: "tonal",
-            color: "primary",
-            prependIcon: "mdi-content-save",
-            loading: loading.value.post,
-            text: "Salvar",
-            onClick: handleSave,
-        });
 
         return actions;
     });
