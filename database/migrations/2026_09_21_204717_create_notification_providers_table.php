@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string("key", 100);
             $table->string("channel", 20);
             $table->string("name", 100);
-            $table->json("config");
+            $table->text("config");
             $table->boolean("is_enabled")->default(true);
 
             $table->timestamps();

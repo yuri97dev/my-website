@@ -13,6 +13,7 @@ use App\Models\Post;
 use App\Models\PostChunk;
 use App\Models\SearchEmbeddingCache;
 use App\Models\ScrapedArticle;
+use App\Actions\NotifyPostPublished;
 use App\Helpers\Meta;
 use App\Helpers\SearchQuery;
 use App\Jobs\GenerateSearchEmbeddingJob;
@@ -239,7 +240,7 @@ class PostController extends Controller
         ], 200);
     }
 
-    public function store(StorePostRequest $request)
+    public function store(StorePostRequest $request, NotifyPostPublished $notify_post_published)
     {
         $validated = $request->validated();
 
@@ -253,7 +254,9 @@ class PostController extends Controller
         $validated["author_id"] = $request->user()->id;
         $validated["status"] ??= Post::STATUS_DRAFT;
 
-        if( $validated["status"] === Post::STATUS_PUBLISHED ) {
+        $is_new_publication = $validated["status"] === Post::STATUS_PUBLISHED;
+
+        if( $is_new_publication ) {
             $validated["published_at"] = now();
         }
 
@@ -280,12 +283,16 @@ class PostController extends Controller
             "tags:id,slug,name",
         ]);
 
+        if( $is_new_publication ) {
+            $notify_post_published($post);
+        }
+
         return response()->json([
             "post" => $post,
         ], 201);
     }
 
-    public function update(UpdatePostRequest $request, Post $post)
+    public function update(UpdatePostRequest $request, Post $post, NotifyPostPublished $notify_post_published)
     {
         $validated = $request->validated();
 
@@ -297,10 +304,10 @@ class PostController extends Controller
 
         $validated["status"] ??= Post::STATUS_DRAFT;
 
-        if(
-            $validated["status"] === Post::STATUS_PUBLISHED
-            && $post->published_at === null
-        ) {
+        $is_new_publication = $validated["status"] === Post::STATUS_PUBLISHED
+            && $post->published_at === null;
+
+        if( $is_new_publication ) {
             $validated["published_at"] = now();
         }
 
@@ -319,6 +326,10 @@ class PostController extends Controller
             "category:id,slug,name",
             "tags:id,slug,name",
         ]);
+
+        if( $is_new_publication ) {
+            $notify_post_published($post);
+        }
 
         return response()->json([
             "post" => $post,
