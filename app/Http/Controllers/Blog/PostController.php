@@ -296,6 +296,7 @@ class PostController extends Controller
     {
         $validated = $request->validated();
 
+        $should_sync_tags = array_key_exists("tags", $validated);
         $tags = $validated["tags"] ?? [];
 
         unset($validated["tags"]);
@@ -317,7 +318,7 @@ class PostController extends Controller
 
         $post->update($validated);
 
-        if( !empty($tags) ) {
+        if( $should_sync_tags ) {
             $post->tags()->sync($tags);
         }
 
