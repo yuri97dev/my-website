@@ -2,7 +2,6 @@
 
 namespace App\Services\Notifications;
 
-use App\Models\Post;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -15,22 +14,28 @@ class DiscordWebhookSender
             ->throw();
     }
 
-    public function buildPostPayload(Post $post): array
+    public function buildEmbedPayload(
+        string $title,
+        ?string $description = null,
+        ?string $url = null,
+        ?string $thumbnail_url = null,
+    ): array
     {
-        $url = route("blog.show", [
-            $post->category->slug,
-            $post->slug,
-        ]);
-
         $embed = [
-            "title" => Str::limit($post->title, 256, ""),
-            "description" => $post->excerpt,
-            "url" => $url,
+            "title" => Str::limit($title, 256, ""),
         ];
 
-        if( $thumbnail_url = $this->resolveThumbnailUrl($post->thumbnail_path) ) {
+        if( filled($description) ) {
+            $embed["description"] = $description;
+        }
+
+        if( filled($url) ) {
+            $embed["url"] = $url;
+        }
+
+        if( $resolved_thumbnail = $this->resolveThumbnailUrl($thumbnail_url) ) {
             $embed["thumbnail"] = [
-                "url" => $thumbnail_url,
+                "url" => $resolved_thumbnail,
             ];
         }
 

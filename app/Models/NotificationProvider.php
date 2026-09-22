@@ -12,6 +12,13 @@ class NotificationProvider extends Model
 {
     public const CHANNEL_DISCORD = "discord";
 
+    public static function channels(): array
+    {
+        return [
+            self::CHANNEL_DISCORD,
+        ];
+    }
+
     protected $fillable = [
         "key",
         "channel",

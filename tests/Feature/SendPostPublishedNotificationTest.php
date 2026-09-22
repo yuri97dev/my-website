@@ -36,6 +36,7 @@ it("envia notificação no discord ao publicar um post novo", function () {
     Http::fake();
 
     $category = createNotificationCategory();
+
     $webhook_url = "https://discord.com/api/webhooks/123/token";
 
     createDiscordProvider($category->slug, $webhook_url);
@@ -51,7 +52,7 @@ it("envia notificação no discord ao publicar um post novo", function () {
     ]);
 
     (new SendPostPublishedNotificationJob($post->id))->handle(
-        app(\App\Services\Notifications\DiscordWebhookSender::class)
+        app(\App\Services\Notifications\Discord\PostPublishedDiscordNotifier::class),
     );
 
     Http::assertSent(function ($request) use ($webhook_url, $post, $category) {
@@ -83,10 +84,11 @@ it("não envia notificação quando não há provider para a categoria", functio
     ]);
 
     (new SendPostPublishedNotificationJob($post->id))->handle(
-        app(\App\Services\Notifications\DiscordWebhookSender::class)
+        app(\App\Services\Notifications\Discord\PostPublishedDiscordNotifier::class),
     );
 
     Http::assertNothingSent();
+
     expect(NotificationDelivery::query()->count())->toBe(0);
 });
 

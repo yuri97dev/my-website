@@ -113,6 +113,13 @@
                 active: route().current("admin.ai-providers"),
             },
             {
+                key: "notifications",
+                icon: "mdi-bell-outline",
+                text: "Notificações",
+                href: route("admin.notifications"),
+                active: route().current("admin.notifications"),
+            },
+            {
                 key: "scrape-http-profiles",
                 icon: "mdi-web-box",
                 text: "Perfis HTTP",

@@ -5,6 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\JobController;
 use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\NotificationDeliveryController;
+use App\Http\Controllers\Admin\NotificationProviderController;
 use App\Http\Controllers\Admin\AiPromptController;
 use App\Http\Controllers\Admin\AiProviderController;
 use App\Http\Controllers\Admin\ArticleSourceAiPromptController;
@@ -168,6 +170,30 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
         Route::put("/ai-providers/{ai_provider}", [
             AiProviderController::class, "update",
         ])->name("api.ai-providers.update");
+
+        Route::get("/notification-deliveries", [
+            NotificationDeliveryController::class, "index",
+        ])->name("api.notification-deliveries.index");
+
+        Route::get("/notification-deliveries/{notification_delivery}", [
+            NotificationDeliveryController::class, "show",
+        ])->name("api.notification-deliveries.show");
+
+        Route::post("/notification-deliveries/{notification_delivery}/resend", [
+            NotificationDeliveryController::class, "resend",
+        ])->name("api.notification-deliveries.resend");
+
+        Route::get("/notification-providers", [
+            NotificationProviderController::class, "index",
+        ])->name("api.notification-providers.index");
+
+        Route::post("/notification-providers", [
+            NotificationProviderController::class, "store",
+        ])->name("api.notification-providers.store");
+
+        Route::put("/notification-providers/{notification_provider}", [
+            NotificationProviderController::class, "update",
+        ])->name("api.notification-providers.update");
 
         Route::get("/ai-prompt-templates/{name}", [
             AiPromptController::class, "template",
