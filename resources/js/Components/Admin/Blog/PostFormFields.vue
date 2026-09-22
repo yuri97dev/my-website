@@ -491,7 +491,7 @@
                 key: "scraped-article",
                 variant: "tonal",
                 prependIcon: "mdi-newspaper-variant-outline",
-                text: "Artigo Original",
+                text: "Artigo de Origem",
                 onClick: openScrapedArticleContent,
             });
         }
