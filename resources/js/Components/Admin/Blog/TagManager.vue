@@ -22,7 +22,9 @@
                 :title="tag.name"
                 :subtitle="tag.slug"
                 prepend-icon="mdi-tag"
+                link
                 slim
+                @click="selectTag(tag)"
             >
                 <template #append>
                     <v-menu offset="8" location="bottom end">
@@ -34,6 +36,7 @@
                                 color="primary"
                                 class="rounded"
                                 v-bind="props"
+                                @click.stop
                             ></v-btn>
                         </template>
 
@@ -110,6 +113,7 @@
 
     const emits = defineEmits([
         "update",
+        "select",
     ]);
 
     const form = reactive({
@@ -234,6 +238,10 @@
 
     function openCreate() {
         isDialogFormOpen.value = true;
+    }
+
+    function selectTag(tag) {
+        emits("select", tag);
     }
 
     function editTag(tag) {

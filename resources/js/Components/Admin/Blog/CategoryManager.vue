@@ -22,7 +22,9 @@
                 :title="category.name"
                 :subtitle="category.slug"
                 prepend-icon="mdi-folder-outline"
+                link
                 slim
+                @click="selectCategory(category)"
             >
                 <template #append>
                     <v-menu offset="8" location="bottom end">
@@ -34,6 +36,7 @@
                                 color="primary"
                                 class="rounded"
                                 v-bind="props"
+                                @click.stop
                             ></v-btn>
                         </template>
 
@@ -110,6 +113,7 @@
 
     const emits = defineEmits([
         "update",
+        "select",
     ]);
 
     const form = reactive({
@@ -234,6 +238,11 @@
 
     function openCreate() {
         isDialogFormOpen.value = true;
+    }
+
+    function selectCategory(category) {
+        emits("select", category);
+        isDialogListOpen.value = false;
     }
 
     function editCategory(category) {

@@ -391,11 +391,13 @@
     <CategoryManager
         ref="categoryManagerRef"
         @update="getCategories"
+        @select="handleCategorySelect"
     />
 
     <TagManager
         ref="tagManagerRef"
         @update="getTags"
+        @select="handleTagSelect"
     />
 
     <ImageCropperDialog
@@ -991,6 +993,18 @@
         });
 
         form.value.content = div.innerHTML;
+    }
+
+    function handleCategorySelect(category) {
+        form.value.category_id = category.id;
+    }
+
+    function handleTagSelect(tag) {
+        const selectedTags = form.value.tags || [];
+
+        if( selectedTags.includes(tag.id) ) return;
+
+        form.value.tags = [...selectedTags, tag.id];
     }
 
     function openCategoryManager() {
