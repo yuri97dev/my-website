@@ -27,17 +27,11 @@ export default defineConfig({
             ],
         }),
         inertia({
-            ssr: {
-                host: "0.0.0.0",
-                sourcemap: false,
-            },
+            ssr: false,
         }),
         vue(),
         vuetify({ autoImport: { labs: true } }),
     ],
-    ssr: {
-        noExternal: ["vuetify"],
-    },
     server: {
         host: true,
         watch: {

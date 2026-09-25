@@ -6,7 +6,7 @@ import "@mdi/font/css/materialdesignicons.css";
 
 export default function createVuetifyInstance(defaultTheme = "light") {
     return createVuetify({
-        ssr: true,
+        ssr: false,
         theme: {
             defaultTheme: defaultTheme === "dark" ? "dark" : "light",
             themes: {

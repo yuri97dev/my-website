@@ -94,7 +94,6 @@ services:
       DB_HOST: "postgres"
       REDIS_HOST: "redis"
       HOME: /tmp
-      INERTIA_SSR_URL: "http://ssr:13714"
     depends_on:
       postgres:
         condition: service_healthy
@@ -102,39 +101,12 @@ services:
         condition: service_healthy
       ollama-server:
         condition: service_healthy
-      ssr:
-        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "php -r 'exit(@fsockopen(\"127.0.0.1\", 9000) ? 0 : 1);'"]
       interval: 5s
       timeout: 3s
       retries: 5
       start_period: 10s
-
-  ssr:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        USER_ID: ${USER_ID:-1000}
-        GROUP_ID: ${GROUP_ID:-1000}
-    container_name: my-website-ssr
-    restart: unless-stopped
-    command: ["php", "artisan", "inertia:start-ssr"]
-    volumes:
-      - .:/var/www/html
-    env_file:
-      - .env
-    user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
-    environment:
-      HOME: /tmp
-      TZ: America/Manaus
-    healthcheck:
-      test: ["CMD", "php", "artisan", "inertia:check-ssr"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
 
   worker:
     build:
