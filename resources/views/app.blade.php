@@ -53,7 +53,6 @@
             <title>{{ config("app.name") }}</title>
         @endif
 
-        @routes(\App\Helpers\ZiggyGroup::for(request()))
         @vite(["resources/css/app.css", "resources/js/app.js"])
 
         <x-inertia::head />

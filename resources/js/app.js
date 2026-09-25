@@ -1,4 +1,4 @@
-import { createInertiaApp } from "@inertiajs/vue3";
+import { createInertiaApp, usePage } from "@inertiajs/vue3";
 import { route, ZiggyVue } from "ziggy-js";
 
 import { createTabsStore, TabsKey } from "@/Composables/useTabs";
@@ -9,10 +9,16 @@ import DefaultLayout from "@/Layouts/Default.vue";
 
 createInertiaApp({
     layout: () => DefaultLayout,
-    withApp(app, { page }) {
+    withApp(app, { page: initialPage }) {
+        const page = usePage();
+        const ziggyProps = () => page.props?.ziggy ?? initialPage.props.ziggy;
+
         const ziggy = {
-            ...page.props.ziggy,
-            location: new URL(page.props.ziggy.location),
+            get url() { return ziggyProps().url; },
+            get port() { return ziggyProps().port; },
+            get defaults() { return ziggyProps().defaults; },
+            get routes() { return ziggyProps().routes; },
+            get location() { return new URL(ziggyProps().location); },
         };
 
         globalThis.Ziggy = ziggy;
@@ -20,7 +26,7 @@ createInertiaApp({
 
         app.provide(TabsKey, createTabsStore());
 
-        app.use(createVuetify(page.props.theme ?? "light"));
+        app.use(createVuetify(initialPage.props.theme ?? "light"));
         app.use(ZiggyVue, ziggy);
     },
 }).then(() => {
