@@ -92,9 +92,11 @@ a {
 }
 
 .post-container .post-code-block {
+    display: block;
     padding: 1rem;
     overflow-x: auto;
     border-radius: 6px;
+    color: #f5f5f5;
     background: #1e1e1e;
     margin: 0.75rem 0 1rem;
 }
