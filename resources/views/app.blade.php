@@ -9,6 +9,12 @@
         <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
         <link rel="manifest" href="/favicons/site.webmanifest">
 
+        @if( request()->cookie('theme') == 'dark' )
+            <meta name="theme-color" content="#212121">
+        @else
+            <meta name="theme-color" content="#ffffff">
+        @endif
+
         <style>
             #loading-container {
                 display: none;
