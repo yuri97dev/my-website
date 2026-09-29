@@ -11,6 +11,7 @@ use App\Models\PostTag;
 use App\Models\ScrapedArticle;
 use App\Models\User;
 use App\Support\AssistantPrompts;
+use Droath\TextChunker\Facades\TextChunker;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -339,7 +340,15 @@ class ProcessScrapedArticlesWithAi
 
     private function excerptPreview(string $content): string
     {
-        return mb_substr(TextFormatter::removeHTML($content), 0, 100);
+        $without_html = TextFormatter::removeHTML($content);
+
+        $sentences = TextChunker::strategy("sentence")
+            ->size(3)
+            ->chunk($without_html);
+
+        if( !isset($sentences[0]) ) return "";
+
+        return $sentences[0]->text;
     }
 
     private function excerptFromContent(string $content): string
