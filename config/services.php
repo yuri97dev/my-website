@@ -43,4 +43,9 @@ return [
         'keep_alive' => env('OLLAMA_KEEP_ALIVE', '5m'),
     ],
 
+    'laya' => [
+        'url' => env('LAYA_URL'),
+        'key' => env("LAYA_API_KEY"),
+    ],
+
 ];

@@ -20,6 +20,7 @@ use App\Http\Controllers\Blog\PostController;
 use App\Http\Controllers\Blog\PostImageController;
 use App\Http\Controllers\Blog\PostTagController;
 use App\Http\Controllers\Blog\PostViewController;
+use App\Http\Controllers\Laya\LayaController;
 use App\Http\Controllers\LicenseController;
 use App\Http\Controllers\SpreadsheetFormatterController;
 use App\Http\Controllers\PostalCodeAddressController;
@@ -279,6 +280,10 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
 Route::get("/postal-code/{postal_code}", [
     PostalCodeAddressController::class, "show",
 ])->name("api.postal-code.show");
+
+Route::post("/laya", [
+    LayaController::class, "index",
+]);
 
 Route::prefix("tools")->group(function() {
     Route::post("/spreadsheet-formatter/upload", [
