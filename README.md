@@ -145,7 +145,34 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-### 5. Open the site
+## Laya Setup
+
+[Laya](https://github.com/NandhaKishorM/laya) is used for AI-powered decision-making.
+
+Clone the repository before starting Docker:
+
+```bash
+git clone --depth 1 https://github.com/NandhaKishorM/laya.git docker/laya
+```
+
+The `--depth 1` option downloads only the latest commit, avoiding the full Git history.
+
+Add the following variables to `.env`:
+
+```dotenv
+LAYA_URL=http://laya:8000
+LAYA_API_KEY=your-secret-key
+```
+
+Then start the services:
+
+```bash
+docker compose up -d --build --wait
+```
+
+Laya runs internally at `http://laya:8000` without exposing its port publicly.
+
+### 6. Open the site
 
 Visit [https://yuri97.com](https://yuri97.com) in your browser.
 

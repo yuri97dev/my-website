@@ -76,6 +76,39 @@ services:
       retries: 5
       start_period: 30s
 
+  laya:
+    build:
+      context: ./docker/laya
+      args:
+        TORCH_INDEX: cpu
+        TORCH_VERSION: "2.14.0"
+    container_name: my-website-laya
+    restart: unless-stopped
+    init: true
+    command: ["laya-serve"]
+    environment:
+      LAYA_HOST: "0.0.0.0"
+      LAYA_PORT: "8000"
+      LAYA_DEVICE: cpu
+      LAYA_PRELOAD: "0"
+      LAYA_DEFAULT_MODEL: multilingual
+      LAYA_MAX_LOADED: "1"
+      LAYA_THREADS: "4"
+      OMP_NUM_THREADS: "4"
+      LAYA_API_KEY: ${LAYA_API_KEY:?LAYA_API_KEY must be set}
+    volumes:
+      - laya_models:/home/laya/.cache/huggingface
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10m
+
   app:
     build:
       context: .
@@ -140,6 +173,7 @@ volumes:
   postgres_data:
   redis_data:
   ollama_data:
+  laya_models:
 
 networks:
   default:
