@@ -151,3 +151,7 @@ img[data-rm-src],
 figure:has(img[data-rm-src]) {
     display: none;
 }
+
+.min-h-0 {
+    min-height: 0 !important;
+}

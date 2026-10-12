@@ -12,10 +12,12 @@
     import "monaco-editor/esm/vs/editor/editor.all.js";
     import "monaco-editor/esm/vs/basic-languages/html/html.contribution.js";
     import "monaco-editor/esm/vs/language/html/monaco.contribution.js";
+    import "monaco-editor/esm/vs/language/json/monaco.contribution.js";
     import { emmetHTML } from "emmet-monaco-es";
 
     import editorWorkerUrl from "monaco-editor/esm/vs/editor/editor.worker?worker&url";
     import htmlWorkerUrl from "monaco-editor/esm/vs/language/html/html.worker?worker&url";
+    import jsonWorkerUrl from "monaco-editor/esm/vs/language/json/json.worker?worker&url";
 
     const model = defineModel({ type: String, default: "" });
 
@@ -44,6 +46,10 @@
 
     self.MonacoEnvironment = {
         getWorker(_, label) {
+            if( label === "json" ) {
+                return createWorker(jsonWorkerUrl);
+            }
+
             if( ["html", "handlebars", "razor"].includes(label) ) {
                 return createWorker(htmlWorkerUrl);
             }
@@ -72,7 +78,6 @@
     });
 
     onMounted(() => {
-        console.log("iniciando editor");
         editor = monaco.editor.create(editorRef.value, {
             value: model.value,
             language: props.language,
