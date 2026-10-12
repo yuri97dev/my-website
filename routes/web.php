@@ -22,6 +22,8 @@ Route::inertia("/terms-of-use", "TermsOfUse")->name("terms_of_use");
 Route::inertia("/privacy-policy", "PrivacyPolicy")->name("privacy_policy");
 Route::inertia("/forgot-password", "ForgotPassword")->name("forgot_password");
 Route::inertia("/reset-password", "ResetPassword")->name("reset_password");
+Route::inertia("/labs", "Labs/Index")->name("labs");
+Route::inertia("/labs/laya", "Labs/Laya")->name("labs.laya");
 
 Route::get("/email/verify/{id}/{hash}", [
     AccountController::class, "verifyEmail",

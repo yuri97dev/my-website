@@ -78,6 +78,13 @@
                 active: route().current(`tools.${tool.key}*`),
             })),
             {
+                key: "labs",
+                icon: "mdi-flask-outline",
+                text: "Labs",
+                href: route("labs"),
+                active: route().current("labs"),
+            },
+            {
                 key: "about",
                 icon: "mdi-information-outline",
                 text: "Sobre",

@@ -87,6 +87,7 @@
             theme: "vs-dark",
             // wordWrap: "on",
             scrollBeyondLastLine: false,
+            stickyScroll: { enabled: false },
             ...props.options,
         });
 
