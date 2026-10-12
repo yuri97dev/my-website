@@ -243,7 +243,7 @@
 
             toastSuccess("Post removido com sucesso");
 
-            router.visit(route("blog.index", { category: category.value.slug }));
+            router.visit(route("blog.index"));
         } catch (e) {
             const { message } = e?.response?.data || {};
             alertError("Ooops", message || "Erro ao remover post");
