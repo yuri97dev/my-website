@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Blog;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Builder;
 use App\Http\Requests\Blog\StorePostRequest;
 use App\Http\Requests\Blog\UpdatePostRequest;
 use League\HTMLToMarkdown\HtmlConverter;
@@ -158,43 +159,47 @@ class PostController extends Controller
             $search_language = SearchQuery::language($search);
             $embedding = $this->resolveSearchEmbedding($search);
 
-            $query_lexical_similarity = "ts_rank(
-                to_tsvector('{$search_language}', content),
-                websearch_to_tsquery('{$search_language}', ?)
-            )";
+            $post_chunk_q1 = PostChunk::query()
+                ->select(["post_id"])
+                ->selectRaw(
+                    "word_similarity(?, content) AS score",
+                    [$search]
+                );
 
-            $query_semantic_similarity = !!$embedding
-                ? "(1 - (embedding <=> ?::vector))"
-                : "0";
+            $post_chunk_q2 = PostChunk::query()
+                ->select(["post_id"])
+                ->selectRaw("
+                    ts_rank(
+                        to_tsvector(?::regconfig, content),
+                        websearch_to_tsquery(?::regconfig, ?)
+                    ) AS score
+                ", [$search_language, $search_language, $search]);
 
-            $query_chunks = PostChunk::query()
-                ->select([
-                    "post_id",
-                    DB::raw("MAX(
-                        ({$query_lexical_similarity} * 0.3) +
-                        ({$query_semantic_similarity} * 0.7)
-                    ) AS similarity_score"),
-                ])
-                ->groupBy("post_id")
-                ->addBinding($search, "select");
+            $post_chunk_q1 = $this->makeRanking($post_chunk_q1);
+            $post_chunk_q2 = $this->makeRanking($post_chunk_q2);
 
-            if( !!$embedding ) {
-                $query_chunks->addBinding($embedding, "select");
-            }
-
-            $query->joinSub($query_chunks, "chunks", "chunks.post_id", "posts.id");
+            $post_chunk_q1->unionAll($post_chunk_q2);
 
             if( !!$embedding ) {
-                $query->whereRaw("chunks.similarity_score > 0.2");
-            } else {
-                $query->whereRaw("chunks.similarity_score > 0.01");
+                $post_chunk_q3 = PostChunk::query()
+                    ->select(["post_id"])
+                    ->selectRaw("
+                        1 - (embedding <=> ?::vector) AS score
+                    ", [$embedding]);
+
+                $post_chunk_q1->unionAll($this->makeRanking($post_chunk_q3));
             }
 
-            $query->addSelect([
-                "chunks.similarity_score",
-            ]);
+            $rrf = DB::query()
+                ->fromSub($post_chunk_q1, "results")
+                ->select(["post_id"])
+                ->selectRaw("SUM(rrf_score) AS score")
+                ->groupBy("post_id");
 
-            $query->orderByDesc("similarity_score");
+            $query->joinSub($rrf, "rrf", "rrf.post_id", "=", "posts.id");
+
+            $query->addSelect(["rrf.score"]);
+            $query->orderByDesc("rrf.score");
         } else {
             $query->orderByDesc("published_at");
             $query->orderByDesc("updated_at");
@@ -379,5 +384,49 @@ class PostController extends Controller
         GenerateSearchEmbeddingJob::dispatch($search, $normalized_query);
 
         return null;
+    }
+
+    private function makeRanking(Builder $query)
+    {
+        $chunks = DB::query()
+            ->fromSub($query, "chunks")
+            ->select(["post_id", "score"])
+            ->selectRaw("
+                ROW_NUMBER() OVER (
+                    PARTITION BY post_id
+                    ORDER BY score DESC
+                ) AS position
+            ");
+
+        $scores = DB::query()
+            ->fromSub($chunks, "ranked")
+            ->select(["post_id"])
+            ->selectRaw("
+                SUM(
+                    score * CASE position
+                        WHEN 1 THEN 1.0
+                        WHEN 2 THEN 0.5
+                        WHEN 3 THEN 0.25
+                    END
+                ) AS score
+            ")
+            ->where("position", "<=", 3)
+            ->where("score", ">", 0)
+            ->groupBy("post_id");
+
+        $ranking = DB::query()
+            ->fromSub($scores, "scores")
+            ->select(["post_id"])
+            ->selectRaw("
+                ROW_NUMBER() OVER (
+                    ORDER BY score DESC, post_id
+                ) AS position
+            ");
+
+        return DB::query()
+            ->fromSub($ranking, "ranking")
+            ->select(["post_id"])
+            ->selectRaw("1.0 / (60 + position) AS rrf_score")
+            ->where("position", "<=", 100);
     }
 }
