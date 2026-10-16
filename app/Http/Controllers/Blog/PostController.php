@@ -218,7 +218,7 @@ class PostController extends Controller
             if( !!$embedding ) {
                 $post_chunk_q3 = PostChunk::query()
                     ->select("post_id")
-                    ->selectRaw("1 - (embedding <=> ?) AS score", [ $search ])
+                    ->selectRaw("1 - (embedding <=> ?) AS score", [ $embedding ])
                     ->orderByRaw("embedding <=> ?", [ $embedding ])
                     ->limit($post_limit);
 
