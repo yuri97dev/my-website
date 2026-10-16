@@ -159,46 +159,84 @@ class PostController extends Controller
             $search_language = SearchQuery::language($search);
             $embedding = $this->resolveSearchEmbedding($search);
 
+            $post_limit = 200;
+
+            $make_ranking = function($query, $weight) use ($post_limit) {
+                $chunks = DB::query()
+                    ->fromSub($query, "chunks")
+                    ->select([ "post_id", "score" ])
+                    ->selectRaw("ROW_NUMBER() OVER (
+                        PARTITION BY post_id
+                        ORDER BY score DESC
+                    ) AS position");
+
+                $scores = DB::query()
+                    ->fromSub($chunks, "chunks")
+                    ->select("post_id")
+                    ->selectRaw("SUM(score / position) AS score")
+                    ->whereRaw("position <= 3")
+                    ->whereRaw("score > 0")
+                    ->groupBy("post_id");
+
+                $ranking = DB::query()
+                    ->fromSub($scores, "scores")
+                    ->select("post_id")
+                    ->selectRaw("ROW_NUMBER() OVER (
+                        ORDER BY score DESC, post_id
+                    ) as position");
+
+                return DB::query()
+                    ->fromSub($ranking, "ranking")
+                    ->select("post_id")
+                    ->selectRaw("?::numeric / (60 + position) AS rrf_score", [ $weight ])
+                    ->whereRaw("position <= ?", [ $post_limit ]);
+            };
+
             $post_chunk_q1 = PostChunk::query()
-                ->select(["post_id"])
-                ->selectRaw(
-                    "word_similarity(?, content) AS score",
-                    [$search]
-                );
+                ->select("post_id")
+                ->selectRaw("word_similarity(?, content) AS score", [ $search ])
+                ->whereRaw("? <% content", [ $search ])
+                ->orderByDesc("score")
+                ->limit($post_limit);
 
             $post_chunk_q2 = PostChunk::query()
-                ->select(["post_id"])
-                ->selectRaw("
-                    ts_rank(
-                        to_tsvector(?::regconfig, content),
-                        websearch_to_tsquery(?::regconfig, ?)
-                    ) AS score
-                ", [$search_language, $search_language, $search]);
+                ->select("post_id")
+                ->selectRaw("ts_rank(
+                    to_tsvector(?, content),
+                    websearch_to_tsquery(?, ?)
+                ) AS score", [ $search_language, $search_language, $search ])
+                ->whereRaw("
+                    to_tsvector(?, content)
+                    @@ websearch_to_tsquery(?, ?)
+                ", [ $search_language, $search_language, $search ])
+                ->orderByDesc("score")
+                ->limit($post_limit);
 
-            $post_chunk_q1 = $this->makeRanking($post_chunk_q1);
-            $post_chunk_q2 = $this->makeRanking($post_chunk_q2);
-
-            $post_chunk_q1->unionAll($post_chunk_q2);
+            $rrf = $make_ranking($post_chunk_q1, 0.5)
+                ->unionAll($make_ranking($post_chunk_q2, 1.0));
 
             if( !!$embedding ) {
                 $post_chunk_q3 = PostChunk::query()
-                    ->select(["post_id"])
-                    ->selectRaw("
-                        1 - (embedding <=> ?::vector) AS score
-                    ", [$embedding]);
+                    ->select("post_id")
+                    ->selectRaw("1 - (embedding <=> ?) AS score", [ $search ])
+                    ->orderByRaw("embedding <=> ?", [ $embedding ])
+                    ->limit($post_limit);
 
-                $post_chunk_q1->unionAll($this->makeRanking($post_chunk_q3));
+                $rrf->unionAll($make_ranking($post_chunk_q3, 1.5));
             }
 
             $rrf = DB::query()
-                ->fromSub($post_chunk_q1, "results")
-                ->select(["post_id"])
+                ->fromSub($rrf, "results")
+                ->select("post_id")
                 ->selectRaw("SUM(rrf_score) AS score")
                 ->groupBy("post_id");
 
-            $query->joinSub($rrf, "rrf", "rrf.post_id", "=", "posts.id");
+            $query->joinSub($rrf, "rrf", "rrf.post_id", "posts.id");
 
-            $query->addSelect(["rrf.score"]);
+            $query->addSelect([
+                "rrf.score",
+            ]);
+
             $query->orderByDesc("rrf.score");
         } else {
             $query->orderByDesc("published_at");
@@ -384,49 +422,5 @@ class PostController extends Controller
         GenerateSearchEmbeddingJob::dispatch($search, $normalized_query);
 
         return null;
-    }
-
-    private function makeRanking(Builder $query)
-    {
-        $chunks = DB::query()
-            ->fromSub($query, "chunks")
-            ->select(["post_id", "score"])
-            ->selectRaw("
-                ROW_NUMBER() OVER (
-                    PARTITION BY post_id
-                    ORDER BY score DESC
-                ) AS position
-            ");
-
-        $scores = DB::query()
-            ->fromSub($chunks, "ranked")
-            ->select(["post_id"])
-            ->selectRaw("
-                SUM(
-                    score * CASE position
-                        WHEN 1 THEN 1.0
-                        WHEN 2 THEN 0.5
-                        WHEN 3 THEN 0.25
-                    END
-                ) AS score
-            ")
-            ->where("position", "<=", 3)
-            ->where("score", ">", 0)
-            ->groupBy("post_id");
-
-        $ranking = DB::query()
-            ->fromSub($scores, "scores")
-            ->select(["post_id"])
-            ->selectRaw("
-                ROW_NUMBER() OVER (
-                    ORDER BY score DESC, post_id
-                ) AS position
-            ");
-
-        return DB::query()
-            ->fromSub($ranking, "ranking")
-            ->select(["post_id"])
-            ->selectRaw("1.0 / (60 + position) AS rrf_score")
-            ->where("position", "<=", 100);
     }
 }
