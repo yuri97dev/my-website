@@ -339,6 +339,12 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
+        $post->scrapedArticle()->update([
+            "is_enabled" => false,
+            "processing_by" => null,
+            "processing_at" => null,
+        ]);
+
         $post->delete();
 
         return response()->json([
