@@ -35,9 +35,9 @@ Edit `.env` and set at least:
 - `REDIS_PASSWORD` — Redis password (required)
 - `HTTP_PORT` — port exposed by Nginx (default: `8080`)
 - `OLLAMA_PORT` — port exposed by Ollama (default: `11434`)
-- `OLLAMA_EMBED_MODEL` — embedding model for semantic search (default: `bge-m3`)
 - `OLLAMA_CHAT_MODEL` — chat model registered in Ollama (default: `google_gemma-4-E2B-it`)
-- `OLLAMA_EMBED_DIMENSION` — vector dimensions for pgvector (default: `1024` for `bge-m3`)
+
+Embedding model and vector dimension for semantic search live in the database (`settings` table), seeded by `OllamaEmbeddingSettingSeeder` (defaults: `bge-m3`, dimension `1024`). Change them in **Admin → Embeddings Ollama**.
 
 Also set `USER_ID` and `GROUP_ID` to the server user's IDs (`id -u` and `id -g`) to avoid volume permission issues.
 

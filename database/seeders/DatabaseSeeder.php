@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             SystemAdminUserSeeder::class,
             ScrapeHttpProfileSeeder::class,
             AssistantAiPromptSeeder::class,
+            OllamaEmbeddingSettingSeeder::class,
             SgcPaymentMethodSeeder::class,
             SgcFinalConsumerSeeder::class,
         ]);

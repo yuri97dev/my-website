@@ -17,6 +17,7 @@ use App\Models\ScrapedArticle;
 use App\Actions\NotifyPostPublished;
 use App\Helpers\Meta;
 use App\Helpers\SearchQuery;
+use App\Support\OllamaEmbeddingConfig;
 use App\Jobs\GenerateSearchEmbeddingJob;
 use Inertia\Inertia;
 
@@ -408,7 +409,7 @@ class PostController extends Controller
     private function resolveSearchEmbedding(string $search): ?string
     {
         $normalized_query = SearchQuery::normalize($search);
-        $embed_model = config("services.ollama.embed_model");
+        $embed_model = OllamaEmbeddingConfig::model();
 
         $cached = SearchEmbeddingCache::query()
             ->where("normalized_query", $normalized_query)

@@ -120,6 +120,13 @@
                 active: route().current("admin.ai-providers"),
             },
             {
+                key: "ollama-embeddings",
+                icon: "mdi-vector-triangle",
+                text: "Embeddings Ollama",
+                href: route("admin.ollama-embeddings"),
+                active: route().current("admin.ollama-embeddings"),
+            },
+            {
                 key: "notifications",
                 icon: "mdi-bell-outline",
                 text: "Notificações",

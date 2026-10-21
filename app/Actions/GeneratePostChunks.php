@@ -8,6 +8,7 @@ use Droath\TextChunker\Facades\TextChunker;
 use App\Models\Post;
 use App\Models\PostChunk;
 use App\Helpers\Ollama;
+use App\Support\OllamaEmbeddingConfig;
 
 class GeneratePostChunks
 {
@@ -46,7 +47,7 @@ class GeneratePostChunks
                 "chunk_index" => $index + 1,
                 "content" => $chunk->text,
                 "token_count" => $response["prompt_eval_count"],
-                "embedding_model" => config("services.ollama.embed_model"),
+                "embedding_model" => OllamaEmbeddingConfig::model(),
                 "embedding" => json_encode($response["embeddings"][0]),
             ]);
         }

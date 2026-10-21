@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\JobController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\NotificationDeliveryController;
 use App\Http\Controllers\Admin\NotificationProviderController;
+use App\Http\Controllers\Admin\OllamaEmbeddingController;
 use App\Http\Controllers\Admin\AiPromptController;
 use App\Http\Controllers\Admin\AiProviderController;
 use App\Http\Controllers\Admin\ArticleSourceAiPromptController;
@@ -171,6 +172,18 @@ Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
         Route::put("/ai-providers/{ai_provider}", [
             AiProviderController::class, "update",
         ])->name("api.ai-providers.update");
+
+        Route::get("/ollama-embeddings", [
+            OllamaEmbeddingController::class, "show",
+        ])->name("api.ollama-embeddings.show");
+
+        Route::post("/ollama-embeddings/pull", [
+            OllamaEmbeddingController::class, "pull",
+        ])->name("api.ollama-embeddings.pull");
+
+        Route::put("/ollama-embeddings", [
+            OllamaEmbeddingController::class, "update",
+        ])->name("api.ollama-embeddings.update");
 
         Route::get("/notification-deliveries", [
             NotificationDeliveryController::class, "index",

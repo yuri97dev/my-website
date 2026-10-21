@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Helpers\Ollama;
+use App\Support\OllamaEmbeddingConfig;
 use App\Models\SearchEmbeddingCache;
 use Exception;
 use Illuminate\Bus\Queueable;
@@ -24,7 +25,7 @@ class GenerateSearchEmbeddingJob implements ShouldQueue
 
     public function handle(): void
     {
-        $embed_model = config("services.ollama.embed_model");
+        $embed_model = OllamaEmbeddingConfig::model();
 
         $exists = SearchEmbeddingCache::query()
             ->where("normalized_query", $this->normalized_query)
