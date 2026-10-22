@@ -1,4 +1,4 @@
-FROM php:8.5.0-fpm-bookworm
+FROM php:8.5.12-fpm-bookworm
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
