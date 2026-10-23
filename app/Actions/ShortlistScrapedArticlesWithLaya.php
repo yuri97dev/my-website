@@ -7,11 +7,14 @@ use App\Models\Post;
 use App\Models\ScrapedArticle;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class ShortlistScrapedArticlesWithLaya
 {
-    public function recent(): Collection
+    public const EXECUTION_TIMEOUT = 120;
+
+    public function recent(?callable $progress = null): Collection
     {
         $candidates = ScrapedArticle::query()
             ->eligibleForAssistant()
@@ -19,11 +22,12 @@ class ShortlistScrapedArticlesWithLaya
             ->limit((int) config("assistant.pool_size"))
             ->get(["id", "title", "content"]);
 
-        return $this($candidates, (int) config("assistant.selection_size"));
+        return $this($candidates, (int) config("assistant.selection_size"), $progress);
     }
 
-    public function __invoke(Collection $candidates, int $limit): Collection
+    public function __invoke(Collection $candidates, int $limit, ?callable $progress = null): Collection
     {
+        $deadline = microtime(true) + self::EXECUTION_TIMEOUT;
         if( $candidates->isEmpty() || $limit < 1 ) {
             return $candidates->take(0);
         }
@@ -38,9 +42,9 @@ class ShortlistScrapedArticlesWithLaya
             "options" => ["min_range" => 1024, "max_range" => 8192],
         ]) ?: 4096;
 
-        $timeout = filter_var(config("assistant.laya.timeout", 300), FILTER_VALIDATE_INT, [
+        $timeout = filter_var(config("assistant.laya.timeout", 90), FILTER_VALIDATE_INT, [
             "options" => ["min_range" => 1],
-        ]) ?: 300;
+        ]) ?: 90;
 
         $titles = Post::query()
             ->published()
@@ -52,8 +56,19 @@ class ShortlistScrapedArticlesWithLaya
 
         $questions = $this->questions();
         $ranked = collect();
+        $processed = 0;
 
-        foreach( $candidates->values()->chunk(64) as $chunk ) {
+        $request_size = filter_var(config("assistant.laya.request_size", 5), FILTER_VALIDATE_INT, [
+            "options" => ["min_range" => 1, "max_range" => 64],
+        ]) ?: 5;
+
+        if( $progress ) $progress(0, $candidates->count());
+
+        foreach($candidates->values()->chunk($request_size) as $chunk) {
+            $remaining = $deadline - microtime(true);
+            if( $remaining <= 0 ) {
+                throw new RuntimeException("A seleção excedeu o limite total de 120 segundos.");
+            }
             $articles = $chunk->values();
 
             $states = $articles->map(fn (ScrapedArticle $article) => [
@@ -64,10 +79,12 @@ class ShortlistScrapedArticlesWithLaya
                 "recent_published_titles" => $titles,
             ])->all();
 
+            $started = microtime(true);
+
             $response = Http::baseUrl(rtrim($url, "/"))
                 ->withToken(config("services.laya.key"))
                 ->connectTimeout(5)
-                ->timeout($timeout)
+                ->timeout(min($timeout, 90, $remaining))
                 ->post("/v1/systemone/batch", [
                     "model" => "multilingual",
                     "max_len" => $max_len,
@@ -78,6 +95,9 @@ class ShortlistScrapedArticlesWithLaya
                 ]);
 
             $response->throw();
+            if( microtime(true) >= $deadline ) {
+                throw new RuntimeException("A seleção excedeu o limite total de 120 segundos.");
+            }
             $results = $response->json("results");
 
             if( !is_array($results) || !array_is_list($results) || count($results) !== $articles->count() ) {
@@ -109,6 +129,16 @@ class ShortlistScrapedArticlesWithLaya
                     "position" => $ranked->count(),
                 ]);
             }
+
+            $processed += $articles->count();
+
+            Log::info("Laya: lote de pré-seleção concluído.", [
+                "processed" => $processed,
+                "total" => $candidates->count(),
+                "duration_ms" => (int) ((microtime(true) - $started) * 1000),
+            ]);
+
+            if( $progress ) $progress($processed, $candidates->count());
         }
 
         return $ranked

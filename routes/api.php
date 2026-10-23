@@ -99,8 +99,12 @@ Route::prefix("account")->group(function() {
 Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
     ->group(function () {
         Route::get("/blog/article-shortlist", ArticleShortlistController::class)
-            ->middleware("throttle:5,1")
+            ->middleware("throttle:60,1")
             ->name("api.blog.article-shortlist");
+
+        Route::post("/blog/article-shortlist", [ArticleShortlistController::class, "store"])
+            ->middleware("throttle:5,1")
+            ->name("api.blog.article-shortlist.store");
 
         Route::get("/sessions", [
             SessionController::class, "index",

@@ -3,6 +3,7 @@
 use App\Actions\ProcessScrapedArticlesWithAi;
 use App\Actions\ShortlistScrapedArticlesWithLaya;
 use App\Jobs\TranslateScrapedArticleJob;
+use App\Jobs\GenerateArticleShortlistJob;
 use App\Models\AiPrompt;
 use App\Models\ArticleSource;
 use App\Models\Post;
@@ -122,6 +123,7 @@ it("usa apenas os títulos dos 20 posts publicados mais recentes como referênci
 });
 
 it("filtra pautas restritas, promoções e assuntos fora do nicho e ordena os aprovados", function () {
+    config(["assistant.laya.request_size" => 64]);
     Http::fake(["laya.test/*" => Http::response(["results" => [
         layaEvaluation(0.6),
         layaEvaluation(0.95, ["editorial" => "restricted"]),
@@ -168,10 +170,11 @@ it("usa limites válidos quando a configuração está ausente ou inválida", fu
     (new ShortlistScrapedArticlesWithLaya)(collect([layaArticle(1)]), 10);
 
     Http::assertSent(fn ($request) => $request["max_len"] === 4096);
-    expect($sent_timeout)->toBe(300);
+    expect($sent_timeout)->toBe(90);
 })->with(["missing", null, 0, -1, "invalid"]);
 
 it("divide pools maiores que o limite de 64 estados mantendo a ordem das respostas", function () {
+    config(["assistant.laya.request_size" => 64]);
     Http::fakeSequence()
         ->push(["results" => array_fill(0, 64, layaEvaluation(0.7))])
         ->push(["results" => [layaEvaluation(0.99)]]);
@@ -180,6 +183,19 @@ it("divide pools maiores que o limite de 64 estados mantendo a ordem das respost
 
     expect($result->pluck("id")->all())->toBe([65, 1]);
     Http::assertSentCount(2);
+});
+
+it("avalia o pool de 50 em dez chamadas de cinco candidatos mantendo os dez melhores", function () {
+    Http::fake(function ($request) {
+        expect(count($request["states"]))->toBe(5);
+        return Http::response(["results" => array_map(
+            fn ($state) => layaEvaluation(((int) substr($state["candidate"]["title"], 7)) / 100 + 0.5),
+            $request["states"],
+        )]);
+    });
+    $result = (new ShortlistScrapedArticlesWithLaya)(collect(range(1, 50))->map(fn ($id) => layaArticle($id)), 10);
+    expect($result->pluck("id")->all())->toBe(range(50, 41));
+    Http::assertSentCount(10);
 });
 
 it("interrompe a seleção se a resposta do Laya for inválida ou perder contexto", function ($path, $value) {
@@ -309,7 +325,9 @@ it("expõe a pré-seleção na rota de admin sem iniciar tradução", function (
     prepareAssistantSelection();
     Http::fake(["laya.test/*" => Http::response(["results" => array_fill(0, 3, layaEvaluation())])]);
 
-    $response = (new \App\Http\Controllers\Admin\ArticleShortlistController)(new ShortlistScrapedArticlesWithLaya);
+    Cache::put(GenerateArticleShortlistJob::CACHE_KEY, ["run_id" => "test-run", "status" => "queued"]);
+    (new GenerateArticleShortlistJob("test-run"))->handle(new ShortlistScrapedArticlesWithLaya);
+    $response = (new \App\Http\Controllers\Admin\ArticleShortlistController)();
 
     expect($response->getStatusCode())->toBe(200)
         ->and($response->getData(true)["count"])->toBe(3)
@@ -323,4 +341,74 @@ it("expõe a pré-seleção na rota de admin sem iniciar tradução", function (
 
 it("exige autenticação para testar a pré-seleção", function () {
     $this->getJson("/api/blog/article-shortlist")->assertUnauthorized();
+    $this->postJson("/api/blog/article-shortlist")->assertUnauthorized();
+});
+
+it("inicia a seleção em segundo plano sem chamar o Laya e reutiliza a tarefa ativa", function () {
+    Bus::fake([GenerateArticleShortlistJob::class]);
+    Http::fake();
+    $controller = new \App\Http\Controllers\Admin\ArticleShortlistController;
+
+    expect($controller()->getData(true)["status"])->toBe("idle");
+    $started = $controller->store();
+    $again = $controller->store();
+    expect($started->getStatusCode())->toBe(202)
+        ->and($started->getData(true)["status"])->toBe("queued")
+        ->and($again->getData(true)["run_id"])->toBe($started->getData(true)["run_id"])
+        ->and($controller()->getData(true)["status"])->toBe("queued");
+    Bus::assertDispatchedTimes(GenerateArticleShortlistJob::class, 1);
+    Bus::assertDispatched(GenerateArticleShortlistJob::class, fn ($job) => $job->connection === "laya"
+        && $job->queue === "article-shortlists"
+        && $job->timeout === 120 && $job->tries === 1 && $job->failOnTimeout
+        && $job->timeout < config("queue.connections.laya.retry_after"));
+    Http::assertNothingSent();
+});
+
+it("processa em lotes pequenos e publica o progresso antes de concluir", function () {
+    prepareAssistantSelection();
+    config(["assistant.laya.request_size" => 2]);
+    Cache::put(GenerateArticleShortlistJob::CACHE_KEY, ["run_id" => "progress", "status" => "queued"]);
+    $observed = [];
+    Http::fake(function ($request) use (&$observed) {
+        $observed[] = Cache::get(GenerateArticleShortlistJob::CACHE_KEY)["processed"];
+        return Http::response(["results" => array_fill(0, count($request["states"]), layaEvaluation())]);
+    });
+
+    (new GenerateArticleShortlistJob("progress"))->handle(new ShortlistScrapedArticlesWithLaya);
+
+    $state = Cache::get(GenerateArticleShortlistJob::CACHE_KEY);
+    expect($observed)->toBe([0, 2])
+        ->and($state["status"])->toBe("completed")
+        ->and($state["processed"])->toBe(3)
+        ->and($state["total"])->toBe(3)
+        ->and($state["count"])->toBe(3);
+});
+
+it("expõe falhas e permite iniciar uma nova tentativa", function () {
+    Bus::fake([GenerateArticleShortlistJob::class]);
+    Cache::put(GenerateArticleShortlistJob::CACHE_KEY, ["run_id" => "failed-run", "status" => "running"]);
+    (new GenerateArticleShortlistJob("failed-run"))->failed(new RuntimeException("timeout"));
+    $controller = new \App\Http\Controllers\Admin\ArticleShortlistController;
+
+    expect($controller()->getData(true)["status"])->toBe("failed")
+        ->and($controller->store()->getData(true)["status"])->toBe("queued");
+    Bus::assertDispatchedTimes(GenerateArticleShortlistJob::class, 1);
+});
+
+it("ignora tarefas antigas sem sobrescrever o estado da nova execução", function () {
+    Cache::put(GenerateArticleShortlistJob::CACHE_KEY, ["run_id" => "new-run", "status" => "queued"]);
+    Http::fake();
+    $old = new GenerateArticleShortlistJob("old-run");
+    $old->handle(new ShortlistScrapedArticlesWithLaya);
+    $old->failed(new RuntimeException("timeout"));
+    expect(Cache::get(GenerateArticleShortlistJob::CACHE_KEY)["status"])->toBe("queued");
+    Http::assertNothingSent();
+});
+
+it("sinaliza tarefas expiradas sem deixar a tela esperando indefinidamente", function () {
+    Cache::put(GenerateArticleShortlistJob::CACHE_KEY, [
+        "run_id" => "expired", "status" => "running", "expires_at" => now()->subMinute()->timestamp,
+    ]);
+    $controller = new \App\Http\Controllers\Admin\ArticleShortlistController;
+    expect($controller()->getData(true)["status"])->toBe("failed");
 });

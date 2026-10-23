@@ -1,5 +1,11 @@
 <template>
     <Container title="Melhores Artigos" gapped>
+        <div v-if="loading">
+            <v-alert type="info" variant="tonal" aria-live="polite">
+                {{ progressText }}
+            </v-alert>
+        </div>
+
         <div v-if="error">
             <v-alert type="error" variant="tonal" :text="error" role="alert" />
         </div>
@@ -53,7 +59,7 @@
             title="Atualizar seleção"
             :loading="loading"
             :disabled="loading"
-            @click="refresh"
+            @click="refresh()"
         ></v-fab>
     </Container>
 </template>
@@ -68,8 +74,11 @@
     const articles = ref([]);
     const loading = ref(false);
     const error = ref("");
+    const progressText = ref("");
 
     let controller;
+    let pollTimer;
+    let disposed = false;
 
     function safeUrl(value) {
         try {
@@ -80,7 +89,7 @@
         }
     }
 
-    async function refresh() {
+    async function refresh(start = true) {
         if( loading.value ) return;
 
         loading.value = true;
@@ -88,20 +97,56 @@
 
         controller = new AbortController();
 
+        await load(start);
+    }
+
+    async function load(start) {
         try {
-            const { data } = await api.get(route("api.blog.article-shortlist"), { signal: controller.signal });
-            articles.value = data.data;
+            const options = { signal: controller.signal, timeout: 15000 };
+
+            let response = start
+                ? await api.post(route("api.blog.article-shortlist.store"), {}, options)
+                : await api.get(route("api.blog.article-shortlist"), options);
+
+            if( response.data.status === "idle" ) {
+                response = await api.post(route("api.blog.article-shortlist.store"), {}, options);
+            }
+
+            const data = response.data;
+
+            articles.value = data.data ?? articles.value;
+
+            if( ["queued", "running"].includes(data.status) ) {
+                progressText.value = data.status === "queued"
+                    ? "Seleção na fila. Aguardando processamento…"
+                    : `Analisando artigos: ${data.processed} de ${data.total}…`;
+
+                if( !disposed ) pollTimer = setTimeout(() => load(false), 3000);
+
+                return;
+            }
+
+            if( data.status === "failed" ) {
+                error.value = data.message || "Não foi possível concluir a seleção. Tente novamente.";
+            }
+
+            loading.value = false;
         } catch(e) {
             if( e.code !== "ERR_CANCELED" ) {
                 error.value = e.response?.status === 429
                     ? "Muitas atualizações. Aguarde um minuto e tente novamente."
                     : e.response?.data?.message || "Não foi possível carregar a seleção. Tente novamente.";
             }
-        } finally {
+
             loading.value = false;
         }
     }
 
-    onMounted(refresh);
-    onBeforeUnmount(() => controller?.abort());
+    onMounted(() => refresh(false));
+
+    onBeforeUnmount(() => {
+        disposed = true;
+        clearTimeout(pollTimer);
+        controller?.abort();
+    });
 </script>

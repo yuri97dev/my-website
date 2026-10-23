@@ -11,8 +11,9 @@ return [
     "selection_size" => 10,
 
     "laya" => [
-        "timeout" => (int) env("ASSISTANT_LAYA_TIMEOUT", 300),
+        "timeout" => (int) env("ASSISTANT_LAYA_TIMEOUT", 90),
         "max_len" => 4096,
+        "request_size" => 5,
     ],
 
     "lock_ttl_minutes" => 180,

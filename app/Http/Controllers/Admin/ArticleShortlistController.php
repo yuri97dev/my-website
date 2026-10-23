@@ -2,33 +2,77 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Actions\ShortlistScrapedArticlesWithLaya;
 use App\Http\Controllers\Controller;
-use App\Models\ScrapedArticle;
+use App\Jobs\GenerateArticleShortlistJob;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Throwable;
 
 class ArticleShortlistController extends Controller
 {
-    public function __invoke(ShortlistScrapedArticlesWithLaya $shortlist): JsonResponse
+    public function __invoke(): JsonResponse
     {
-        try {
-            $articles = $shortlist->recent();
+        return response()->json($this->state());
+    }
 
-            return response()->json([
-                "data" => $articles->map(fn (ScrapedArticle $article) => [
-                    "id" => $article->id,
-                    "title" => $article->title,
-                    "url" => $article->url,
-                    "excerpt" => mb_substr(\App\Helpers\TextFormatter::removeHTML($article->content), 0, 500),
-                ])->values(),
-                "count" => $articles->count(),
-            ]);
-        } catch(Throwable $e) {
-            report($e);
-            return response()->json([
-                "message" => "Não foi possível obter a pré-seleção do Laya.",
-            ], 502);
+    public function store(): JsonResponse
+    {
+        return Cache::lock("article-shortlist:start", 10)->block(3, function () {
+            $state = $this->state();
+
+            if( in_array($state["status"], ["queued", "running"], true) ) {
+                return response()->json($state, 202);
+            }
+
+            $state = [
+                "run_id" => (string) Str::uuid(),
+                "status" => "queued",
+                "processed" => 0,
+                "total" => 0,
+                "data" => $state["data"] ?? [],
+                "count" => $state["count"] ?? 0,
+                "expires_at" => now()->addSeconds(GenerateArticleShortlistJob::TTL)->timestamp,
+            ];
+
+            Cache::put(
+                GenerateArticleShortlistJob::CACHE_KEY,
+                $state,
+                GenerateArticleShortlistJob::TTL
+            );
+
+            try {
+                GenerateArticleShortlistJob::dispatch($state["run_id"]);
+            } catch(Throwable $e) {
+                Cache::put(
+                    GenerateArticleShortlistJob::CACHE_KEY,
+                    array_replace($state, ["status" => "failed"]),
+                    GenerateArticleShortlistJob::TTL
+                );
+
+                report($e);
+
+                return response()->json([
+                    "message" => "Não foi possível iniciar a seleção."
+                ], 503);
+            }
+
+            return response()->json($state, 202);
+        });
+    }
+
+    private function state(): array
+    {
+        $state = Cache::get(
+            GenerateArticleShortlistJob::CACHE_KEY,
+            ["status" => "idle", "data" => [], "count" => 0]
+        );
+
+        if( in_array($state["status"], ["queued", "running"], true) && ($state["expires_at"] ?? 0) < now()->timestamp ) {
+            $state["status"] = "failed";
+            $state["message"] = "A seleção excedeu o tempo limite. Verifique se o worker do Laya está ativo.";
         }
+
+        return $state;
     }
 }
