@@ -181,28 +181,6 @@ class ProcessScrapedArticlesWithAi
             return;
         }
 
-        $pool_size = (int) config("assistant.pool_size");
-        $selection_size = (int) config("assistant.selection_size");
-
-        $candidates = ScrapedArticle::query()
-            ->eligibleForAssistant()
-            ->orderByDesc("id")
-            ->limit($pool_size)
-            ->get(["id", "title", "content"]);
-
-        if( $candidates->count() < $selection_size ) {
-            return;
-        }
-
-        $batch = $candidates->shuffle()->take($selection_size)->values();
-
-        $lines = $batch->map(function (ScrapedArticle $article, int $index) {
-            $number = $index + 1;
-            $excerpt = $this->excerptPreview($article->content);
-
-            return "{$number}. Title: {$article->title}\n   Summary: {$excerpt}";
-        })->implode("\n\n");
-
         try {
             $select_prompt = AssistantPrompts::get(AssistantPrompts::KEY_SELECT_SYSTEM);
 
@@ -211,7 +189,31 @@ class ProcessScrapedArticlesWithAi
                 return;
             }
 
-            $response = Ollama::chat($select_prompt->content, $lines, [
+            $batch = (new ShortlistScrapedArticlesWithLaya)->recent();
+
+            Log::info("ProcessScrapedArticlesWithAi: pré-seleção do Laya concluída.", [
+                "shortlisted" => $batch->count(),
+            ]);
+
+            if( $batch->isEmpty() ) {
+                Log::info("ProcessScrapedArticlesWithAi: nenhum candidato aprovado pelo Laya.");
+                return;
+            }
+
+            $selection_size = $batch->count();
+
+            $lines = $batch->map(function (ScrapedArticle $article, int $index) {
+                $number = $index + 1;
+                $excerpt = $this->excerptPreview($article->content);
+
+                return "{$number}. Title: {$article->title}\n   Summary: {$excerpt}";
+            })->implode("\n\n");
+
+            $system = $select_prompt->content . "\n\nNeste lote há {$selection_size} artigos. "
+                . "A quantidade e a numeração válidas deste lote prevalecem sobre outras quantidades citadas: "
+                . "responda somente com um número inteiro de 1 a {$selection_size}.";
+
+            $response = Ollama::chat($system, $lines, [
                 "model" => $select_prompt->model,
             ]);
 
@@ -230,7 +232,7 @@ class ProcessScrapedArticlesWithAi
             ];
 
             if( config("assistant.store_selection_prompt") ) {
-                $update["assistant_selection_prompt"] = $this->buildSelectionPrompt($lines);
+                $update["assistant_selection_prompt"] = $this->buildSelectionPrompt($system, $lines);
             }
 
             $article->update($update);
@@ -258,13 +260,11 @@ class ProcessScrapedArticlesWithAi
         ]);
     }
 
-    private function buildSelectionPrompt(string $candidates): string
+    private function buildSelectionPrompt(string $system, string $candidates): string
     {
-        $select_prompt = AssistantPrompts::get(AssistantPrompts::KEY_SELECT_SYSTEM);
-
         return implode("\n\n", [
             "=== System ===",
-            $select_prompt?->content ?? "",
+            $system,
             "=== Candidates ===",
             $candidates,
         ]);

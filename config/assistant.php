@@ -10,6 +10,11 @@ return [
 
     "selection_size" => 10,
 
+    "laya" => [
+        "timeout" => 120,
+        "max_len" => 4096,
+    ],
+
     "lock_ttl_minutes" => 180,
 
     "store_selection_prompt" => env("ASSISTANT_STORE_SELECTION_PROMPT", false),

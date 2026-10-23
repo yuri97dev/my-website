@@ -113,6 +113,13 @@
                 active: route().current("admin.blog.article-sources"),
             },
             {
+                key: "blog-best-articles",
+                icon: "mdi-star-outline",
+                text: "Melhores Artigos",
+                href: route("admin.blog.best-articles"),
+                active: route().current("admin.blog.best-articles"),
+            },
+            {
                 key: "ai-providers",
                 icon: "mdi-robot",
                 text: "Provedores de IA",

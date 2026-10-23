@@ -87,6 +87,9 @@ Route::prefix("blog")->group(function () {
 Route::middleware(["auth", "role:".Role::SYSTEM_ADMIN])
     ->prefix("admin")
     ->group(function () {
+        Route::inertia("/blog/best-articles", "Admin/Blog/BestArticles")
+            ->name("admin.blog.best-articles");
+
         Route::inertia("/blog/posts", "Admin/Blog/Posts")->name("admin.blog.posts");
         Route::inertia("/blog/article-sources", "Admin/Blog/ArticleSources")->name("admin.blog.article-sources");
         Route::inertia("/sessions", "Admin/Sessions")->name("admin.sessions");

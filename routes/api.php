@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\AiPromptController;
 use App\Http\Controllers\Admin\AiProviderController;
 use App\Http\Controllers\Admin\ArticleSourceAiPromptController;
 use App\Http\Controllers\Admin\ArticleSourceController;
+use App\Http\Controllers\Admin\ArticleShortlistController;
 use App\Http\Controllers\Admin\ScrapedArticleController;
 use App\Http\Controllers\Admin\ScrapeHttpProfileController;
 use App\Http\Controllers\Admin\SessionController;
@@ -97,6 +98,10 @@ Route::prefix("account")->group(function() {
 
 Route::middleware(["auth", "role:" . Role::SYSTEM_ADMIN])
     ->group(function () {
+        Route::get("/blog/article-shortlist", ArticleShortlistController::class)
+            ->middleware("throttle:5,1")
+            ->name("api.blog.article-shortlist");
+
         Route::get("/sessions", [
             SessionController::class, "index",
         ])->name("api.sessions.index");
