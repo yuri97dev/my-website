@@ -37,9 +37,10 @@ class ShortlistScrapedArticlesWithLaya
         $max_len = filter_var(config("assistant.laya.max_len", 4096), FILTER_VALIDATE_INT, [
             "options" => ["min_range" => 1024, "max_range" => 8192],
         ]) ?: 4096;
-        $timeout = filter_var(config("assistant.laya.timeout", 120), FILTER_VALIDATE_INT, [
+
+        $timeout = filter_var(config("assistant.laya.timeout", 300), FILTER_VALIDATE_INT, [
             "options" => ["min_range" => 1],
-        ]) ?: 120;
+        ]) ?: 300;
 
         $titles = Post::query()
             ->published()

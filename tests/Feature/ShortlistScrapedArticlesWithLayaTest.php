@@ -159,11 +159,16 @@ it("usa limites válidos quando a configuração está ausente ou inválida", fu
     if( $value !== "missing" ) {
         config(["assistant.laya.max_len" => $value, "assistant.laya.timeout" => $value]);
     }
-    Http::fake(["laya.test/*" => Http::response(["results" => [layaEvaluation()]])]);
+    $sent_timeout = null;
+    Http::fake(function ($request, $options) use (&$sent_timeout) {
+        $sent_timeout = $options["timeout"];
+        return Http::response(["results" => [layaEvaluation()]]);
+    });
 
     (new ShortlistScrapedArticlesWithLaya)(collect([layaArticle(1)]), 10);
 
     Http::assertSent(fn ($request) => $request["max_len"] === 4096);
+    expect($sent_timeout)->toBe(300);
 })->with(["missing", null, 0, -1, "invalid"]);
 
 it("divide pools maiores que o limite de 64 estados mantendo a ordem das respostas", function () {
