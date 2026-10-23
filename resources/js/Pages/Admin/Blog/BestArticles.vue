@@ -1,6 +1,8 @@
 <template>
     <Container title="Melhores Artigos" gapped>
-        <v-alert v-if="error" type="error" variant="tonal" :text="error" role="alert" />
+        <div v-if="error">
+            <v-alert type="error" variant="tonal" :text="error" role="alert" />
+        </div>
 
         <div v-if="loading && !articles.length">
             <v-row>
