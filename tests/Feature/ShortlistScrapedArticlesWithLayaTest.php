@@ -154,6 +154,18 @@ it("não consulta o Laya quando não há candidatos", function () {
     Http::assertNothingSent();
 });
 
+it("usa limites válidos quando a configuração está ausente ou inválida", function ($value) {
+    config(["assistant.laya" => []]);
+    if( $value !== "missing" ) {
+        config(["assistant.laya.max_len" => $value, "assistant.laya.timeout" => $value]);
+    }
+    Http::fake(["laya.test/*" => Http::response(["results" => [layaEvaluation()]])]);
+
+    (new ShortlistScrapedArticlesWithLaya)(collect([layaArticle(1)]), 10);
+
+    Http::assertSent(fn ($request) => $request["max_len"] === 4096);
+})->with(["missing", null, 0, -1, "invalid"]);
+
 it("divide pools maiores que o limite de 64 estados mantendo a ordem das respostas", function () {
     Http::fakeSequence()
         ->push(["results" => array_fill(0, 64, layaEvaluation(0.7))])

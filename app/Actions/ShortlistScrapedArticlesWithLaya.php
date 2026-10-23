@@ -34,6 +34,13 @@ class ShortlistScrapedArticlesWithLaya
             throw new RuntimeException("URL do Laya não configurada.");
         }
 
+        $max_len = filter_var(config("assistant.laya.max_len", 4096), FILTER_VALIDATE_INT, [
+            "options" => ["min_range" => 1024, "max_range" => 8192],
+        ]) ?: 4096;
+        $timeout = filter_var(config("assistant.laya.timeout", 120), FILTER_VALIDATE_INT, [
+            "options" => ["min_range" => 1],
+        ]) ?: 120;
+
         $titles = Post::query()
             ->published()
             ->orderByDesc("published_at")
@@ -59,10 +66,10 @@ class ShortlistScrapedArticlesWithLaya
             $response = Http::baseUrl(rtrim($url, "/"))
                 ->withToken(config("services.laya.key"))
                 ->connectTimeout(5)
-                ->timeout((int) config("assistant.laya.timeout"))
+                ->timeout($timeout)
                 ->post("/v1/systemone/batch", [
                     "model" => "multilingual",
-                    "max_len" => (int) config("assistant.laya.max_len"),
+                    "max_len" => $max_len,
                     "head_max_len" => 512,
                     "batch_size" => 4,
                     "states" => $states,
