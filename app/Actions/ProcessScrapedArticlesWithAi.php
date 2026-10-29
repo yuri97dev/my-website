@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Helpers\Ollama;
 use App\Helpers\TextFormatter;
 use App\Jobs\TranslateScrapedArticleJob;
+use App\Models\AiPrompt;
 use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\PostTag;
@@ -12,6 +13,7 @@ use App\Models\ScrapedArticle;
 use App\Models\User;
 use App\Support\AssistantPrompts;
 use Droath\TextChunker\Facades\TextChunker;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -20,6 +22,8 @@ use Throwable;
 
 class ProcessScrapedArticlesWithAi
 {
+    private const SELECTION_CHUNK_SIZE = 5;
+
     public function __invoke(): void
     {
         if( !config("assistant.enabled") ) {
@@ -200,39 +204,20 @@ class ProcessScrapedArticlesWithAi
                 return;
             }
 
-            $selection_size = $batch->count();
+            $prompts = [];
+            $article = $this->chooseByTournament($batch, $select_prompt, $prompts);
 
-            $lines = $batch->map(function (ScrapedArticle $article, int $index) {
-                $number = $index + 1;
-                $excerpt = $this->excerptPreview($article->content);
-
-                return "{$number}. Title: {$article->title}\n   Summary: {$excerpt}";
-            })->implode("\n\n");
-
-            $system = $select_prompt->content . "\n\nNeste lote há {$selection_size} artigos. "
-                . "A quantidade e a numeração válidas deste lote prevalecem sobre outras quantidades citadas: "
-                . "responda somente com um número inteiro de 1 a {$selection_size}.";
-
-            $response = Ollama::chat($system, $lines, [
-                "model" => $select_prompt->model,
-            ]);
-
-            $choice = $this->parseChoice($response, $selection_size);
-
-            if( $choice === null ) {
-                Log::error("ProcessScrapedArticlesWithAi: resposta inválida ao escolher artigo: {$response}");
+            if( !$article ) {
                 return;
             }
-
-            $article = $batch[$choice - 1];
 
             $update = [
                 "processing_by" => User::ASSISTANT_ID,
                 "processing_at" => now(),
             ];
 
-            if( config("assistant.store_selection_prompt") ) {
-                $update["assistant_selection_prompt"] = $this->buildSelectionPrompt($system, $lines);
+            if( $prompts !== [] ) {
+                $update["assistant_selection_prompt"] = implode("\n\n", $prompts);
             }
 
             $article->update($update);
@@ -246,6 +231,79 @@ class ProcessScrapedArticlesWithAi
         } catch(Throwable $e) {
             Log::error("ProcessScrapedArticlesWithAi: falha ao escolher artigo: {$e->getMessage()}");
         }
+    }
+
+    /**
+     * @param  list<string>  $prompts
+     */
+    private function chooseByTournament(Collection $candidates, AiPrompt $select_prompt, array &$prompts): ?ScrapedArticle
+    {
+        $round = $candidates->values();
+
+        while( $round->count() > 1 ) {
+            $winners = collect();
+
+            Log::info("ProcessScrapedArticlesWithAi: rodada de seleção.", [
+                "candidates" => $round->count(),
+            ]);
+
+            foreach( $round->chunk(self::SELECTION_CHUNK_SIZE) as $chunk ) {
+                $chunk = $chunk->values();
+
+                if( $chunk->count() === 1 ) {
+                    $winners->push($chunk->first());
+                    continue;
+                }
+
+                $winner = $this->chooseFromChunk($chunk, $select_prompt, $prompts);
+
+                if( !$winner ) {
+                    return null;
+                }
+
+                $winners->push($winner);
+            }
+
+            $round = $winners->values();
+        }
+
+        return $round->first();
+    }
+
+    /**
+     * @param  list<string>  $prompts
+     */
+    private function chooseFromChunk(Collection $chunk, AiPrompt $select_prompt, array &$prompts): ?ScrapedArticle
+    {
+        $size = $chunk->count();
+
+        $lines = $chunk->map(function (ScrapedArticle $article, int $index) {
+            $number = $index + 1;
+            $excerpt = $this->excerptPreview($article->content);
+
+            return "{$number}. Title: {$article->title}\n   Summary: {$excerpt}";
+        })->implode("\n\n");
+
+        $system = $select_prompt->content . "\n\nNeste lote há {$size} artigos. "
+            . "A quantidade e a numeração válidas deste lote prevalecem sobre outras quantidades citadas: "
+            . "responda somente com um número inteiro de 1 a {$size}.";
+
+        $response = Ollama::chat($system, $lines, [
+            "model" => $select_prompt->model,
+        ]);
+
+        $choice = $this->parseChoice($response, $size);
+
+        if( $choice === null ) {
+            Log::error("ProcessScrapedArticlesWithAi: resposta inválida ao escolher artigo: {$response}");
+            return null;
+        }
+
+        if( config("assistant.store_selection_prompt") ) {
+            $prompts[] = $this->buildSelectionPrompt($system, $lines);
+        }
+
+        return $chunk->get($choice - 1);
     }
 
     public static function releaseAssistantLock(ScrapedArticle $article): void

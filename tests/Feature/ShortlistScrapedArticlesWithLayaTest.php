@@ -296,6 +296,59 @@ it("envia apenas os aprovados ao Ollama e bloqueia para tradução o artigo esco
     Bus::assertDispatchedTimes(TranslateScrapedArticleJob::class, 1);
 });
 
+it("reduz a pré-seleção em lotes de cinco até restar um artigo", function () {
+    prepareAssistantSelection();
+    $source = ArticleSource::query()->firstOrFail();
+
+    foreach( range(4, 6) as $number ) {
+        $source->articles()->create([
+            "url" => "https://example.test/{$number}",
+            "title" => "Notícia {$number}",
+            "content" => "<p>Uma notícia sobre programação.</p>",
+        ]);
+    }
+
+    $ollama_calls = 0;
+
+    Http::fake(function ($request) use (&$ollama_calls) {
+        if( str_contains($request->url(), "laya.test") ) {
+            return Http::response([
+                "results" => array_fill(0, count($request["states"]), layaEvaluation()),
+            ]);
+        }
+
+        $ollama_calls++;
+        $system = $request["messages"][0]["content"];
+        $user = $request["messages"][1]["content"];
+
+        if( $ollama_calls === 1 ) {
+            expect($system)->toContain("Neste lote há 5 artigos")
+                ->and($user)->toContain("1. Title: Notícia 6")
+                ->and($user)->toContain("5. Title: Notícia 2")
+                ->and($user)->not->toContain("Notícia 1");
+
+            return Http::response(["message" => ["content" => "1"]]);
+        }
+
+        expect($system)->toContain("Neste lote há 2 artigos")
+            ->and($user)->toContain("1. Title: Notícia 6")
+            ->and($user)->toContain("2. Title: Notícia 1");
+
+        return Http::response(["message" => ["content" => "2"]]);
+    });
+
+    (new ProcessScrapedArticlesWithAi)();
+
+    $chosen = ScrapedArticle::query()->where("title", "Notícia 1")->firstOrFail();
+
+    expect($ollama_calls)->toBe(2)
+        ->and($chosen->processing_by)->toBe(User::ASSISTANT_ID)
+        ->and($chosen->assistant_selection_prompt)->toContain("Neste lote há 5 artigos")
+        ->and($chosen->assistant_selection_prompt)->toContain("Neste lote há 2 artigos")
+        ->and(ScrapedArticle::query()->whereNotNull("processing_by")->count())->toBe(1);
+    Bus::assertDispatchedTimes(TranslateScrapedArticleJob::class, 1);
+});
+
 it("não chama o Ollama nem inicia tradução quando o filtro reprova todos ou falha", function ($status) {
     prepareAssistantSelection();
     Http::fake([
