@@ -31,15 +31,6 @@ return [
 
     'connections' => [
 
-        'laya' => [
-            'driver' => 'database',
-            'connection' => env('DB_QUEUE_CONNECTION'),
-            'table' => env('DB_QUEUE_TABLE', 'jobs'),
-            'queue' => 'article-shortlists',
-            'retry_after' => 150,
-            'after_commit' => false,
-        ],
-
         'sync' => [
             'driver' => 'sync',
         ],

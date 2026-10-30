@@ -22,7 +22,9 @@ use Throwable;
 
 class ProcessScrapedArticlesWithAi
 {
-    private const SELECTION_CHUNK_SIZE = 5;
+    private const POOL_SIZE = 50;
+
+    private const CHUNK_SIZE = 5;
 
     public function __invoke(): void
     {
@@ -37,20 +39,18 @@ class ProcessScrapedArticlesWithAi
 
         $this->releaseStaleLocks();
 
-        if( $this->structureDraftPost() ) {
+        if( $this->structurePendingDraft() ) {
             return;
         }
 
-        $this->pickAndTranslate();
+        $this->chooseAndTranslate();
     }
 
     private function releaseStaleLocks(): void
     {
-        $cutoff = now()->subMinutes((int) config("assistant.lock_ttl_minutes"));
-
         ScrapedArticle::query()
             ->where("processing_by", User::ASSISTANT_ID)
-            ->where("processing_at", "<", $cutoff)
+            ->where("processing_at", "<", now()->subMinutes((int) config("assistant.lock_ttl_minutes")))
             ->whereNull("post_id")
             ->update([
                 "processing_by" => null,
@@ -58,7 +58,7 @@ class ProcessScrapedArticlesWithAi
             ]);
     }
 
-    private function structureDraftPost(): bool
+    private function structurePendingDraft(): bool
     {
         $article = ScrapedArticle::query()
             ->where("processing_by", User::ASSISTANT_ID)
@@ -79,49 +79,45 @@ class ProcessScrapedArticlesWithAi
     public function structureDraftForArticle(ScrapedArticle $article): bool
     {
         try {
-            $structure_prompt = AssistantPrompts::get(AssistantPrompts::KEY_STRUCTURE_SYSTEM);
+            $prompt = AssistantPrompts::get(AssistantPrompts::KEY_STRUCTURE_SYSTEM);
 
-            if( !$structure_prompt ) {
+            if( !$prompt ) {
                 Log::error("ProcessScrapedArticlesWithAi: prompt structure_system não encontrado.");
                 return false;
             }
 
-            $categories = $this->topPublishedCategoryNames();
-            $tags = $this->topPublishedTagNames();
-
             $system = str_replace(
                 ["{categories}", "{tags}"],
-                [$categories, $tags],
-                $structure_prompt->content,
+                [$this->topNames("category"), $this->topNames("tag")],
+                $prompt->content,
             );
 
-            $user = implode("\n\n", [
-                "Título: {$article->translated_title}",
-                "Texto (contexto):\n" . TextFormatter::removeHTML($article->translated_content),
-            ]);
+            $content = trim($article->translated_content ?? "");
+            $title = mb_substr(trim($article->translated_title ?? ""), 0, 200);
 
-            $response = Ollama::chat($system, $user, [
-                "model" => $structure_prompt->model,
+            if( $title === "" || $content === "" ) {
+                Log::error("ProcessScrapedArticlesWithAi: título ou conteúdo vazio ao estruturar artigo {$article->id}.");
+                return false;
+            }
+
+            $response = Ollama::chat($system, implode("\n\n", [
+                "Título: {$title}",
+                "Texto (contexto):\n" . TextFormatter::removeHTML($content),
+            ]), [
+                "model" => $prompt->model,
             ]);
 
             $data = $this->parseJson($response);
 
-            if( !$data ) {
-                Log::error("ProcessScrapedArticlesWithAi: JSON inválido ao estruturar artigo {$article->id}.");
+            if( $data === null ) {
+                Log::error("ProcessScrapedArticlesWithAi: resposta inválida ao estruturar artigo {$article->id}.");
                 return false;
             }
 
-            $title = mb_substr(trim($article->translated_title ?? ""), 0, 200);
-
-            if( $title === "" ) {
-                Log::error("ProcessScrapedArticlesWithAi: título vazio ao estruturar artigo {$article->id}.");
-                return false;
-            }
-
-            $category_name = trim($data["category"] ?? "");
+            $category_name = trim((string) ($data["category"] ?? ""));
 
             if( $category_name === "" ) {
-                Log::error("ProcessScrapedArticlesWithAi: categoria vazia ao estruturar artigo {$article->id}.");
+                Log::error("ProcessScrapedArticlesWithAi: resposta inválida ao estruturar artigo {$article->id}.");
                 return false;
             }
 
@@ -130,28 +126,19 @@ class ProcessScrapedArticlesWithAi
                 ["name" => $category_name],
             );
 
-            $content = trim($article->translated_content ?? "");
-
-            if( $content === "" ) {
-                Log::error("ProcessScrapedArticlesWithAi: conteúdo vazio ao estruturar artigo {$article->id}.");
-                return false;
-            }
-
-            $slug = Str::slug($title);
-
             $post = Post::create([
                 "author_id" => config("assistant.author_id"),
                 "category_id" => $category->id,
-                "slug" => $this->uniqueSlug($slug),
+                "slug" => $this->uniqueSlug(Str::slug($title)),
                 "title" => $title,
                 "status" => Post::STATUS_DRAFT,
-                "excerpt" => mb_substr(trim($data["excerpt"] ?? $this->excerptFromContent($content)), 0, 500),
+                "excerpt" => mb_substr(trim($data["excerpt"] ?? TextFormatter::removeHTML($content)), 0, 500),
                 "content" => $content,
                 "meta_description" => mb_substr(trim($data["meta_description"] ?? ""), 0, 160) ?: null,
                 "thumbnail_path" => $this->thumbnailPath($content),
             ]);
 
-            $tag_ids = $this->resolveTagIds($data["tags"] ?? []);
+            $tag_ids = $this->tagIds($data["tags"] ?? []);
 
             if( $tag_ids !== [] ) {
                 $post->tags()->sync($tag_ids);
@@ -173,81 +160,70 @@ class ProcessScrapedArticlesWithAi
         }
     }
 
-    private function pickAndTranslate(): void
+    private function chooseAndTranslate(): void
     {
-        $pending_translation = ScrapedArticle::query()
+        $waiting_translation = ScrapedArticle::query()
             ->where("processing_by", User::ASSISTANT_ID)
             ->whereNull("translated_content")
             ->whereNull("post_id")
             ->exists();
 
-        if( $pending_translation ) {
+        if( $waiting_translation ) {
+            return;
+        }
+
+        $prompt = AssistantPrompts::get(AssistantPrompts::KEY_SELECT_SYSTEM);
+
+        if( !$prompt ) {
+            Log::error("ProcessScrapedArticlesWithAi: prompt select_system não encontrado.");
+            return;
+        }
+
+        $articles = ScrapedArticle::query()
+            ->eligibleForAssistant()
+            ->orderByDesc("id")
+            ->limit(self::POOL_SIZE)
+            ->get();
+
+        if( $articles->isEmpty() ) {
             return;
         }
 
         try {
-            $select_prompt = AssistantPrompts::get(AssistantPrompts::KEY_SELECT_SYSTEM);
-
-            if( !$select_prompt ) {
-                Log::error("ProcessScrapedArticlesWithAi: prompt select_system não encontrado.");
-                return;
-            }
-
-            $batch = (new ShortlistScrapedArticlesWithLaya)->recent();
-
-            Log::info("ProcessScrapedArticlesWithAi: pré-seleção do Laya concluída.", [
-                "shortlisted" => $batch->count(),
-            ]);
-
-            if( $batch->isEmpty() ) {
-                Log::info("ProcessScrapedArticlesWithAi: nenhum candidato aprovado pelo Laya.");
-                return;
-            }
-
-            $prompts = [];
-            $article = $this->chooseByTournament($batch, $select_prompt, $prompts);
-
-            if( !$article ) {
-                return;
-            }
-
-            $update = [
-                "processing_by" => User::ASSISTANT_ID,
-                "processing_at" => now(),
-            ];
-
-            if( $prompts !== [] ) {
-                $update["assistant_selection_prompt"] = implode("\n\n", $prompts);
-            }
-
-            $article->update($update);
-
-            $lock_key = TranslateScrapedArticleJob::cacheLockKey($article->id);
-            Cache::add($lock_key, true, TranslateScrapedArticleJob::CACHE_LOCK_TTL);
-
-            TranslateScrapedArticleJob::dispatch($article->id);
-
-            Log::info("ProcessScrapedArticlesWithAi: artigo {$article->id} escolhido para tradução.");
+            $article = $this->tournament($articles, $prompt);
         } catch(Throwable $e) {
             Log::error("ProcessScrapedArticlesWithAi: falha ao escolher artigo: {$e->getMessage()}");
+            return;
         }
+
+        if( !$article ) {
+            return;
+        }
+
+        $article->update([
+            "processing_by" => User::ASSISTANT_ID,
+            "processing_at" => now(),
+        ]);
+
+        Cache::add(
+            TranslateScrapedArticleJob::cacheLockKey($article->id),
+            true,
+            TranslateScrapedArticleJob::CACHE_LOCK_TTL,
+        );
+
+        TranslateScrapedArticleJob::dispatch($article->id);
+
+        Log::info("ProcessScrapedArticlesWithAi: artigo {$article->id} escolhido para tradução.");
     }
 
-    /**
-     * @param  list<string>  $prompts
-     */
-    private function chooseByTournament(Collection $candidates, AiPrompt $select_prompt, array &$prompts): ?ScrapedArticle
+    private function tournament(Collection $articles, AiPrompt $prompt): ?ScrapedArticle
     {
-        $round = $candidates->values();
+        $round = $articles->values();
 
         while( $round->count() > 1 ) {
             $winners = collect();
 
-            Log::info("ProcessScrapedArticlesWithAi: rodada de seleção.", [
-                "candidates" => $round->count(),
-            ]);
-
-            foreach( $round->chunk(self::SELECTION_CHUNK_SIZE) as $chunk ) {
+            foreach( $round->chunk(self::CHUNK_SIZE) as $chunk ) {
                 $chunk = $chunk->values();
 
                 if( $chunk->count() === 1 ) {
@@ -255,7 +231,7 @@ class ProcessScrapedArticlesWithAi
                     continue;
                 }
 
-                $winner = $this->chooseFromChunk($chunk, $select_prompt, $prompts);
+                $winner = $this->chooseOne($chunk, $prompt);
 
                 if( !$winner ) {
                     return null;
@@ -270,40 +246,41 @@ class ProcessScrapedArticlesWithAi
         return $round->first();
     }
 
-    /**
-     * @param  list<string>  $prompts
-     */
-    private function chooseFromChunk(Collection $chunk, AiPrompt $select_prompt, array &$prompts): ?ScrapedArticle
+    private function chooseOne(Collection $chunk, AiPrompt $prompt): ?ScrapedArticle
     {
-        $size = $chunk->count();
-
         $lines = $chunk->map(function (ScrapedArticle $article, int $index) {
             $number = $index + 1;
-            $excerpt = $this->excerptPreview($article->content);
 
-            return "{$number}. Title: {$article->title}\n   Summary: {$excerpt}";
+            return "{$number}. Title: {$article->title}\nSummary: {$this->sentences($article->content)}";
         })->implode("\n\n");
 
-        $system = $select_prompt->content . "\n\nNeste lote há {$size} artigos. "
-            . "A quantidade e a numeração válidas deste lote prevalecem sobre outras quantidades citadas: "
-            . "responda somente com um número inteiro de 1 a {$size}.";
-
-        $response = Ollama::chat($system, $lines, [
-            "model" => $select_prompt->model,
+        $response = Ollama::chat($prompt->content, $lines, [
+            "model" => $prompt->model,
         ]);
 
-        $choice = $this->parseChoice($response, $size);
+        $choice = $this->parseChoice($response, $chunk->count());
 
         if( $choice === null ) {
             Log::error("ProcessScrapedArticlesWithAi: resposta inválida ao escolher artigo: {$response}");
             return null;
         }
 
-        if( config("assistant.store_selection_prompt") ) {
-            $prompts[] = $this->buildSelectionPrompt($system, $lines);
+        return $chunk->get($choice - 1);
+    }
+
+    private function sentences(string $content): string
+    {
+        $plain = trim(TextFormatter::removeHTML($content));
+
+        if( $plain === "" ) {
+            return "";
         }
 
-        return $chunk->get($choice - 1);
+        $chunks = TextChunker::strategy("sentence")
+            ->size(3)
+            ->chunk($plain);
+
+        return isset($chunks[0]) ? $chunks[0]->text : "";
     }
 
     public static function releaseAssistantLock(ScrapedArticle $article): void
@@ -318,17 +295,7 @@ class ProcessScrapedArticlesWithAi
         ]);
     }
 
-    private function buildSelectionPrompt(string $system, string $candidates): string
-    {
-        return implode("\n\n", [
-            "=== System ===",
-            $system,
-            "=== Candidates ===",
-            $candidates,
-        ]);
-    }
-
-    private function resolveTagIds(mixed $tags): array
+    private function tagIds(mixed $tags): array
     {
         if( is_string($tags) ) {
             $tags = array_map("trim", explode(",", $tags));
@@ -347,71 +314,44 @@ class ProcessScrapedArticlesWithAi
                 continue;
             }
 
-            $tag = PostTag::query()->firstOrCreate(
+            $ids[] = PostTag::query()->firstOrCreate(
                 ["slug" => Str::slug($tag_name)],
                 ["name" => $tag_name],
-            );
-
-            $ids[] = $tag->id;
+            )->id;
         }
 
         return array_values(array_unique($ids));
     }
 
-    private function topPublishedCategoryNames(): string
+    private function topNames(string $kind): string
     {
-        $counts = Post::query()
-            ->published()
-            ->select([
-                "category_id",
-                DB::raw("count(*) as posts_count"),
-            ])
-            ->whereNotNull("category_id")
-            ->groupBy("category_id");
+        if( $kind === "category" ) {
+            $counts = Post::query()
+                ->published()
+                ->select(["category_id", DB::raw("count(*) as posts_count")])
+                ->whereNotNull("category_id")
+                ->groupBy("category_id");
 
-        return PostCategory::query()
-            ->joinSub($counts, "post_counts", "post_counts.category_id", "post_categories.id")
-            ->orderByDesc("post_counts.posts_count")
-            ->limit(20)
-            ->pluck("post_categories.name")
-            ->implode(", ") ?: "nenhuma";
-    }
+            $names = PostCategory::query()
+                ->joinSub($counts, "post_counts", "post_counts.category_id", "post_categories.id")
+                ->orderByDesc("post_counts.posts_count")
+                ->limit(20)
+                ->pluck("post_categories.name");
+        } else {
+            $counts = Post::query()
+                ->published()
+                ->join("post_tag", "posts.id", "=", "post_tag.post_id")
+                ->select(["post_tag.post_tag_id", DB::raw("count(*) as posts_count")])
+                ->groupBy("post_tag.post_tag_id");
 
-    private function topPublishedTagNames(): string
-    {
-        $counts = Post::query()
-            ->published()
-            ->join("post_tag", "posts.id", "=", "post_tag.post_id")
-            ->select([
-                "post_tag.post_tag_id",
-                DB::raw("count(*) as posts_count"),
-            ])
-            ->groupBy("post_tag.post_tag_id");
+            $names = PostTag::query()
+                ->joinSub($counts, "post_counts", "post_counts.post_tag_id", "post_tags.id")
+                ->orderByDesc("post_counts.posts_count")
+                ->limit(20)
+                ->pluck("post_tags.name");
+        }
 
-        return PostTag::query()
-            ->joinSub($counts, "post_counts", "post_counts.post_tag_id", "post_tags.id")
-            ->orderByDesc("post_counts.posts_count")
-            ->limit(20)
-            ->pluck("post_tags.name")
-            ->implode(", ") ?: "nenhuma";
-    }
-
-    private function excerptPreview(string $content): string
-    {
-        $without_html = TextFormatter::removeHTML($content);
-
-        $sentences = TextChunker::strategy("sentence")
-            ->size(3)
-            ->chunk($without_html);
-
-        if( !isset($sentences[0]) ) return "";
-
-        return $sentences[0]->text;
-    }
-
-    private function excerptFromContent(string $content): string
-    {
-        return mb_substr(TextFormatter::removeHTML($content), 0, 500);
+        return $names->implode(", ") ?: "nenhuma";
     }
 
     private function thumbnailPath(string $content): ?string
@@ -438,17 +378,13 @@ class ProcessScrapedArticlesWithAi
 
     private function parseChoice(string $response, int $max): ?int
     {
-        if( !preg_match("/\b([1-9]|10)\b/", trim($response), $matches) ) {
+        if( !preg_match("/\b([1-9]|10)\b/", $response, $matches) ) {
             return null;
         }
 
         $choice = (int) $matches[1];
 
-        if( $choice < 1 || $choice > $max ) {
-            return null;
-        }
-
-        return $choice;
+        return $choice >= 1 && $choice <= $max ? $choice : null;
     }
 
     private function parseJson(string $text): ?array
@@ -457,7 +393,6 @@ class ProcessScrapedArticlesWithAi
 
         if( str_starts_with($text, "```") ) {
             $line_break = strpos($text, "\n");
-
             $text = $line_break === false ? "" : substr($text, $line_break + 1);
             $text = rtrim($text);
 
